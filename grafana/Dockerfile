@@ -9,3 +9,6 @@ USER root
 COPY datasources /etc/grafana/provisioning/datasources
 COPY dashboards/dashboards.yml /etc/grafana/provisioning/dashboards/dashboards.yml
 COPY dashboards/*.json /etc/grafana/provisioning/dashboards/
+
+# Expose Grafana port
+EXPOSE 3000
