@@ -2,8 +2,11 @@ ARG VERSION=3.4
 
 FROM grafana/loki:${VERSION}
 
+# Run as root for Railway volume permissions
+USER root
+
 # Copy the loki.yml configuration file to the container
-COPY loki.yml /etc/loki/loki-confi.yaml
+COPY loki.yml /etc/loki/loki-config.yaml
 
 # Command to run Loki
-CMD ["-config.file=/etc/loki/loki-confi.yaml"]
+CMD ["-config.file=/etc/loki/loki-config.yaml"]
