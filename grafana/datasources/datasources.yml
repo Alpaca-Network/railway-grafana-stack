@@ -20,6 +20,12 @@ datasources:
     basicAuthUser:
     withCredentials:
     isDefault: true
+    jsonData:
+      derivedFields:
+        - datasourceUid: grafana_tempo
+          matcherRegex: "trace_id=(\\w+)"
+          name: TraceID
+          url: '$${__value.raw}'
   - name: Prometheus
     type: prometheus
     access: proxy
@@ -32,6 +38,10 @@ datasources:
     basicAuthUser:
     withCredentials:
     isDefault: false
+    jsonData:
+      exemplarTraceIdDestinations:
+        - datasourceUid: grafana_tempo
+          name: trace_id
   - name: Tempo
     type: tempo
     access: proxy
@@ -44,3 +54,26 @@ datasources:
     basicAuthUser:
     withCredentials:
     isDefault: false
+    jsonData:
+      tracesToLogsV2:
+        datasourceUid: 'grafana_lokiq'
+        spanStartTimeShift: '-1h'
+        spanEndTimeShift: '1h'
+        tags: ['service_name', 'compose_service']
+        filterByTraceID: true
+        filterBySpanID: false
+      tracesToMetrics:
+        datasourceUid: 'grafana_prometheus'
+        spanStartTimeShift: '-1h'
+        spanEndTimeShift: '1h'
+        tags:
+          - key: 'service.name'
+            value: 'service_name'
+      serviceMap:
+        datasourceUid: 'grafana_prometheus'
+      nodeGraph:
+        enabled: true
+      search:
+        hide: false
+      lokiSearch:
+        datasourceUid: 'grafana_lokiq'
