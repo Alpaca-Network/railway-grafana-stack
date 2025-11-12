@@ -61,6 +61,19 @@ services:
       - TEMPO_URL=http://tempo:4318
       - TEMPO_SERVICE_NAME=example_api
 
+  fastapi_app:
+    build:
+      context: ./examples/fastapi-app
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - SERVICE_NAME=fastapi-app
+      - TEMPO_URL=http://tempo:4318
+    depends_on:
+      - tempo
+      - prometheus
+
 volumes: 
   prometheus_data:
   loki_data:
