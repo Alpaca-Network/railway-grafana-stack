@@ -14,7 +14,10 @@ import time
 
 # Configuration
 SERVICE_NAME = os.getenv("SERVICE_NAME", "fastapi-app")
-TEMPO_URL = os.getenv("TEMPO_URL", "http://tempo:4318")
+# Railway uses TEMPO_INTERNAL_HTTP_INGEST or TEMPO_INTERNAL_GRPC_INGEST
+# For local Docker: http://tempo:4318
+# For Railway: Use the internal URL provided by Railway
+TEMPO_URL = os.getenv("TEMPO_URL", os.getenv("TEMPO_INTERNAL_HTTP_INGEST", "http://tempo:4318"))
 
 # Setup logging
 logging.basicConfig(
@@ -136,4 +139,6 @@ async def error_endpoint():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # Support Railway's PORT environment variable
+    port = int(os.getenv("PORT", "8000"))
+    uvicorn.run(app, host="0.0.0.0", port=port)
