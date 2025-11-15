@@ -8,6 +8,9 @@ USER root
 # Copy the prom.yml configuration file to the container
 COPY prom.yml /etc/prometheus/prom.yml
 
+# Copy alert rules
+COPY alert.rules.yml /etc/prometheus/alert.rules.yml
+
 # Expose Prometheus port for Railway private networking
 EXPOSE 9090
 
