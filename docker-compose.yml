@@ -62,9 +62,9 @@ services:
     ports:
       - "9091:9091"
     environment:
-      - TEMPO_URL=http://tempo:4318
+      - TEMPO_URL=${TEMPO_URL:-http://tempo:4318}
       - TEMPO_SERVICE_NAME=gatewayz-monitor
-      - LOKI_URL=http://loki:3100
+      - LOKI_URL=${LOKI_URL:-http://loki:3100}
       - TARGET_API=https://api.gatewayz.ai
       - MONITOR_INTERVAL_MS=30000
       - MONITOR_ENDPOINTS=/,/health,/status,/v1/chat/completions

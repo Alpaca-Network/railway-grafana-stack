@@ -6,9 +6,9 @@ FROM grafana/grafana-oss:${VERSION}
 USER root
 
 # Set default datasource URLs (can be overridden by env vars)
-ENV LOKI_INTERNAL_URL=http://loki:3100
-ENV PROMETHEUS_INTERNAL_URL=http://prometheus:9090
-ENV TEMPO_INTERNAL_URL=http://tempo:3200
+ENV LOKI_INTERNAL_URL=http://loki.railway.internal:3100
+ENV PROMETHEUS_INTERNAL_URL=http://prometheus.railway.internal:9090
+ENV TEMPO_INTERNAL_URL=http://tempo.railway.internal:3200
 
 # copy the datasources and dashboards
 COPY datasources /etc/grafana/provisioning/datasources
