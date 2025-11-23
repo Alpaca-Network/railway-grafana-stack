@@ -1,7 +1,7 @@
 import { createLogger, transports, format } from 'winston';
 import LokiTransport from 'winston-loki';
 
-const LOKI_URL = process.env.LOKI_URL || 'http://loki:3100';
+const LOKI_URL = process.env.LOKI_URL || 'http://loki.railway.internal:3100';
 
 
 const options = {
