@@ -2,6 +2,7 @@ import express from 'express';
 import promMiddleware from 'express-prometheus-middleware';
 import { trace, context } from "@opentelemetry/api";
 
+import Sentry from './sentry.js';
 import { logger } from './logger.js';
 import './tracer.js';
 
@@ -9,6 +10,9 @@ import './tracer.js';
 const app = express();
 const PORT = process.env.PORT || 9091;
 const TARGET_API = process.env.TARGET_API || 'https://api.gatewayz.ai';
+
+// Sentry request handler middleware (should be first)
+app.use(Sentry.Handlers.requestHandler());
 
 app.use(promMiddleware({
   metricsPath: '/metrics',
@@ -114,6 +118,9 @@ async function startPeriodicMonitoring() {
     span.end();
   }, INTERVAL_MS);
 }
+
+// Sentry error handler middleware (should be last)
+app.use(Sentry.Handlers.errorHandler());
 
 app.listen(PORT, () => {
   console.log(`Gatewayz monitoring service is running on http://localhost:${PORT}`);

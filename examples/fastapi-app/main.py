@@ -10,6 +10,8 @@ from opentelemetry.sdk.resources import Resource
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
 import time
 
 # Configuration
@@ -18,6 +20,20 @@ SERVICE_NAME = os.getenv("SERVICE_NAME", "fastapi-app")
 # For local Docker: http://tempo:4318
 # For Railway: Use the internal URL provided by Railway
 TEMPO_URL = os.getenv("TEMPO_URL", os.getenv("TEMPO_INTERNAL_HTTP_INGEST", "http://tempo:4318"))
+
+# Sentry initialization
+SENTRY_DSN = os.getenv("SENTRY_DSN")
+if SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        environment=os.getenv("SENTRY_ENVIRONMENT", "production"),
+        integrations=[
+            FastApiIntegration(),
+        ],
+        traces_sample_rate=float(os.getenv("SENTRY_TRACE_SAMPLE_RATE", "1.0")),
+        attach_stacktrace=True,
+        include_local_variables=True,
+    )
 
 # Setup logging
 logging.basicConfig(
