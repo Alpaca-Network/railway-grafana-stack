@@ -77,3 +77,19 @@ datasources:
         hide: false
       lokiSearch:
         datasourceUid: 'grafana_lokiq'
+  - name: Sentry
+    type: grafana-sentry-datasource
+    access: proxy
+    orgId: 1
+    uid: grafana_sentry
+    url: ${SENTRY_INTERNAL_URL}
+    user:
+    database:
+    basicAuth:
+    basicAuthUser:
+    withCredentials:
+    isDefault: false
+    jsonData:
+      authTokenName: Authorization
+    secureJsonData:
+      authToken: ${SENTRY_AUTH_TOKEN:-}

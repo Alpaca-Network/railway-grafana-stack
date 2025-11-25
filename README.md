@@ -4,12 +4,13 @@
 
 ## What is this template
 
-This template deploys a complete Grafana observability stack on Railway with just one click! The stack includes four integrated services:
+This template deploys a complete Grafana observability stack on Railway with just one click! The stack includes four integrated services plus optional Sentry integration:
 
 - **Grafana**: The leading open-source analytics and monitoring solution
 - **Loki**: A horizontally-scalable, highly-available log aggregation system
 - **Prometheus**: A powerful metrics collection and alerting system
 - **Tempo**: A high-scale distributed tracing backend
+- **Sentry**: Real-time error tracking and performance monitoring (optional)
 
 This template is perfect for teams who need a comprehensive observability solution for their railway project without the hassle of manual configuration and infrastructure management.
 
@@ -20,6 +21,7 @@ This template is perfect for teams who need a comprehensive observability soluti
 - **Version Control**: Pin specific Docker image versions for each service using environment variables.
 - **Customizable**: Fork the repository to customize configuration files for any service. You can take full control and edit anything you'd need to as you scale.
 - **One-Click Deploy**: Get a complete Grafana-based observability stack running in minutes.
+- **Optional Sentry Integration**: Add real-time error tracking and performance monitoring to your stack for comprehensive error management.
 
 ## Quick Start Guide
 
@@ -39,7 +41,11 @@ This template is perfect for teams who need a comprehensive observability soluti
 | `GF_SECURITY_ADMIN_USER` | Username for the Grafana admin account | Required input |
 | `GF_SECURITY_ADMIN_PASSWORD` | Password for the Grafana admin account | Auto-generated secure string |
 | `GF_DEFAULT_INSTANCE_NAME` | Name of your Grafana instance | `Grafana on Railway` |
-| `GF_INSTALL_PLUGINS` | Comma-separated list of Grafana plugins to install | `grafana-simple-json-datasource,grafana-piechart-panel,grafana-worldmap-panel,grafana-clock-panel` |
+| `GF_INSTALL_PLUGINS` | Comma-separated list of Grafana plugins to install | `grafana-simple-json-datasource,grafana-piechart-panel,grafana-worldmap-panel,grafana-clock-panel,grafana-sentry-datasource` |
+| `SENTRY_DSN` | (Optional) Sentry project DSN for error tracking in applications | Empty (Sentry disabled) |
+| `SENTRY_AUTH_TOKEN` | (Optional) Sentry auth token for Grafana datasource | Empty |
+| `SENTRY_ENVIRONMENT` | (Optional) Environment name for Sentry | `production` |
+| `SENTRY_TRACE_SAMPLE_RATE` | (Optional) Fraction of transactions to sample (0-1) | `1.0` |
 
 ### Internal Service URLs
 
@@ -105,6 +111,14 @@ This template deploys four interconnected services:
 - High-performance trace storage
 - Persistent volume for trace data
 
+### Sentry (Optional)
+- Real-time error tracking and performance monitoring
+- Automatic error deduplication and grouping
+- Performance transaction tracking
+- Integrates with Grafana via the Sentry datasource plugin
+- Requires separate account at [sentry.io](https://sentry.io) or self-hosted instance
+- Applications automatically instrumented to send errors to Sentry
+
 All services are deployed using official Docker images and configured to work together seamlessly.
 
 ## Connecting Your Applications
@@ -121,6 +135,22 @@ When configuring your application to send traces to Tempo, please use one of the
 
 Another thing to note is that the ingest API endpoint for the HTTP server is `/v1/traces`. For a working example of this in a node.js express API, see `/examples/api/tracer.js` in our GitHub repository.
 
+### Using Sentry for Error Tracking (Optional)
+
+To add real-time error tracking to your applications:
+
+1. Create a Sentry account at [sentry.io](https://sentry.io) (free tier available)
+2. Create a project and copy the DSN
+3. Set these environment variables in your Railway services:
+   ```
+   SENTRY_DSN=${{Grafana.SENTRY_DSN}}
+   SENTRY_ENVIRONMENT=production
+   SENTRY_TRACE_SAMPLE_RATE=1.0
+   ```
+4. See [SENTRY_SETUP.md](SENTRY_SETUP.md) for complete setup instructions
+
+The Sentry datasource plugin is pre-installed in Grafana, allowing you to query Sentry issues and view error trends in your dashboards.
+
 ### Using otherwise standard observability tooling
 
 To send data from your other Railway applications to this observability stack:
@@ -130,8 +160,9 @@ To send data from your other Railway applications to this observability stack:
    LOKI_URL=${{Grafana.LOKI_INTERNAL_URL}}
    PROMETHEUS_URL=${{Grafana.PROMETHEUS_INTERNAL_URL}}
    TEMPO_URL=${{Grafana.TEMPO_INTERNAL_URL}}
+   SENTRY_DSN=${{Grafana.SENTRY_DSN}}  # Optional
    ```
-2. Configure your application's logging, metrics, or tracing libraries to use these URLs
+2. Configure your application's logging, metrics, tracing, or error tracking libraries to use these URLs
 3. Your application data will automatically appear in your Grafana dashboards
 
 ## Customizing Your Stack
@@ -153,6 +184,9 @@ The pre-configured Grafana connections will continue to work with your customize
 - [Loki Documentation](https://grafana.com/docs/loki/latest/)
 - [Prometheus Documentation](https://prometheus.io/docs/introduction/overview/)
 - [Tempo Documentation](https://grafana.com/docs/tempo/latest/)
+- [Sentry Integration Guide](SENTRY_SETUP.md)
+- [Grafana Sentry Datasource Plugin](https://grafana.com/grafana/plugins/grafana-sentry-datasource/)
+- [Sentry Documentation](https://docs.sentry.io/)
 - [Grafana Community Forums](https://community.grafana.com/)
 - [Grafana Plugins Directory](https://grafana.com/grafana/plugins/)
 
