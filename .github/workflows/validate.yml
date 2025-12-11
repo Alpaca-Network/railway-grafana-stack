@@ -1,0 +1,204 @@
+name: Validate & Test
+
+on:
+  push:
+    branches:
+      - main
+      - refactor/**
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate-json:
+    name: Validate JSON Files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Validate dashboard JSON
+        run: |
+          python3 << 'EOF'
+          import json
+          import glob
+          import sys
+          
+          errors = []
+          for file in glob.glob('grafana/dashboards/*.json'):
+              try:
+                  with open(file, 'r') as f:
+                      json.load(f)
+                  print(f"✓ {file}")
+              except json.JSONDecodeError as e:
+                  errors.append(f"✗ {file}: {e}")
+                  print(f"✗ {file}: {e}")
+          
+          if errors:
+              sys.exit(1)
+          EOF
+      
+      - name: Validate YAML files
+        run: |
+          python3 -m pip install pyyaml > /dev/null 2>&1
+          python3 << 'EOF'
+          import yaml
+          import glob
+          import sys
+          
+          errors = []
+          for file in glob.glob('**/*.yml', recursive=True) + glob.glob('**/*.yaml', recursive=True):
+              if '.git' in file:
+                  continue
+              try:
+                  with open(file, 'r') as f:
+                      yaml.safe_load(f)
+                  print(f"✓ {file}")
+              except yaml.YAMLError as e:
+                  errors.append(f"✗ {file}: {e}")
+                  print(f"✗ {file}: {e}")
+          
+          if errors:
+              sys.exit(1)
+          EOF
+
+  lint-docker:
+    name: Lint Dockerfiles
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: prometheus/Dockerfile
+          ignore: DL3008,DL3009
+      
+      - name: Run Hadolint - Loki
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: loki/Dockerfile
+          ignore: DL3008,DL3009
+      
+      - name: Run Hadolint - Tempo
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: tempo/Dockerfile
+          ignore: DL3008,DL3009
+      
+      - name: Run Hadolint - Grafana
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: grafana/Dockerfile
+          ignore: DL3008,DL3009
+      
+      - name: Run Hadolint - FastAPI
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: examples/fastapi-app/Dockerfile
+          ignore: DL3008,DL3009
+
+  docker-build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - name: prometheus
+            dockerfile: ./prometheus/Dockerfile
+          - name: loki
+            dockerfile: ./loki/Dockerfile
+          - name: tempo
+            dockerfile: ./tempo/Dockerfile
+          - name: grafana
+            dockerfile: ./grafana/Dockerfile
+          - name: fastapi-app
+            dockerfile: ./examples/fastapi-app/Dockerfile
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build ${{ matrix.service.name }}
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ matrix.service.dockerfile }}
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  test-docker-compose:
+    name: Test Docker Compose Stack
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Start services
+        run: |
+          docker-compose up -d
+          sleep 30
+      
+      - name: Health check - Grafana
+        run: |
+          curl -f http://localhost:3000/api/health || exit 1
+      
+      - name: Health check - Prometheus
+        run: |
+          curl -f http://localhost:9090/-/healthy || exit 1
+      
+      - name: Health check - Loki
+        run: |
+          curl -f http://localhost:3100/ready || exit 1
+      
+      - name: Health check - Tempo
+        run: |
+          curl -f http://localhost:3200/status || exit 1
+      
+      - name: Health check - FastAPI
+        run: |
+          curl -f http://localhost:8000/health || exit 1
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          docker-compose down -v
+
+  check-config:
+    name: Check Configuration Files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Verify required files exist
+        run: |
+          files=(
+            "docker-compose.yml"
+            "prometheus/Dockerfile"
+            "loki/Dockerfile"
+            "tempo/Dockerfile"
+            "grafana/Dockerfile"
+            "examples/fastapi-app/Dockerfile"
+            "grafana/dashboards/dashboards.yml"
+          )
+          
+          for file in "${files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "✗ Missing required file: $file"
+              exit 1
+            fi
+            echo "✓ Found $file"
+          done
