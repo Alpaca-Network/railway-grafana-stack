@@ -111,14 +111,19 @@ jobs:
       matrix:
         service:
           - name: prometheus
+            context: ./prometheus
             dockerfile: ./prometheus/Dockerfile
           - name: loki
+            context: ./loki
             dockerfile: ./loki/Dockerfile
           - name: tempo
+            context: ./tempo
             dockerfile: ./tempo/Dockerfile
           - name: grafana
+            context: ./grafana
             dockerfile: ./grafana/Dockerfile
           - name: fastapi-app
+            context: ./examples/fastapi-app
             dockerfile: ./examples/fastapi-app/Dockerfile
     steps:
       - name: Checkout code
@@ -130,7 +135,7 @@ jobs:
       - name: Build ${{ matrix.service.name }}
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ${{ matrix.service.context }}
           file: ${{ matrix.service.dockerfile }}
           push: false
           cache-from: type=gha
