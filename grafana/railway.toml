@@ -1,0 +1,8 @@
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "grafana-server --homepath=/usr/share/grafana"
+healthchecks.httpGet.path = "/api/health"
+healthchecks.httpGet.port = 3000
