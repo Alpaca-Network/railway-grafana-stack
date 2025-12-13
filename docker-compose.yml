@@ -6,7 +6,7 @@ services:
     build:
       context: ./prometheus
       dockerfile: Dockerfile
-    user: root # required for data persistence
+    user: root
     ports:
       - "9090:9090"
     volumes:
@@ -16,7 +16,7 @@ services:
     build:
       context: ./loki
       dockerfile: Dockerfile
-    user: root # required for data persistence
+    user: root
     ports:
       - "3100:3100"
     volumes:
@@ -26,11 +26,11 @@ services:
     build:
       context: ./tempo
       dockerfile: Dockerfile
-    user: root # required for data persistence
+    user: root
     ports:
-      - "3200:3200" # http server for querying
-      - "4317:4317" # grpc server for ingest
-      - "4318:4318" # http server for ingest
+      - "3200:3200"
+      - "4317:4317" # grpc ingest
+      - "4318:4318" # http ingest
     volumes:
       - tempo_data:/var/tempo
 
@@ -47,14 +47,17 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=yourpassword123
       - GF_DEFAULT_INSTANCE_NAME=Grafana
       - GF_INSTALL_PLUGINS=grafana-simple-json-datasource,grafana-piechart-panel,grafana-worldmap-panel,grafana-clock-panel,grafana-sentry-datasource
-      # Internal URLs for datasources (works for both Docker and Railway)
+      
+      # Internal URLs for data sources (Docker & Railway)
       - LOKI_INTERNAL_URL=${LOKI_INTERNAL_URL:-http://loki.railway.internal:3100}
       - PROMETHEUS_INTERNAL_URL=${PROMETHEUS_INTERNAL_URL:-http://prometheus.railway.internal:9090}
       - TEMPO_INTERNAL_URL=${TEMPO_INTERNAL_URL:-http://tempo.railway.internal:3200}
-      # Expose these for other services to reference
+
+      # Expose ingest endpoints
       - TEMPO_INTERNAL_HTTP_INGEST=${TEMPO_INTERNAL_HTTP_INGEST:-http://tempo.railway.internal:4318}
       - TEMPO_INTERNAL_GRPC_INGEST=${TEMPO_INTERNAL_GRPC_INGEST:-http://tempo.railway.internal:4317}
-      # Sentry integration
+
+      # Sentry
       - SENTRY_INTERNAL_URL=${SENTRY_INTERNAL_URL:-http://sentry.railway.internal:9000}
       - SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN:-}
 
@@ -66,13 +69,11 @@ services:
       - "8000:8000"
     environment:
       - SERVICE_NAME=fastapi-app
-      # For local Docker: Use service names
       - TEMPO_URL=${TEMPO_URL:-http://tempo:4318}
       - TEMPO_INTERNAL_HTTP_INGEST=${TEMPO_INTERNAL_HTTP_INGEST:-http://tempo:4318}
       - TEMPO_INTERNAL_GRPC_INGEST=${TEMPO_INTERNAL_GRPC_INGEST:-http://tempo:4317}
       - LOKI_URL=${LOKI_URL:-http://loki:3100}
       - PROMETHEUS_URL=${PROMETHEUS_URL:-http://prometheus:9090}
-      # Sentry configuration
       - SENTRY_DSN=${SENTRY_DSN:-}
       - SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT:-production}
       - SENTRY_TRACE_SAMPLE_RATE=${SENTRY_TRACE_SAMPLE_RATE:-1.0}
@@ -80,7 +81,13 @@ services:
       - tempo
       - prometheus
 
-volumes: 
+    # ⭐ Only FastAPI auto-reloads on file changes
+    develop:
+      watch:
+        - action: rebuild
+          path: ./examples/fastapi-app
+
+volumes:
   prometheus_data:
   loki_data:
   grafana_data:
