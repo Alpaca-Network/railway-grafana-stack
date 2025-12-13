@@ -1,18 +1,17 @@
-# Grafana Stack on Railway
+# GatewayZ Observability Stack
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/template/8TLSQD?referralCode=IFlm92)
+A complete observability solution deployed on Railway, providing centralized logging, metrics collection, distributed tracing, and visualization for the GatewayZ infrastructure.
 
-## What is this template
+## Stack Components
 
-This template deploys a complete Grafana observability stack on Railway with just one click! The stack includes four integrated services plus optional Sentry integration:
+The stack includes four integrated services:
 
-- **Grafana**: The leading open-source analytics and monitoring solution
-- **Loki**: A horizontally-scalable, highly-available log aggregation system
-- **Prometheus**: A powerful metrics collection and alerting system
-- **Tempo**: A high-scale distributed tracing backend
-- **Sentry**: Real-time error tracking and performance monitoring (optional)
+- **Grafana**: Central visualization and dashboarding platform
+- **Loki**: Log aggregation system for centralized log management
+- **Prometheus**: Time-series metrics collection and alerting
+- **Tempo**: Distributed tracing backend for request tracing
 
-This template is perfect for teams who need a comprehensive observability solution for their railway project without the hassle of manual configuration and infrastructure management.
+All services are pre-configured and interconnected, ready to receive and visualize telemetry data from your applications.
 
 ### Key Features
 
@@ -23,48 +22,84 @@ This template is perfect for teams who need a comprehensive observability soluti
 - **One-Click Deploy**: Get a complete Grafana-based observability stack running in minutes.
 - **Optional Sentry Integration**: Add real-time error tracking and performance monitoring to your stack for comprehensive error management.
 
-## Quick Start Guide
+## Accessing the Stack
 
-1. Click the "Deploy on Railway" button at the top of this page
-2. Enter your desired Grafana admin username in the `GF_SECURITY_ADMIN_USER` variable
-3. Leave all other variables at their defaults (or customize as needed)
-4. Wait for your stack to deploy (this typically takes 3-5 minutes)
-5. Navigate to the Grafana URL provided by Railway
-6. Log in with your admin username and the auto-generated password found in the `GF_SECURITY_ADMIN_PASSWORD` environment variable
-7. Hook up your applications to the datasources.
-8. Create dashboards, alerts, and explore your data in Grafana!
+All services are publicly accessible via Railway's public URLs:
 
-## Optional Variables
+| Service | URL |
+|---------|-----|
+| **Grafana** | https://logs.gatewayz.ai |
+| **Tempo** | https://tempo.up.railway.app |
+| **Loki** | https://loki.up.railway.app |
+| **Prometheus** | https://prometheus-production-08db.up.railway.app |
+
+### Getting Started
+
+1. Navigate to **Grafana** at https://logs.gatewayz.ai
+2. Log in with your admin credentials
+3. All datasources (Loki, Prometheus, Tempo) are pre-configured and ready to use
+4. Start creating dashboards and exploring your observability data
+5. Configure your applications to send logs, metrics, and traces to the respective services
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    GatewayZ Applications                     │
+└──────────────┬──────────────┬──────────────┬────────────────┘
+               │              │              │
+        ┌──────▼──┐    ┌──────▼──┐   ┌──────▼──┐
+        │   Logs  │    │ Metrics │   │ Traces  │
+        └──────┬──┘    └──────┬──┘   └──────┬──┘
+               │              │              │
+        ┌──────▼──────────────▼──────────────▼──────┐
+        │                                           │
+        │  ┌─────────┐  ┌──────────┐  ┌────────┐  │
+        │  │  Loki   │  │Prometheus│  │ Tempo  │  │
+        │  └────┬────┘  └────┬─────┘  └───┬────┘  │
+        │       │            │            │       │
+        │       └────────────┬────────────┘       │
+        │                    │                    │
+        │              ┌─────▼──────┐             │
+        │              │  Grafana   │             │
+        │              └────────────┘             │
+        │                                        │
+        └────────────────────────────────────────┘
+```
+
+## Sending Data to the Stack
+
+### From Your Applications
+
+Your applications can send telemetry data to the observability stack using these internal Railway URLs:
+
+| Service | Internal URL | Purpose |
+|---------|--------------|---------|
+| **Loki** | `http://loki.railway.internal:3100` | Send and query logs |
+| **Prometheus** | `http://prometheus.railway.internal:9090` | Send and query metrics |
+| **Tempo** | `http://tempo.railway.internal:3200` | Query traces |
+| **Tempo (HTTP Ingest)** | `http://tempo.railway.internal:4318` | Send traces via HTTP |
+| **Tempo (GRPC Ingest)** | `http://tempo.railway.internal:4317` | Send traces via GRPC |
+
+### Configuration Example
+
+In your Railway service environment variables, reference the Grafana service to access these URLs:
+
+```
+LOKI_URL=${{Grafana.LOKI_INTERNAL_URL}}
+PROMETHEUS_URL=${{Grafana.PROMETHEUS_INTERNAL_URL}}
+TEMPO_URL=${{Grafana.TEMPO_INTERNAL_URL}}
+TEMPO_HTTP_INGEST=${{Grafana.TEMPO_INTERNAL_HTTP_INGEST}}
+TEMPO_GRPC_INGEST=${{Grafana.TEMPO_INTERNAL_GRPC_INGEST}}
+```
+
+## Configuration Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `GF_SECURITY_ADMIN_USER` | Username for the Grafana admin account | Required input |
-| `GF_SECURITY_ADMIN_PASSWORD` | Password for the Grafana admin account | Auto-generated secure string |
-| `GF_DEFAULT_INSTANCE_NAME` | Name of your Grafana instance | `Grafana on Railway` |
-| `GF_INSTALL_PLUGINS` | Comma-separated list of Grafana plugins to install | `grafana-simple-json-datasource,grafana-piechart-panel,grafana-worldmap-panel,grafana-clock-panel,grafana-sentry-datasource` |
-| `SENTRY_DSN` | (Optional) Sentry project DSN for error tracking in applications | Empty (Sentry disabled) |
-| `SENTRY_AUTH_TOKEN` | (Optional) Sentry auth token for Grafana datasource | Empty |
-| `SENTRY_ENVIRONMENT` | (Optional) Environment name for Sentry | `production` |
-| `SENTRY_TRACE_SAMPLE_RATE` | (Optional) Fraction of transactions to sample (0-1) | `1.0` |
-
-### Internal Service URLs
-
-The Grafana service exposes these environment variables that you can reference in your other Railway applications to easily send data to your observability stack:
-
-| Variable | Description | Usage |
-|----------|-------------|-------|
-| `LOKI_INTERNAL_URL` | Internal URL for the Loki service | Use in your applications to send logs to and query Loki |
-| `PROMETHEUS_INTERNAL_URL` | Internal URL for the Prometheus service | Use in your applications to send metrics to and query Prometheus |
-| `TEMPO_INTERNAL_URL` | Internal URL for the Tempo service | Use in your applications to query Tempo |
-
-These variables make it easy to configure your other Railway services to send telemetry data to your observability stack.
-
-Tempo also exposes a few variables to make it easier to push tracing information to the service using either HTTP or GRPC
-
-| Variable | Description | Usage |
-|----------|-------------|-------|
-| `INTERNAL_HTTP_INGEST` | Internal HTTP ingest server URL for Tempo | Use in your applications to send traces to tempo via HTTP |
-| `INTERNAL_GRPC_INGEST` | Internal GRPC ingest server URL for Tempo | Use in your applications to send traces to tempo via GRPC |
+| `GF_SECURITY_ADMIN_USER` | Username for the Grafana admin account | `admin` |
+| `GF_SECURITY_ADMIN_PASSWORD` | Password for the Grafana admin account | Auto-generated |
+| `GF_DEFAULT_INSTANCE_NAME` | Name of your Grafana instance | `GatewayZ Observability` |
 
 ### Version Control
 
@@ -121,49 +156,57 @@ This template deploys four interconnected services:
 
 All services are deployed using official Docker images and configured to work together seamlessly.
 
-## Connecting Your Applications
+## Integration Patterns
 
-### Using [Locomotive](https://railway.com/template/jP9r-f) for Loki
+### Logs (Loki)
 
-You can easily ingest *all* of your railway logs into Loki from *any* service using [Locomotive](https://railway.com/template/jP9r-f). Just spin up their template, drop in your Railway API key, the ID of the services you want to monitor, and a link to your new Loki instance and logs will start flowing! no code changes needed anywhere!
+Send logs to Loki using standard logging libraries. Configure your application to send logs to:
+```
+http://loki.railway.internal:3100
+```
 
-### Using OpenTelemetry libraries for Tempo 
+Popular logging libraries with Loki support:
+- Promtail (official log shipper)
+- Fluent Bit
+- Logstash
+- Vector
 
-Tempo is a bit different than both Prometheus and Loki in that exposes separate GRPC and HTTP servers on ports `:4317` and `:4318` respectively specifically for ingesting your tracing data or "spans".
+### Metrics (Prometheus)
 
-When configuring your application to send traces to Tempo, please use one of the preconfigured variables in the Tempo service: `INTERNAL_HTTP_INGEST` or `INTERNAL_GRPC_INGEST`.
+Instrument your applications with Prometheus client libraries to expose metrics:
+```
+http://prometheus.railway.internal:9090
+```
 
-Another thing to note is that the ingest API endpoint for the HTTP server is `/v1/traces`. For a working example of this in a node.js express API, see `/examples/api/tracer.js` in our GitHub repository.
+Available client libraries:
+- Go: `github.com/prometheus/client_golang`
+- Python: `prometheus-client`
+- Node.js: `prom-client`
+- Java: `micrometer-prometheus`
 
-### Using Sentry for Error Tracking (Optional)
+### Traces (Tempo)
 
-To add real-time error tracking to your applications:
+Use OpenTelemetry libraries to send distributed traces to Tempo via HTTP or GRPC:
 
-1. Create a Sentry account at [sentry.io](https://sentry.io) (free tier available)
-2. Create a project and copy the DSN
-3. Set these environment variables in your Railway services:
-   ```
-   SENTRY_DSN=${{Grafana.SENTRY_DSN}}
-   SENTRY_ENVIRONMENT=production
-   SENTRY_TRACE_SAMPLE_RATE=1.0
-   ```
-4. See [SENTRY_SETUP.md](SENTRY_SETUP.md) for complete setup instructions
+**HTTP Ingest (recommended for most applications):**
+```
+http://tempo.railway.internal:4318/v1/traces
+```
 
-The Sentry datasource plugin is pre-installed in Grafana, allowing you to query Sentry issues and view error trends in your dashboards.
+**GRPC Ingest (for high-volume tracing):**
+```
+http://tempo.railway.internal:4317
+```
 
-### Using otherwise standard observability tooling
+Example with OpenTelemetry Node.js:
+```javascript
+const { NodeTracerProvider } = require('@opentelemetry/node');
+const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-http');
 
-To send data from your other Railway applications to this observability stack:
-
-1. In your application's Railway service, add environment variables that reference the internal URLs:
-   ```
-   LOKI_URL=${{Grafana.LOKI_INTERNAL_URL}}
-   PROMETHEUS_URL=${{Grafana.PROMETHEUS_INTERNAL_URL}}
-   TEMPO_URL=${{Grafana.TEMPO_INTERNAL_URL}}
-   SENTRY_DSN=${{Grafana.SENTRY_DSN}}  # Optional
-   ```
-2. Configure your application's logging, metrics, tracing, or error tracking libraries to use these URLs
-3. Your application data will automatically appear in your Grafana dashboards
+const exporter = new OTLPTraceExporter({
+  url: 'http://tempo.railway.internal:4318/v1/traces'
+});
+```
 
 ## Customizing Your Stack
 
@@ -177,19 +220,31 @@ To customize the configuration of Loki, Prometheus, or Tempo:
 
 The pre-configured Grafana connections will continue to work with your customized services.
 
-## Additional Resources
+## Troubleshooting
 
-- [Locomotive: a loki transport for railway services](https://railway.com/template/jP9r-f)
+### Services Not Connecting
+
+If Grafana datasources show connection errors:
+
+1. Verify all services are running in Railway dashboard
+2. Check that internal URLs use the `.railway.internal` domain
+3. Ensure services are in the same Railway project
+4. Review service logs for startup errors
+
+### Data Not Appearing
+
+- **Logs**: Verify your application is sending logs to Loki with correct labels
+- **Metrics**: Check that Prometheus scrape configs are correct and targets are reachable
+- **Traces**: Ensure your application is exporting traces with correct service names
+
+## Documentation
+
 - [Grafana Documentation](https://grafana.com/docs/grafana/latest/)
 - [Loki Documentation](https://grafana.com/docs/loki/latest/)
 - [Prometheus Documentation](https://prometheus.io/docs/introduction/overview/)
 - [Tempo Documentation](https://grafana.com/docs/tempo/latest/)
-- [Sentry Integration Guide](SENTRY_SETUP.md)
-- [Grafana Sentry Datasource Plugin](https://grafana.com/grafana/plugins/grafana-sentry-datasource/)
-- [Sentry Documentation](https://docs.sentry.io/)
-- [Grafana Community Forums](https://community.grafana.com/)
-- [Grafana Plugins Directory](https://grafana.com/grafana/plugins/)
+- [OpenTelemetry Documentation](https://opentelemetry.io/docs/)
 
 ---
 
-Developed and maintained by [Mykal](https://mykal.codes). For issues or suggestions, please open an issue on the [GitHub repository](https://github.com/MykalMachon/grafana-stack-railway).
+**GatewayZ Observability Stack** - Deployed on Railway
