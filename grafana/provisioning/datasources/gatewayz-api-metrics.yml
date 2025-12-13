@@ -1,0 +1,13 @@
+apiVersion: 1
+
+datasources:
+  - name: GatewayZ API Metrics
+    type: json
+    access: proxy
+    url: https://api.gatewayz.ai/api/metrics/parsed
+    isDefault: false
+    editable: true
+    jsonData:
+      httpMethod: GET
+      cacheTimeout: 60
+    secureJsonData: {}
