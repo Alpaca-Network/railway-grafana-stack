@@ -1,10 +1,12 @@
-# Grafana Stack on Railway
+# GatewayZ Grafana Observability Stack
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/template/8TLSQD?referralCode=IFlm92)
+This is the observability and monitoring stack for the GatewayZ system, deployed on Railway.
 
-## What is this template
+**Grafana Dashboard**: [https://logs.gatewayz.ai/login](https://logs.gatewayz.ai/login)
 
-This template deploys a complete Grafana observability stack on Railway with just one click! The stack includes four integrated services plus optional Sentry integration:
+## Overview
+
+This repository contains a complete Grafana observability stack with integrated services for logging, metrics, and distributed tracing:
 
 - **Grafana**: The leading open-source analytics and monitoring solution
 - **Loki**: A horizontally-scalable, highly-available log aggregation system
@@ -12,7 +14,7 @@ This template deploys a complete Grafana observability stack on Railway with jus
 - **Tempo**: A high-scale distributed tracing backend
 - **Sentry**: Real-time error tracking and performance monitoring (optional)
 
-This template is perfect for teams who need a comprehensive observability solution for their railway project without the hassle of manual configuration and infrastructure management.
+This stack provides comprehensive observability for the GatewayZ system, enabling real-time monitoring, log aggregation, metrics collection, and distributed tracing across all services.
 
 ### Key Features
 
@@ -23,16 +25,24 @@ This template is perfect for teams who need a comprehensive observability soluti
 - **One-Click Deploy**: Get a complete Grafana-based observability stack running in minutes.
 - **Optional Sentry Integration**: Add real-time error tracking and performance monitoring to your stack for comprehensive error management.
 
-## Quick Start Guide
+## Accessing the Stack
 
-1. Click the "Deploy on Railway" button at the top of this page
-2. Enter your desired Grafana admin username in the `GF_SECURITY_ADMIN_USER` variable
-3. Leave all other variables at their defaults (or customize as needed)
-4. Wait for your stack to deploy (this typically takes 3-5 minutes)
-5. Navigate to the Grafana URL provided by Railway
-6. Log in with your admin username and the auto-generated password found in the `GF_SECURITY_ADMIN_PASSWORD` environment variable
-7. Hook up your applications to the datasources.
-8. Create dashboards, alerts, and explore your data in Grafana!
+**Production Dashboard**: [https://logs.gatewayz.ai/login](https://logs.gatewayz.ai/login)
+
+To access the Grafana dashboard:
+1. Navigate to [https://logs.gatewayz.ai/login](https://logs.gatewayz.ai/login)
+2. Log in with your GatewayZ credentials
+3. View dashboards, metrics, logs, and traces for all GatewayZ services
+
+## Local Development
+
+To run the stack locally using Docker Compose:
+
+```bash
+docker-compose up
+```
+
+Then access Grafana at `http://localhost:3000`
 
 ## Optional Variables
 
@@ -165,15 +175,14 @@ To send data from your other Railway applications to this observability stack:
 2. Configure your application's logging, metrics, tracing, or error tracking libraries to use these URLs
 3. Your application data will automatically appear in your Grafana dashboards
 
-## Customizing Your Stack
+## Configuration
 
 To customize the configuration of Loki, Prometheus, or Tempo:
 
-1. Fork the [GitHub repository](https://github.com/yourusername/grafana-railway-template)
-2. Modify the configuration files in their respective directories
-3. In Railway, disconnect the service you want to customize
-4. Reconnect the service to your forked repository
-5. Deploy the updated service
+1. Modify the configuration files in their respective directories (`./loki/`, `./prometheus/`, `./tempo/`)
+2. Update the corresponding Dockerfiles if needed
+3. Commit and push changes to the main branch
+4. Railway will automatically detect the changes and redeploy
 
 The pre-configured Grafana connections will continue to work with your customized services.
 
@@ -192,4 +201,4 @@ The pre-configured Grafana connections will continue to work with your customize
 
 ---
 
-Developed and maintained by [Mykal](https://mykal.codes). For issues or suggestions, please open an issue on the [GitHub repository](https://github.com/MykalMachon/grafana-stack-railway).
+**GatewayZ Observability Stack** - Deployed on Railway for comprehensive system monitoring and observability.
