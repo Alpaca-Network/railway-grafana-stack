@@ -1,44 +1,44 @@
  [project]
- name = "railway-grafana-stack"
+name = "railway-grafana-stack"
 
- [service.grafana]
- rootDirectory = "."
- [service.grafana.build]
- builder = "dockerfile"
- dockerfilePath = "Dockerfile"
+[service.grafana]
+rootDirectory = "grafana"
+[service.grafana.build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
 
- [service.prometheus]
- rootDirectory = "prometheus"
- [service.prometheus.build]
- builder = "dockerfile"
- dockerfilePath = "Dockerfile"
- [service.prometheus.deploy]
- startCommand = "prometheus --config.file=/etc/prometheus/prom.yml --storage.tsdb.path=/prometheus"
- healthchecks.http.path = "/-/healthy"
- healthchecks.http.port = 9090
+[service.prometheus]
+rootDirectory = "prometheus"
+[service.prometheus.build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+[service.prometheus.deploy]
+startCommand = "prometheus --config.file=/etc/prometheus/prom.yml --storage.tsdb.path=/prometheus"
+healthchecks.http.path = "/-/healthy"
+healthchecks.http.port = 9090
 
- [service.loki]
- rootDirectory = "loki"
- [service.loki.build]
- builder = "dockerfile"
- dockerfilePath = "Dockerfile"
- [service.loki.deploy]
- startCommand = "loki -config.file=/etc/loki/loki-config.yaml"
- healthchecks.http.path = "/ready"
- healthchecks.http.port = 3100
+[service.loki]
+rootDirectory = "loki"
+[service.loki.build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+[service.loki.deploy]
+startCommand = "loki -config.file=/etc/loki/loki-config.yaml"
+healthchecks.http.path = "/ready"
+healthchecks.http.port = 3100
 
- [service.tempo]
- rootDirectory = "tempo"
- [service.tempo.build]
- builder = "dockerfile"
- dockerfilePath = "Dockerfile"
- [service.tempo.deploy]
- startCommand = "tempo -config.file=/etc/tempo/tempo.yml"
- healthchecks.http.path = "/status"
- healthchecks.http.port = 3200
+[service.tempo]
+rootDirectory = "tempo"
+[service.tempo.build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+[service.tempo.deploy]
+startCommand = "tempo -config.file=/etc/tempo/tempo.yml"
+healthchecks.http.path = "/status"
+healthchecks.http.port = 3200
 
- [service.fastapi_app]
- rootDirectory = "examples/fastapi-app"
- [service.fastapi_app.build]
- builder = "dockerfile"
- dockerfilePath = "Dockerfile"
+[service.fastapi_app]
+rootDirectory = "examples/fastapi-app"
+[service.fastapi_app.build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
