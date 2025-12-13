@@ -13,6 +13,7 @@ from opentelemetry.instrumentation.logging import LoggingInstrumentor
 import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 import time
+from metrics_parser import get_metrics_parser
 
 # Configuration
 SERVICE_NAME = os.getenv("SERVICE_NAME", "fastapi-app")
@@ -277,6 +278,31 @@ async def trace_example(depth: int = 3):
         "service": SERVICE_NAME
     }
 
+@app.get("/api/metrics/parsed")
+async def get_parsed_metrics():
+    """
+    Parse Prometheus metrics and return latency-weighted data.
+    
+    Returns structured JSON with:
+    - latency: p50, p95, p99, and average latency per endpoint
+    - requests: total request counts by endpoint/method
+    - errors: error counts by endpoint/method
+    
+    This endpoint is optimized for Railway's internal networking and
+    automatically discovers the Prometheus service via Railway's internal URLs.
+    """
+    logger.info("Parsed metrics requested")
+    
+    parser = get_metrics_parser()
+    metrics = await parser.get_metrics()
+    
+    return {
+        "service": SERVICE_NAME,
+        "timestamp": time.time(),
+        "metrics": metrics,
+        "prometheus_url": parser.metrics_url
+    }
+
 @app.get("/dashboard-data")
 async def dashboard_data():
     """Return summary of current metrics for dashboard visualization"""
@@ -292,6 +318,7 @@ async def dashboard_data():
             {"path": "/error", "description": "Error endpoint"},
             {"path": "/metrics", "description": "Prometheus metrics"},
             {"path": "/health", "description": "Health check"},
+            {"path": "/api/metrics/parsed", "description": "Parsed latency-weighted metrics"},
             {"path": "/generate-synthetic-data", "description": "Generate synthetic logs/traces"},
             {"path": "/generate-load", "description": "Generate continuous load"},
             {"path": "/simulate-errors", "description": "Simulate error scenarios"},
