@@ -13,6 +13,7 @@ from opentelemetry.instrumentation.logging import LoggingInstrumentor
 import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 import time
+from metrics_parser import get_metrics_parser
 
 # Configuration
 SERVICE_NAME = os.getenv("SERVICE_NAME", "fastapi-app")
