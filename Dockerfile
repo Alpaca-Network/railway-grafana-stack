@@ -1,18 +1,15 @@
-# Multi-stage Dockerfile for Railway deployment
-# This Dockerfile builds and runs the complete Grafana observability stack
+ARG VERSION=11.5.2
 
-FROM docker:latest
+FROM grafana/grafana-oss:${VERSION}
 
-WORKDIR /app
+USER root
 
-COPY docker-compose.yml .
-COPY grafana/ ./grafana/
-COPY loki/ ./loki/
-COPY prometheus/ ./prometheus/
-COPY tempo/ ./tempo/
+ENV LOKI_INTERNAL_URL=http://loki.railway.internal:3100
+ENV PROMETHEUS_INTERNAL_URL=http://prometheus.railway.internal:9090
+ENV TEMPO_INTERNAL_URL=http://tempo.railway.internal:3200
 
-RUN apk add --no-cache docker-compose
+COPY grafana/datasources /etc/grafana/provisioning/datasources
+COPY grafana/dashboards/dashboards.yml /etc/grafana/provisioning/dashboards/dashboards.yml
+COPY grafana/dashboards/*.json /etc/grafana/provisioning/dashboards/
 
-EXPOSE 3000 3100 3200 9090 4317 4318
-
-CMD ["docker-compose", "up"]
+EXPOSE 3000
