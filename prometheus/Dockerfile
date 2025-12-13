@@ -14,5 +14,5 @@ COPY alert.rules.yml /etc/prometheus/alert.rules.yml
 # Expose Prometheus port for Railway private networking
 EXPOSE 9090
 
-# Command to run Prometheus
+# Command to run Prometheus (binary provided by base image entrypoint)
 CMD ["--config.file=/etc/prometheus/prom.yml", "--storage.tsdb.path=/prometheus"]
