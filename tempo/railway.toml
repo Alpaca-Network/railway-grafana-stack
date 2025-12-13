@@ -1,0 +1,8 @@
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "tempo -config.file=/etc/tempo/tempo.yml"
+healthchecks.httpGet.path = "/status"
+healthchecks.httpGet.port = 3200

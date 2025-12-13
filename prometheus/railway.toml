@@ -1,0 +1,8 @@
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus"
+healthchecks.httpGet.path = "/-/healthy"
+healthchecks.httpGet.port = 9090
