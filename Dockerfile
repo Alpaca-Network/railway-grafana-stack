@@ -10,7 +10,9 @@ WORKDIR /workspace
 # (Railway sometimes provides either the repo root or grafana/ as the context).
 COPY . .
 
-# Collect datasources and dashboards into a predictable location.
+# Collect datasources and dashboards into a predictable location. If the build
+# context doesn't include them (e.g., when Railway builds Tempo/Loki with the
+# repo root Dockerfile), create empty placeholders so those services still build.
 RUN set -euxo pipefail \
  && mkdir -p /out/datasources /out/dashboards \
  && if [ -d "./grafana/datasources" ]; then \
@@ -18,14 +20,14 @@ RUN set -euxo pipefail \
     elif [ -d "./datasources" ]; then \
         cp -R ./datasources/. /out/datasources/; \
     else \
-        echo "ERROR: grafana datasources directory not found in build context" >&2 && exit 1; \
+        echo "WARNING: grafana datasources directory not found in build context; using empty directory" >&2; \
     fi \
  && if [ -d "./grafana/dashboards" ]; then \
         cp -R ./grafana/dashboards/. /out/dashboards/; \
     elif [ -d "./dashboards" ]; then \
         cp -R ./dashboards/. /out/dashboards/; \
     else \
-        echo "ERROR: grafana dashboards directory not found in build context" >&2 && exit 1; \
+        echo "WARNING: grafana dashboards directory not found in build context; using empty directory" >&2; \
     fi
 
 FROM grafana/grafana-oss:${VERSION}
