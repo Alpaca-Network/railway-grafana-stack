@@ -47,13 +47,17 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=yourpassword123
       - GF_DEFAULT_INSTANCE_NAME=Grafana
       - GF_INSTALL_PLUGINS=grafana-simple-json-datasource,grafana-piechart-panel,grafana-worldmap-panel,grafana-clock-panel,grafana-sentry-datasource
+      # Datasource URLs (local defaults, override on Railway with public URLs)
+      - PROMETHEUS_URL=${PROMETHEUS_URL:-http://prometheus:9090}
+      - LOKI_URL=${LOKI_URL:-http://loki:3100}
+      - TEMPO_URL=${TEMPO_URL:-http://tempo:3200}
       # Internal URLs for datasources (works for both Docker and Railway)
-      - LOKI_INTERNAL_URL=${LOKI_INTERNAL_URL:-http://loki.railway.internal:3100}
-      - PROMETHEUS_INTERNAL_URL=${PROMETHEUS_INTERNAL_URL:-http://prometheus.railway.internal:9090}
-      - TEMPO_INTERNAL_URL=${TEMPO_INTERNAL_URL:-http://tempo.railway.internal:3200}
+      - LOKI_INTERNAL_URL=${LOKI_INTERNAL_URL:-http://loki:3100}
+      - PROMETHEUS_INTERNAL_URL=${PROMETHEUS_INTERNAL_URL:-http://prometheus:9090}
+      - TEMPO_INTERNAL_URL=${TEMPO_INTERNAL_URL:-http://tempo:3200}
       # Expose these for other services to reference
-      - TEMPO_INTERNAL_HTTP_INGEST=${TEMPO_INTERNAL_HTTP_INGEST:-http://tempo.railway.internal:4318}
-      - TEMPO_INTERNAL_GRPC_INGEST=${TEMPO_INTERNAL_GRPC_INGEST:-http://tempo.railway.internal:4317}
+      - TEMPO_INTERNAL_HTTP_INGEST=${TEMPO_INTERNAL_HTTP_INGEST:-http://tempo:4318}
+      - TEMPO_INTERNAL_GRPC_INGEST=${TEMPO_INTERNAL_GRPC_INGEST:-http://tempo:4317}
       # Sentry integration
       - SENTRY_INTERNAL_URL=${SENTRY_INTERNAL_URL:-http://sentry.railway.internal:9000}
       - SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN:-}
