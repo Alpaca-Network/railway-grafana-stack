@@ -4,6 +4,6 @@ datasources:
   - name: Tempo
     type: tempo
     access: proxy
-    url: ${TEMPO_INTERNAL_URL}
+    url: http://tempo:3200
     isDefault: false
     editable: true
