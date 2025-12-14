@@ -19,7 +19,7 @@
   "links": [],
   "panels": [
     {
-      "datasource": "GatewayZ API Metrics",
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -69,15 +69,15 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "refId": "A",
-          "target": "metrics.latency"
+          "expr": "histogram_quantile(0.99, rate(fastapi_request_duration_seconds_bucket[5m]))",
+          "refId": "A"
         }
       ],
-      "title": "P99 Latency (ms)",
+      "title": "P99 Latency (s)",
       "type": "gauge"
     },
     {
-      "datasource": "GatewayZ API Metrics",
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -127,15 +127,15 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "refId": "A",
-          "target": "metrics.latency"
+          "expr": "histogram_quantile(0.95, rate(fastapi_request_duration_seconds_bucket[5m]))",
+          "refId": "A"
         }
       ],
-      "title": "P95 Latency (ms)",
+      "title": "P95 Latency (s)",
       "type": "gauge"
     },
     {
-      "datasource": "GatewayZ API Metrics",
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -185,15 +185,15 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "refId": "A",
-          "target": "metrics.latency"
+          "expr": "histogram_quantile(0.50, rate(fastapi_request_duration_seconds_bucket[5m]))",
+          "refId": "A"
         }
       ],
-      "title": "P50 Latency (ms)",
+      "title": "P50 Latency (s)",
       "type": "gauge"
     },
     {
-      "datasource": "GatewayZ API Metrics",
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -243,15 +243,15 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "refId": "A",
-          "target": "metrics.latency"
+          "expr": "rate(fastapi_request_duration_seconds_sum[5m]) / rate(fastapi_request_duration_seconds_count[5m])",
+          "refId": "A"
         }
       ],
-      "title": "Average Latency (ms)",
+      "title": "Average Latency (s)",
       "type": "gauge"
     },
     {
-      "datasource": "GatewayZ API Metrics",
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -284,15 +284,15 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "refId": "A",
-          "target": "metrics"
+          "expr": "fastapi_requests_total",
+          "refId": "A"
         }
       ],
-      "title": "Latency Metrics by Endpoint",
+      "title": "Request Counts by Endpoint",
       "type": "table"
     },
     {
-      "datasource": "GatewayZ API Metrics",
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -325,11 +325,11 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "refId": "A",
-          "target": "metrics.requests"
+          "expr": "rate(fastapi_requests_total[5m])",
+          "refId": "A"
         }
       ],
-      "title": "Request Counts by Endpoint",
+      "title": "Request Rate by Endpoint",
       "type": "table"
     }
   ],
