@@ -18,7 +18,7 @@ scrape_configs:
     scheme: http
     metrics_path: '/metrics'
     static_configs:
-      - targets: ['FASTAPI_TARGET']
+      - targets: ['fastapi_app:8000', 'fastapi-app.railway.internal:8000']
     scrape_interval: 15s
     scrape_timeout: 10s
 
