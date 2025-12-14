@@ -4,6 +4,6 @@ datasources:
   - name: Loki
     type: loki
     access: proxy
-    url: http://loki:3100
+    url: $LOKI_INTERNAL_URL
     isDefault: false
     editable: true
