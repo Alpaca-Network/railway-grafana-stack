@@ -4,6 +4,15 @@ datasources:
   - name: Tempo
     type: tempo
     access: proxy
-    url: ${TEMPO_URL:-http://tempo:3200}
+    url: ${TEMPO_INTERNAL_URL:-http://tempo:3200}
     isDefault: false
     editable: true
+    jsonData:
+      tracesToMetrics:
+        datasourceUid: grafana_prometheus
+      tracesToLogs:
+        datasourceUid: grafana_loki
+        spanStartTimeShift: -1h
+        spanEndTimeShift: 1h
+        filterByTraceID: true
+        filterBySpanID: true

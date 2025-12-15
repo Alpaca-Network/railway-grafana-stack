@@ -1,19 +1,28 @@
 server:
   http_listen_port: 3200
+  grpc_listen_port: 0
 
 compactor:
   compaction:
     compaction_window: 1h
+    max_block_bytes: 107374182
+    block_retention: 1h
+    compacted_block_retention: 10m
 
 storage:
   trace:
     backend: local
     local:
       path: /var/tempo/traces
+      wal:
+        path: /var/tempo/wal
+        checkpoint_duration: 5m
+        queue:
+          checkpoint_interval: 5m
 
 distributor:
   log_received_spans:
-        enabled: true
+    enabled: true
   receivers:
     otlp:
       protocols:
@@ -21,3 +30,11 @@ distributor:
           endpoint: "0.0.0.0:4317"
         http:
           endpoint: "0.0.0.0:4318"
+
+querier:
+  frontend_worker:
+    frontend_address: localhost:3200
+
+query_frontend:
+  cache_control_header: "max-age=1h"
+  compression: gzip
