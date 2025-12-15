@@ -14,14 +14,6 @@ scrape_configs:
     static_configs:
       - targets: ['example_api:9091']
 
-  - job_name: 'fastapi-app'
-    scheme: http
-    metrics_path: '/metrics'
-    static_configs:
-      - targets: ['fastapi_app:8000']
-    scrape_interval: 15s
-    scrape_timeout: 10s
-
   - job_name: 'gatewayz_api'
     scheme: https
     metrics_path: '/metrics'

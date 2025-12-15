@@ -62,29 +62,6 @@ services:
       - SENTRY_INTERNAL_URL=${SENTRY_INTERNAL_URL:-http://sentry.railway.internal:9000}
       - SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN:-}
 
-  fastapi_app:
-    build:
-      context: ./fastapi-app
-      dockerfile: Dockerfile
-    user: root
-    ports:
-      - "8000:8000"
-    environment:
-      - SERVICE_NAME=fastapi-app
-      # For local Docker: Use service names
-      - TEMPO_URL=${TEMPO_URL:-http://tempo:4318}
-      - TEMPO_INTERNAL_HTTP_INGEST=${TEMPO_INTERNAL_HTTP_INGEST:-http://tempo:4318}
-      - TEMPO_INTERNAL_GRPC_INGEST=${TEMPO_INTERNAL_GRPC_INGEST:-http://tempo:4317}
-      - LOKI_URL=${LOKI_URL:-http://loki:3100}
-      - PROMETHEUS_URL=${PROMETHEUS_URL:-http://prometheus:9090}
-      # Sentry configuration
-      - SENTRY_DSN=${SENTRY_DSN:-}
-      - SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT:-production}
-      - SENTRY_TRACE_SAMPLE_RATE=${SENTRY_TRACE_SAMPLE_RATE:-1.0}
-    depends_on:
-      - tempo
-      - prometheus
-
 volumes: 
   prometheus_data:
   loki_data:
