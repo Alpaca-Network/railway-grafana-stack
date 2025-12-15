@@ -97,12 +97,6 @@ jobs:
         with:
           dockerfile: grafana/Dockerfile
           ignore: DL3008,DL3009,DL3002
-      
-      - name: Run Hadolint - FastAPI
-        uses: hadolint/hadolint-action@v3.1.0
-        with:
-          dockerfile: fastapi-app/Dockerfile
-          ignore: DL3008,DL3009,DL3002
 
   docker-build:
     name: Build Docker Images
@@ -122,9 +116,6 @@ jobs:
           - name: grafana
             context: ./grafana
             dockerfile: ./grafana/Dockerfile
-          - name: fastapi-app
-            context: ./fastapi-app
-            dockerfile: ./fastapi-app/Dockerfile
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -177,11 +168,6 @@ jobs:
           curl -f http://localhost:3200/status || exit 0
         continue-on-error: true
       
-      - name: Health check - FastAPI
-        run: |
-          curl -f http://localhost:8000/health || exit 0
-        continue-on-error: true
-      
       - name: Cleanup
         if: always()
         run: |
@@ -202,7 +188,6 @@ jobs:
             "loki/Dockerfile"
             "tempo/Dockerfile"
             "grafana/Dockerfile"
-            "fastapi-app/Dockerfile"
             "grafana/dashboards/dashboards.yml"
           )
           
