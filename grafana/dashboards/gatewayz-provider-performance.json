@@ -26,7 +26,7 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisLabel": "",
+            "axisLabel": "Requests/sec",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
@@ -87,12 +87,12 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "rate(http_requests_total{job=\"gatewayz_api\"}[1m])",
+          "expr": "rate(provider_requests_total{job=\"gatewayz_api\"}[1m])",
           "refId": "A",
-          "legendFormat": "{{method}} {{endpoint}}"
+          "legendFormat": "{{provider}}"
         }
       ],
-      "title": "Request Rate (requests/sec)",
+      "title": "Provider Request Rate (requests/sec)",
       "type": "timeseries"
     },
     {
@@ -103,102 +103,7 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisLabel": "Seconds",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": true,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.5
-              },
-              {
-                "color": "red",
-                "value": 1.0
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 0
-      },
-      "id": 3,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single"
-        }
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "expr": "http_request_latency_p99_seconds{job=\"gatewayz_api\"}",
-          "refId": "A",
-          "legendFormat": "P99 {{endpoint}}"
-        },
-        {
-          "expr": "http_request_latency_p95_seconds{job=\"gatewayz_api\"}",
-          "refId": "B",
-          "legendFormat": "P95 {{endpoint}}"
-        },
-        {
-          "expr": "http_request_latency_avg_seconds{job=\"gatewayz_api\"}",
-          "refId": "C",
-          "legendFormat": "AVG {{endpoint}}"
-        }
-      ],
-      "title": "API Latency Percentiles (P99, P95, AVG)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
+            "axisLabel": "Error Rate",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
@@ -250,6 +155,91 @@
       "gridPos": {
         "h": 8,
         "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "8.0.0",
+      "targets": [
+        {
+          "expr": "provider_error_rate{job=\"gatewayz_api\"}",
+          "refId": "A",
+          "legendFormat": "{{provider}}"
+        }
+      ],
+      "title": "Provider Error Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Latency (seconds)",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.5
+              },
+              {
+                "color": "red",
+                "value": 1.0
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
         "x": 0,
         "y": 8
       },
@@ -267,12 +257,22 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "rate(http_request_errors_total{job=\"gatewayz_api\"}[5m]) / rate(http_requests_total{job=\"gatewayz_api\"}[5m])",
+          "expr": "provider_latency_avg_seconds{job=\"gatewayz_api\"}",
           "refId": "A",
-          "legendFormat": "Error Rate {{endpoint}}"
+          "legendFormat": "AVG {{provider}}"
+        },
+        {
+          "expr": "provider_latency_min_seconds{job=\"gatewayz_api\"}",
+          "refId": "B",
+          "legendFormat": "MIN {{provider}}"
+        },
+        {
+          "expr": "provider_latency_max_seconds{job=\"gatewayz_api\"}",
+          "refId": "C",
+          "legendFormat": "MAX {{provider}}"
         }
       ],
-      "title": "Error Rate by Endpoint",
+      "title": "Provider Latency (AVG, MIN, MAX)",
       "type": "timeseries"
     },
     {
@@ -283,7 +283,7 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisLabel": "",
+            "axisLabel": "Total Requests",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "bars",
@@ -344,12 +344,12 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "http_response_status_total{job=\"gatewayz_api\"}",
+          "expr": "provider_requests_total{job=\"gatewayz_api\"}",
           "refId": "A",
-          "legendFormat": "{{status}} {{endpoint}}"
+          "legendFormat": "{{provider}}"
         }
       ],
-      "title": "Response Status Distribution",
+      "title": "Provider Total Requests",
       "type": "timeseries"
     },
     {
@@ -406,12 +406,12 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "increase(http_requests_total{job=\"gatewayz_api\"}[5m])",
+          "expr": "sum(provider_requests_total{job=\"gatewayz_api\"})",
           "refId": "A",
-          "legendFormat": "Total Requests"
+          "legendFormat": "Total Provider Requests"
         }
       ],
-      "title": "Total Requests (5m)",
+      "title": "Total Provider Requests",
       "type": "stat"
     },
     {
@@ -468,74 +468,12 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "increase(http_request_errors_total{job=\"gatewayz_api\"}[5m])",
+          "expr": "sum(provider_errors_total{job=\"gatewayz_api\"})",
           "refId": "A",
-          "legendFormat": "Total Errors"
+          "legendFormat": "Total Provider Errors"
         }
       ],
-      "title": "Total Errors (5m)",
-      "type": "stat"
-    },
-    {
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.5
-              },
-              {
-                "color": "red",
-                "value": 1.0
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 12,
-        "y": 16
-      },
-      "id": 8,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "values": false,
-          "fields": "",
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "text": {},
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "expr": "http_request_latency_p99_seconds{job=\"gatewayz_api\"}",
-          "refId": "A",
-          "legendFormat": "P99 Latency"
-        }
-      ],
-      "title": "P99 Latency",
+      "title": "Total Provider Errors",
       "type": "stat"
     },
     {
@@ -570,6 +508,68 @@
       "gridPos": {
         "h": 4,
         "w": 6,
+        "x": 12,
+        "y": 16
+      },
+      "id": 8,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "fields": "",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.0.0",
+      "targets": [
+        {
+          "expr": "avg(provider_error_rate{job=\"gatewayz_api\"})",
+          "refId": "A",
+          "legendFormat": "Avg Error Rate"
+        }
+      ],
+      "title": "Average Provider Error Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.5
+              },
+              {
+                "color": "red",
+                "value": 1.0
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
         "x": 18,
         "y": 16
       },
@@ -592,12 +592,12 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "rate(http_request_errors_total{job=\"gatewayz_api\"}[5m]) / rate(http_requests_total{job=\"gatewayz_api\"}[5m])",
+          "expr": "avg(provider_latency_avg_seconds{job=\"gatewayz_api\"})",
           "refId": "A",
-          "legendFormat": "Error Rate"
+          "legendFormat": "Avg Latency"
         }
       ],
-      "title": "Error Rate",
+      "title": "Average Provider Latency",
       "type": "stat"
     }
   ],
@@ -606,9 +606,8 @@
   "style": "dark",
   "tags": [
     "gatewayz",
-    "backend",
-    "metrics",
-    "api"
+    "providers",
+    "performance"
   ],
   "templating": {
     "list": []
@@ -619,7 +618,7 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "GatewayZ Backend Metrics",
-  "uid": "gatewayz-backend-metrics",
+  "title": "GatewayZ Provider Performance",
+  "uid": "gatewayz-provider-performance",
   "version": 1
 }
