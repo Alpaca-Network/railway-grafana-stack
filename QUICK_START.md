@@ -43,7 +43,7 @@ curl http://localhost:8000/error
 
 1. **Create a new Railway service**
 2. **Connect your GitHub repo**
-3. **Set root directory**: `/examples/fastapi-app`
+3. **Set root directory**: `fastapi-app`
 4. **Add environment variables**:
 ```bash
 SERVICE_NAME=fastapi-app
@@ -170,11 +170,11 @@ railway up
 ## File Structure
 
 ```
-/examples/fastapi-app/
+/fastapi-app/
 ├── main.py              # FastAPI app with instrumentation
 ├── requirements.txt     # Python dependencies
 ├── Dockerfile          # Container build
-└── railway.json        # Railway configuration
+└── README.md           # FastAPI app documentation
 
 /grafana/
 ├── datasources/        # Prometheus, Loki, Tempo configs
@@ -205,7 +205,7 @@ railway up
 - **Full Railway Guide**: See `RAILWAY_SETUP.md`
 - **FastAPI Dashboard**: https://grafana.com/grafana/dashboards/16110
 - **OpenTelemetry Docs**: https://opentelemetry.io/docs/languages/python/
-- **Example Code**: `/examples/fastapi-app/main.py`
+- **Example Code**: `/fastapi-app/main.py`
 
 ---
 

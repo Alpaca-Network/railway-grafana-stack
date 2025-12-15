@@ -66,7 +66,7 @@ If not, deploy each service separately:
 #### Option A: Using Railway UI
 
 1. **Create a new service** in your Railway project
-2. **Connect your repository** and set root directory to `/examples/fastapi-app`
+2. **Connect your repository** and set root directory to `fastapi-app`
 3. **Add environment variables**:
    ```
    SERVICE_NAME=fastapi-app
@@ -156,7 +156,7 @@ No code changes needed! This is the easiest way to get logs into your observabil
 
 ### Python/FastAPI (Already Implemented)
 
-See `/examples/fastapi-app/main.py` for a complete example with:
+See `/fastapi-app/main.py` for a complete example with:
 - ✅ Prometheus metrics with `app_name` label
 - ✅ OpenTelemetry tracing to Tempo
 - ✅ Structured logging

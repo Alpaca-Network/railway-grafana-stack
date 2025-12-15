@@ -64,7 +64,7 @@ services:
 
   fastapi_app:
     build:
-      context: ./examples/fastapi-app
+      context: ./fastapi-app
       dockerfile: Dockerfile
     user: root
     ports:

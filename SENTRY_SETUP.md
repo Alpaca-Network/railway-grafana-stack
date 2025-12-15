@@ -143,7 +143,7 @@ Sentry.init({
 - Automatically via `Sentry.Handlers.errorHandler()` middleware
 - Manual: `Sentry.captureException(error)`
 
-### FastAPI Application (`examples/fastapi-app/`)
+### FastAPI Application (`fastapi-app/`)
 
 The Sentry SDK is initialized in `main.py`:
 

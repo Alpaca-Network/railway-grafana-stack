@@ -30,7 +30,7 @@ curl http://localhost:8000/metrics
 #### Method 1: Railway UI (Recommended)
 
 1. **Create new service** in your Railway project
-2. **Connect repository** and set root directory to `/examples/fastapi-app`
+2. **Connect repository** and set root directory to `fastapi-app`
 3. **Add environment variables**:
    ```
    SERVICE_NAME=fastapi-app
