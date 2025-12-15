@@ -66,6 +66,7 @@ services:
     build:
       context: ./examples/fastapi-app
       dockerfile: Dockerfile
+    user: root
     ports:
       - "8000:8000"
     environment:
