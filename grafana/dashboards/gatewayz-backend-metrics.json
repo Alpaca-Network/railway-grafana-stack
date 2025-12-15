@@ -187,7 +187,7 @@
           "legendFormat": "AVG {{endpoint}}"
         }
       ],
-      "title": "API Latency Percentiles (P99, P95, AVG)",
+      "title": "Latency Percentiles (P99, P95, AVG)",
       "type": "timeseries"
     },
     {
