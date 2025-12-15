@@ -2,11 +2,11 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY fastapi-app/requirements.txt .
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY fastapi-app/main.py .
-COPY fastapi-app/metrics_parser.py .
+COPY main.py .
+COPY metrics_parser.py .
 
 EXPOSE 8000
 
