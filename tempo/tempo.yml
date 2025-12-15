@@ -28,9 +28,3 @@ compactor:
 querier:
   frontend_worker:
     frontend_address: localhost:3200
-
-metrics_generator:
-  registry:
-    enabled: true
-  storage:
-    path: /var/tempo/wal
