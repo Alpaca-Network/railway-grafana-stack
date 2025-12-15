@@ -278,6 +278,36 @@ async def trace_example(depth: int = 3):
         "service": SERVICE_NAME
     }
 
+@app.get("/generate-traces")
+async def generate_traces(count: int = 5, operations_per_trace: int = 3):
+    """Generate multiple distributed traces for testing Tempo integration"""
+    logger.info(f"Generating {count} traces with {operations_per_trace} operations each")
+    tracer = trace.get_tracer(__name__)
+    
+    for trace_num in range(count):
+        with tracer.start_as_current_span(f"trace_{trace_num}"):
+            logger.info(f"Generating trace #{trace_num + 1}")
+            
+            for op_num in range(operations_per_trace):
+                with tracer.start_as_current_span(f"operation_{op_num}"):
+                    logger.info(f"Executing operation {op_num + 1} in trace {trace_num + 1}")
+                    
+                    if op_num % 2 == 0:
+                        with tracer.start_as_current_span("database_query"):
+                            logger.info("Simulating database query")
+                            time.sleep(0.05)
+                    else:
+                        with tracer.start_as_current_span("cache_lookup"):
+                            logger.info("Simulating cache lookup")
+                            time.sleep(0.02)
+    
+    return {
+        "message": "Trace generation complete",
+        "traces_generated": count,
+        "operations_per_trace": operations_per_trace,
+        "service": SERVICE_NAME
+    }
+
 @app.get("/dashboard-data")
 async def dashboard_data():
     """Return summary of current metrics for dashboard visualization"""
