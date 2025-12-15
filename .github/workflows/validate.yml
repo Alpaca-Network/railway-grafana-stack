@@ -101,7 +101,7 @@ jobs:
       - name: Run Hadolint - FastAPI
         uses: hadolint/hadolint-action@v3.1.0
         with:
-          dockerfile: examples/fastapi-app/Dockerfile
+          dockerfile: fastapi-app/Dockerfile
           ignore: DL3008,DL3009,DL3002
 
   docker-build:
@@ -123,8 +123,8 @@ jobs:
             context: ./grafana
             dockerfile: ./grafana/Dockerfile
           - name: fastapi-app
-            context: ./examples/fastapi-app
-            dockerfile: ./examples/fastapi-app/Dockerfile
+            context: ./fastapi-app
+            dockerfile: ./fastapi-app/Dockerfile
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -202,7 +202,7 @@ jobs:
             "loki/Dockerfile"
             "tempo/Dockerfile"
             "grafana/Dockerfile"
-            "examples/fastapi-app/Dockerfile"
+            "fastapi-app/Dockerfile"
             "grafana/dashboards/dashboards.yml"
           )
           
