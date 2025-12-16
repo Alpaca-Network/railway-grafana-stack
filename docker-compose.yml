@@ -34,6 +34,21 @@ services:
     volumes:
       - tempo_data:/var/tempo
 
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    ports:
+      - "9121:9121"
+    environment:
+      REDIS_ADDR: ${REDIS_ADDR:-redis-production-bb6d.up.railway.app:6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_SKIP_PING: "false"
+      REDIS_SKIP_CLUSTER_INFO: "true"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - default
+
   grafana:
     build:
       context: ./grafana

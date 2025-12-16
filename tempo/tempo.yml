@@ -27,4 +27,4 @@ compactor:
 
 querier:
   frontend_worker:
-    frontend_address: localhost:3200
+    frontend_address: tempo:3200
