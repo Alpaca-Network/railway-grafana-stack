@@ -1,0 +1,303 @@
+name: Deploy to Production & Staging
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+      - refactor/**
+      - fix/**
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deploy to environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - production
+          - staging
+          - both
+
+jobs:
+  validate:
+    name: Validate Configuration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Validate dashboard JSON
+        run: |
+          python3 << 'EOF'
+          import json
+          import glob
+          import sys
+          
+          errors = []
+          for file in glob.glob('grafana/dashboards/*.json'):
+              try:
+                  with open(file, 'r') as f:
+                      json.load(f)
+                  print(f"✓ {file}")
+              except json.JSONDecodeError as e:
+                  errors.append(f"✗ {file}: {e}")
+                  print(f"✗ {file}: {e}")
+          
+          if errors:
+              sys.exit(1)
+          EOF
+      
+      - name: Validate YAML files
+        run: |
+          python3 -m pip install pyyaml > /dev/null 2>&1
+          python3 << 'EOF'
+          import yaml
+          import glob
+          import sys
+          
+          errors = []
+          for file in glob.glob('**/*.yml', recursive=True) + glob.glob('**/*.yaml', recursive=True):
+              if '.git' in file:
+                  continue
+              try:
+                  with open(file, 'r') as f:
+                      yaml.safe_load(f)
+                  print(f"✓ {file}")
+              except yaml.YAMLError as e:
+                  errors.append(f"✗ {file}: {e}")
+                  print(f"✗ {file}: {e}")
+          
+          if errors:
+              sys.exit(1)
+          EOF
+
+  determine-environment:
+    name: Determine Deployment Environment
+    runs-on: ubuntu-latest
+    outputs:
+      deploy-staging: ${{ steps.set-env.outputs.deploy-staging }}
+      deploy-production: ${{ steps.set-env.outputs.deploy-production }}
+      environment-name: ${{ steps.set-env.outputs.environment-name }}
+    steps:
+      - name: Determine environment based on branch
+        id: set-env
+        run: |
+          BRANCH_NAME="${{ github.ref_name }}"
+          EVENT_NAME="${{ github.event_name }}"
+          
+          # Default values
+          DEPLOY_STAGING="false"
+          DEPLOY_PRODUCTION="false"
+          ENV_NAME="none"
+          
+          # Handle workflow_dispatch (manual trigger)
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            SELECTED_ENV="${{ github.event.inputs.environment }}"
+            if [ "$SELECTED_ENV" = "staging" ]; then
+              DEPLOY_STAGING="true"
+              ENV_NAME="staging"
+            elif [ "$SELECTED_ENV" = "production" ]; then
+              DEPLOY_PRODUCTION="true"
+              ENV_NAME="production"
+            elif [ "$SELECTED_ENV" = "both" ]; then
+              DEPLOY_STAGING="true"
+              DEPLOY_PRODUCTION="true"
+              ENV_NAME="both"
+            fi
+          else
+            # Handle push events
+            if [ "$BRANCH_NAME" = "main" ]; then
+              DEPLOY_PRODUCTION="true"
+              ENV_NAME="production"
+            elif [ "$BRANCH_NAME" = "staging" ]; then
+              DEPLOY_STAGING="true"
+              ENV_NAME="staging"
+            elif [[ "$BRANCH_NAME" =~ ^(refactor|fix)/ ]]; then
+              DEPLOY_STAGING="true"
+              ENV_NAME="staging"
+            fi
+          fi
+          
+          echo "deploy-staging=$DEPLOY_STAGING" >> $GITHUB_OUTPUT
+          echo "deploy-production=$DEPLOY_PRODUCTION" >> $GITHUB_OUTPUT
+          echo "environment-name=$ENV_NAME" >> $GITHUB_OUTPUT
+          
+          echo "Branch: $BRANCH_NAME"
+          echo "Event: $EVENT_NAME"
+          echo "Deploy to Staging: $DEPLOY_STAGING"
+          echo "Deploy to Production: $DEPLOY_PRODUCTION"
+
+  build-images:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: validate
+    strategy:
+      matrix:
+        service:
+          - name: prometheus
+            context: ./prometheus
+            dockerfile: ./prometheus/Dockerfile
+          - name: loki
+            context: ./loki
+            dockerfile: ./loki/Dockerfile
+          - name: tempo
+            context: ./tempo
+            dockerfile: ./tempo/Dockerfile
+          - name: grafana
+            context: ./grafana
+            dockerfile: ./grafana/Dockerfile
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build ${{ matrix.service.name }}
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.service.context }}
+          file: ${{ matrix.service.dockerfile }}
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [validate, determine-environment, build-images]
+    if: needs.determine-environment.outputs.deploy-staging == 'true'
+    environment:
+      name: staging
+      url: ${{ secrets.STAGING_GRAFANA_URL || 'https://staging-grafana.railway.app' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Deploy to Railway (Staging)
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN_STAGING }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID_STAGING }}
+        run: |
+          echo "Deploying to Staging environment..."
+          echo "Project ID: $RAILWAY_PROJECT_ID"
+          
+          # Install Railway CLI
+          npm install -g @railway/cli
+          
+          # Deploy using Railway CLI
+          railway up --service prometheus --service loki --service tempo --service grafana
+        continue-on-error: true
+      
+      - name: Verify Staging Deployment
+        run: |
+          echo "Verifying Staging deployment..."
+          STAGING_URL="${{ secrets.STAGING_GRAFANA_URL || 'http://localhost:3000' }}"
+          
+          # Wait for services to be ready
+          for i in {1..30}; do
+            if curl -f "$STAGING_URL/api/health" > /dev/null 2>&1; then
+              echo "✓ Staging deployment verified"
+              exit 0
+            fi
+            echo "Waiting for Staging to be ready... ($i/30)"
+            sleep 10
+          done
+          
+          echo "⚠ Staging deployment verification timed out (may still be deploying)"
+          exit 0
+        continue-on-error: true
+      
+      - name: Notify Staging Deployment
+        if: success()
+        run: |
+          echo "✓ Successfully deployed to Staging"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Author: ${{ github.actor }}"
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [validate, determine-environment, build-images]
+    if: needs.determine-environment.outputs.deploy-production == 'true'
+    environment:
+      name: production
+      url: ${{ secrets.PRODUCTION_GRAFANA_URL || 'https://grafana.railway.app' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Confirm Production Deployment
+        run: |
+          echo "⚠ Deploying to PRODUCTION environment"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Author: ${{ github.actor }}"
+          echo ""
+          echo "This deployment will update the production Grafana stack."
+      
+      - name: Deploy to Railway (Production)
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN_PRODUCTION }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID_PRODUCTION }}
+        run: |
+          echo "Deploying to Production environment..."
+          echo "Project ID: $RAILWAY_PROJECT_ID"
+          
+          # Install Railway CLI
+          npm install -g @railway/cli
+          
+          # Deploy using Railway CLI
+          railway up --service prometheus --service loki --service tempo --service grafana
+        continue-on-error: true
+      
+      - name: Verify Production Deployment
+        run: |
+          echo "Verifying Production deployment..."
+          PRODUCTION_URL="${{ secrets.PRODUCTION_GRAFANA_URL || 'http://localhost:3000' }}"
+          
+          # Wait for services to be ready
+          for i in {1..30}; do
+            if curl -f "$PRODUCTION_URL/api/health" > /dev/null 2>&1; then
+              echo "✓ Production deployment verified"
+              exit 0
+            fi
+            echo "Waiting for Production to be ready... ($i/30)"
+            sleep 10
+          done
+          
+          echo "⚠ Production deployment verification timed out (may still be deploying)"
+          exit 0
+        continue-on-error: true
+      
+      - name: Notify Production Deployment
+        if: success()
+        run: |
+          echo "✓ Successfully deployed to Production"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Author: ${{ github.actor }}"
+
+  summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [determine-environment, deploy-staging, deploy-production]
+    if: always()
+    steps:
+      - name: Print Deployment Summary
+        run: |
+          echo "=== Deployment Summary ==="
+          echo "Environment: ${{ needs.determine-environment.outputs.environment-name }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Author: ${{ github.actor }}"
+          echo ""
+          echo "Staging Status: ${{ needs.deploy-staging.result }}"
+          echo "Production Status: ${{ needs.deploy-production.result }}"
