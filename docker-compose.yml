@@ -11,6 +11,7 @@ services:
       - "9090:9090"
     volumes:
       - prometheus_data:/prometheus
+      - /tmp/mock_provider_metrics.txt:/tmp/mock_provider_metrics.txt
 
   loki:
     build:
@@ -43,23 +44,6 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
       REDIS_SKIP_PING: "false"
       REDIS_SKIP_CLUSTER_INFO: "true"
-    depends_on:
-      - prometheus
-    restart: unless-stopped
-    networks:
-      - default
-
-  provider-metrics-exporter:
-    build:
-      context: ./examples
-      dockerfile: provider-exporter-Dockerfile
-    ports:
-      - "8001:8001"
-    environment:
-      GATEWAY_API_URL: ${GATEWAY_API_URL:-https://api.gatewayz.ai}
-      ADMIN_KEY: ${ADMIN_KEY:-gw_live_wTfpLJ5VB28qMXpOAhr7Uw}
-      SCRAPE_INTERVAL: ${PROVIDER_SCRAPE_INTERVAL:-60}
-      METRICS_PORT: 8001
     depends_on:
       - prometheus
     restart: unless-stopped
