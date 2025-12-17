@@ -1,0 +1,16 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN pip install --no-cache-dir requests prometheus-client
+
+COPY provider-metrics-exporter.py .
+
+ENV GATEWAY_API_URL=https://api.gatewayz.ai
+ENV ADMIN_KEY=gw_live_wTfpLJ5VB28qMXpOAhr7Uw
+ENV SCRAPE_INTERVAL=60
+ENV METRICS_PORT=8001
+
+EXPOSE 8001
+
+CMD ["python", "provider-metrics-exporter.py"]
