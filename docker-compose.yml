@@ -49,18 +49,6 @@ services:
     networks:
       - default
 
-  health-metrics-generator:
-    build:
-      context: ./examples
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    depends_on:
-      - prometheus
-    restart: unless-stopped
-    networks:
-      - default
-
   grafana:
     build:
       context: ./grafana
