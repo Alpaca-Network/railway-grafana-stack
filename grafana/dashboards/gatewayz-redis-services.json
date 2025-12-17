@@ -600,9 +600,9 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(database_queries_total{job=\"gatewayz_api\"}[5m])",
+          "expr": "rate(fastapi_requests_total{job=\"gatewayz_api\",path=~\"/api/.*|/v1/.*\"}[5m])",
           "refId": "A",
-          "legendFormat": "Database Queries/sec"
+          "legendFormat": "API Requests/sec"
         }
       ],
       "thresholds": [],
@@ -685,7 +685,7 @@
         {
           "expr": "rate(fastapi_requests_total{job=\"gatewayz_api\",status_code=~\"4..|5..\"}[5m])",
           "refId": "A",
-          "legendFormat": "Error Rate"
+          "legendFormat": "{{status_code}} Errors/sec"
         }
       ],
       "thresholds": [],
