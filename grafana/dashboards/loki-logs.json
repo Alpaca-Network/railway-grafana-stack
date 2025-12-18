@@ -224,7 +224,7 @@
             "uid": "grafana_lokiq"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time({compose_service=~\".+\"} [$__rate_interval])) by (compose_service)",
+          "expr": "sum(count_over_time({compose_service=~\".+\"} [5m])) by (compose_service)",
           "legendFormat": "{{compose_service}}",
           "queryType": "range",
           "refId": "A"

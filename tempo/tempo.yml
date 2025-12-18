@@ -1,6 +1,9 @@
 server:
   http_listen_port: 3200
   grpc_listen_port: 3201
+  grpc_server_max_recv_msg_size: 16777216
+  grpc_server_max_send_msg_size: 16777216
+  log_level: warn
 
 distributor:
   receivers:
@@ -8,6 +11,7 @@ distributor:
       protocols:
         grpc:
           endpoint: "0.0.0.0:4317"
+          max_recv_msg_size_mb: 16
         http:
           endpoint: "0.0.0.0:4318"
 
@@ -27,4 +31,13 @@ compactor:
 
 querier:
   frontend_worker:
-    frontend_address: tempo:3200
+    frontend_address: localhost:3200
+    grpc_client_config:
+      max_recv_msg_size: 16777216
+      max_send_msg_size: 16777216
+
+query_frontend:
+  max_cache_freshness_per_query: 10m
+
+metrics_generator:
+  enabled: false
