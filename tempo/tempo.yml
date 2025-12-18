@@ -30,7 +30,7 @@ compactor:
 
 querier:
   frontend_worker:
-    frontend_address: 0.0.0.0:3200
+    frontend_address: 0.0.0.0:3201
     grpc_client_config:
       max_recv_msg_size: 16777216
       max_send_msg_size: 16777216
