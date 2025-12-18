@@ -31,16 +31,13 @@ compactor:
 
 querier:
   frontend_worker:
-    frontend_address: tempo:3200
+    frontend_address: localhost:3200
     grpc_client_config:
       max_recv_msg_size: 16777216
       max_send_msg_size: 16777216
 
+query_frontend:
+  max_cache_freshness_per_query: 10m
+
 metrics_generator:
-  registry:
-    external_labels:
-      cluster: local
-  storage:
-    path: /var/tempo/generator-wal
-    remote_write:
-      - url: http://prometheus:9090/api/v1/write
+  enabled: false
