@@ -1,6 +1,9 @@
 server:
   http_listen_port: 3200
   grpc_listen_port: 3201
+  grpc_server_max_recv_msg_size: 16777216
+  grpc_server_max_send_msg_size: 16777216
+  log_level: warn
 
 distributor:
   receivers:
@@ -8,6 +11,7 @@ distributor:
       protocols:
         grpc:
           endpoint: "0.0.0.0:4317"
+          max_recv_msg_size_mb: 16
         http:
           endpoint: "0.0.0.0:4318"
 
@@ -28,3 +32,15 @@ compactor:
 querier:
   frontend_worker:
     frontend_address: tempo:3200
+    grpc_client_config:
+      max_recv_msg_size: 16777216
+      max_send_msg_size: 16777216
+
+metrics_generator:
+  registry:
+    external_labels:
+      cluster: local
+  storage:
+    path: /var/tempo/generator-wal
+    remote_write:
+      - url: http://prometheus:9090/api/v1/write
