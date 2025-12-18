@@ -5,43 +5,13 @@ rule_files:
   - '/etc/prometheus/alert.rules.yml'
 
 scrape_configs:
-  - job_name: 'prometheus'
-    static_configs:
-      - targets: ['localhost:9090']
-
-  - job_name: 'example_api'
-    scheme: http
-    static_configs:
-      - targets: ['example_api:9091']
-
-  - job_name: 'gatewayz_api'
+  - job_name: 'gatewayz_prod'
     scheme: https
     metrics_path: '/metrics'
     static_configs:
       - targets: ['api.gatewayz.ai']
-    scrape_interval: 30s
-    scrape_timeout: 10s
-
-  - job_name: 'redis'
-    scheme: http
-    static_configs:
-      - targets: ['redis-exporter:9121']
-    scrape_interval: 15s
-    scrape_timeout: 10s
-
-  - job_name: 'redis_gateway'
-    scheme: https
-    metrics_path: '/metrics'
-    static_configs:
-      - targets: ['redis-production-bb6d.up.railway.app']
-    scrape_interval: 30s
-    scrape_timeout: 10s
-
-  - job_name: 'fastapi_backend'
-    scheme: https
-    metrics_path: '/metrics'
-    static_configs:
-      - targets: ['api.gatewayz.ai']
+        labels:
+          env: 'production'
     scrape_interval: 15s
     scrape_timeout: 10s
 
@@ -50,6 +20,16 @@ scrape_configs:
     metrics_path: '/metrics'
     static_configs:
       - targets: ['gatewayz-staging.up.railway.app']
+        labels:
+          env: 'staging'
     scrape_interval: 15s
     scrape_timeout: 10s
     bearer_token: 'gw_live_wTfpLJ5VB28qMXpOAhr7Uw'
+
+  - job_name: 'redis_gateway'
+    scheme: https
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['redis-production-bb6d.up.railway.app']
+    scrape_interval: 30s
+    scrape_timeout: 10s
