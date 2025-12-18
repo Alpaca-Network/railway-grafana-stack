@@ -38,9 +38,9 @@ scrape_configs:
     scrape_timeout: 10s
 
   - job_name: 'fastapi_backend'
-    scheme: http
+    scheme: https
     metrics_path: '/metrics'
     static_configs:
-      - targets: ['localhost:8000']
+      - targets: ['api.gatewayz.ai']
     scrape_interval: 15s
     scrape_timeout: 10s
