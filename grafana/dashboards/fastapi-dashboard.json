@@ -24,7 +24,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -72,7 +72,7 @@
           "$$hashKey": "object:214",
           "datasource": {
             "type": "prometheus",
-            "uid": "e4584a9f-5364-4b3d-a851-7abbc5250820"
+            "uid": "grafana_prometheus"
           },
           "editorMode": "code",
           "expr": "sum(increase(http_requests_total{job=\"the-app\"}[1m]))",
@@ -90,7 +90,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -212,7 +212,7 @@
           "$$hashKey": "object:140",
           "datasource": {
             "type": "prometheus",
-            "uid": "e4584a9f-5364-4b3d-a851-7abbc5250820"
+            "uid": "grafana_prometheus"
           },
           "editorMode": "code",
           "expr": "sum by (status) (rate(http_requests_total[1m]))",
@@ -230,7 +230,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -333,7 +333,7 @@
           "$$hashKey": "object:766",
           "datasource": {
             "type": "prometheus",
-            "uid": "e4584a9f-5364-4b3d-a851-7abbc5250820"
+            "uid": "grafana_prometheus"
           },
           "editorMode": "code",
           "expr": "sum(rate(http_requests_total{status=\"5xx\"}[30s]))",
@@ -351,7 +351,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -438,7 +438,7 @@
           "$$hashKey": "object:214",
           "datasource": {
             "type": "prometheus",
-            "uid": "e4584a9f-5364-4b3d-a851-7abbc5250820"
+            "uid": "grafana_prometheus"
           },
           "editorMode": "code",
           "expr": "increase(http_requests_total{job=\"the-app\"}[1m])",
@@ -456,7 +456,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -544,7 +544,7 @@
           "$$hashKey": "object:146",
           "datasource": {
             "type": "prometheus",
-            "uid": "e4584a9f-5364-4b3d-a851-7abbc5250820"
+            "uid": "grafana_prometheus"
           },
           "editorMode": "code",
           "expr": "http_request_duration_seconds_sum{job=\"the-app\",handler!=\"none\"} / http_request_duration_seconds_count",
@@ -562,7 +562,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "grafana_prometheus"
       },
       "description": "",
       "fieldConfig": {
@@ -652,7 +652,7 @@
           "$$hashKey": "object:426",
           "datasource": {
             "type": "prometheus",
-            "uid": "e4584a9f-5364-4b3d-a851-7abbc5250820"
+            "uid": "grafana_prometheus"
           },
           "editorMode": "code",
           "expr": "histogram_quantile(0.6, rate(http_request_duration_seconds_bucket{handler!=\"none\"}[30s]))",
@@ -670,7 +670,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -756,7 +756,7 @@
           "$$hashKey": "object:638",
           "datasource": {
             "type": "prometheus",
-            "uid": "e4584a9f-5364-4b3d-a851-7abbc5250820"
+            "uid": "grafana_prometheus"
           },
           "editorMode": "code",
           "expr": "rate(process_cpu_seconds_total{job=\"the-app\"}[30s])",
@@ -774,7 +774,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -859,7 +859,7 @@
           "$$hashKey": "object:638",
           "datasource": {
             "type": "prometheus",
-            "uid": "e4584a9f-5364-4b3d-a851-7abbc5250820"
+            "uid": "grafana_prometheus"
           },
           "editorMode": "code",
           "expr": "process_resident_memory_bytes{job=\"the-app\"}",
@@ -878,7 +878,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
+        "uid": "grafana_lokiq"
       },
       "fieldConfig": {
         "defaults": {},
@@ -906,7 +906,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
+            "uid": "grafana_lokiq"
           },
           "editorMode": "code",
           "expr": "{job=\"fastapi-docker-logs\", service_name=\"the-app\"}",
