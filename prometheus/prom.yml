@@ -44,3 +44,12 @@ scrape_configs:
       - targets: ['api.gatewayz.ai']
     scrape_interval: 15s
     scrape_timeout: 10s
+
+  - job_name: 'gatewayz_staging'
+    scheme: https
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['gatewayz-staging.up.railway.app']
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    bearer_token: 'gw_live_wTfpLJ5VB28qMXpOAhr7Uw'
