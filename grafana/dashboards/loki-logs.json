@@ -129,7 +129,7 @@
             "uid": "grafana_lokiq"
           },
           "editorMode": "code",
-          "expr": "sum by (compose_service) (rate({compose_service=~\".+\"} [$__rate_interval]))",
+          "expr": "sum by (compose_service) (rate({compose_service=~\".+\"} [5m]))",
           "legendFormat": "{{compose_service}}",
           "queryType": "range",
           "refId": "A"
@@ -446,7 +446,7 @@
             "uid": "grafana_lokiq"
           },
           "editorMode": "code",
-          "expr": "sum by (level, compose_service) (rate({compose_service=~\"$service\"} | json | level=~\".+\" [$__rate_interval]))",
+          "expr": "sum by (level, compose_service) (rate({compose_service=~\"$service\"} | json | level=~\".+\" [5m]))",
           "legendFormat": "{{compose_service}} - {{level}}",
           "queryType": "range",
           "refId": "A"
@@ -507,7 +507,7 @@
             "uid": "grafana_lokiq"
           },
           "editorMode": "code",
-          "expr": "topk(10, sum by (msg) (count_over_time({compose_service=~\"$service\"} | json | msg=~\".+\" [$__rate_interval])))",
+          "expr": "topk(10, sum by (msg) (count_over_time({compose_service=~\"$service\"} | json | msg=~\".+\" [5m])))",
           "legendFormat": "{{msg}}",
           "queryType": "range",
           "refId": "A"
@@ -642,7 +642,7 @@
             "uid": "grafana_lokiq"
           },
           "editorMode": "code",
-          "expr": "sum by (compose_service) (rate({compose_service=~\"$service\", level=\"error\"} [$__rate_interval]))",
+          "expr": "sum by (compose_service) (rate({compose_service=~\"$service\", level=\"error\"} [5m]))",
           "legendFormat": "{{compose_service}}",
           "queryType": "range",
           "refId": "A"
@@ -738,7 +738,7 @@
             "uid": "grafana_lokiq"
           },
           "editorMode": "code",
-          "expr": "sum by (compose_service) (rate({compose_service=~\"$service\", level=\"warn\"} [$__rate_interval]))",
+          "expr": "sum by (compose_service) (rate({compose_service=~\"$service\", level=\"warn\"} [5m]))",
           "legendFormat": "{{compose_service}}",
           "queryType": "range",
           "refId": "A"
@@ -759,6 +759,7 @@
           "text": "All",
           "value": "$__all"
         },
+        "allValue": ".+",
         "datasource": {
           "type": "loki",
           "uid": "grafana_lokiq"
