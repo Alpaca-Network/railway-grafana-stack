@@ -282,7 +282,7 @@
             "uid": "grafana_lokiq"
           },
           "editorMode": "code",
-          "expr": "sum by (level) (count_over_time({compose_service=~\"$service\"} | json | level=~\".+\" [$__rate_interval]))",
+          "expr": "sum by (level) (count_over_time({compose_service=~\"$service\"} | json | level=~\".+\" [5m]))",
           "legendFormat": "{{level}}",
           "queryType": "range",
           "refId": "A"
@@ -353,7 +353,7 @@
             "uid": "grafana_lokiq"
           },
           "editorMode": "code",
-          "expr": "count_over_time({compose_service=~\"$service\"} | json | level=\"error\" [$__rate_interval])",
+          "expr": "count_over_time({compose_service=~\"$service\"} | json | level=\"error\" [5m])",
           "legendFormat": "Errors",
           "queryType": "range",
           "refId": "A"
