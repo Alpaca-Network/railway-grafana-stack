@@ -75,7 +75,7 @@
             "uid": "grafana_prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(increase(http_requests_total{job=\"the-app\"}[1m]))",
+          "expr": "sum(rate(http_requests_total[5m]))",
           "instant": true,
           "interval": "",
           "intervalFactor": 1,
@@ -215,11 +215,11 @@
             "uid": "grafana_prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (status) (rate(http_requests_total[1m]))",
+          "expr": "sum by (status_code) (rate(http_requests_total[5m]))",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{ status }}",
+          "legendFormat": "{{ status_code }}",
           "range": true,
           "refId": "A"
         }
@@ -336,7 +336,7 @@
             "uid": "grafana_prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(rate(http_requests_total{status=\"5xx\"}[30s]))",
+          "expr": "sum(rate(http_requests_total{status_code=~\"5..\"}[5m]))",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -441,11 +441,11 @@
             "uid": "grafana_prometheus"
           },
           "editorMode": "code",
-          "expr": "increase(http_requests_total{job=\"the-app\"}[1m])",
+          "expr": "rate(http_requests_total[5m])",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{ method }} {{ handler }}",
+          "legendFormat": "{{ method }} {{ path }}",
           "range": true,
           "refId": "A"
         }
@@ -547,11 +547,11 @@
             "uid": "grafana_prometheus"
           },
           "editorMode": "code",
-          "expr": "http_request_duration_seconds_sum{job=\"the-app\",handler!=\"none\"} / http_request_duration_seconds_count",
+          "expr": "rate(fastapi_requests_duration_seconds_sum[5m]) / rate(fastapi_requests_duration_seconds_count[5m])",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{ handler }}",
+          "legendFormat": "{{ path }}",
           "range": true,
           "refId": "A"
         }
@@ -655,11 +655,11 @@
             "uid": "grafana_prometheus"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.6, rate(http_request_duration_seconds_bucket{handler!=\"none\"}[30s]))",
+          "expr": "histogram_quantile(0.60, rate(fastapi_requests_duration_seconds_bucket[5m]))",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{ handler }}",
+          "legendFormat": "{{ path }}",
           "range": true,
           "refId": "A"
         }
@@ -759,7 +759,7 @@
             "uid": "grafana_prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(process_cpu_seconds_total{job=\"the-app\"}[30s])",
+          "expr": "rate(process_cpu_seconds_total[5m]) * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -862,7 +862,7 @@
             "uid": "grafana_prometheus"
           },
           "editorMode": "code",
-          "expr": "process_resident_memory_bytes{job=\"the-app\"}",
+          "expr": "process_resident_memory_bytes / 1024 / 1024",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -909,7 +909,7 @@
             "uid": "grafana_lokiq"
           },
           "editorMode": "code",
-          "expr": "{job=\"fastapi-docker-logs\", service_name=\"the-app\"}",
+          "expr": "{service=\"gatewayz-api\"}",
           "hide": false,
           "queryType": "range",
           "refId": "A"
