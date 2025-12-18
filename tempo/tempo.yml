@@ -11,7 +11,6 @@ distributor:
       protocols:
         grpc:
           endpoint: "0.0.0.0:4317"
-          max_recv_msg_size_mb: 16
         http:
           endpoint: "0.0.0.0:4318"
 
@@ -35,9 +34,3 @@ querier:
     grpc_client_config:
       max_recv_msg_size: 16777216
       max_send_msg_size: 16777216
-
-query_frontend:
-  max_cache_freshness_per_query: 10m
-
-metrics_generator:
-  enabled: false
