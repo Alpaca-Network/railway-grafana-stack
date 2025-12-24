@@ -50,6 +50,23 @@ services:
     networks:
       - default
 
+  health-service-exporter:
+    build:
+      context: ./health-service-exporter
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    environment:
+      HEALTH_SERVICE_URL: ${HEALTH_SERVICE_URL:-https://health-service-production.up.railway.app}
+      SCRAPE_INTERVAL: ${HEALTH_SCRAPE_INTERVAL:-30}
+      METRICS_PORT: 8002
+      REQUEST_TIMEOUT: 10
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - default
+
   grafana:
     build:
       context: ./grafana
