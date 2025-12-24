@@ -2,6 +2,7 @@ apiVersion: 1
 
 datasources:
   - name: Prometheus
+    uid: grafana_prometheus  # Fixed UID to match dashboard references
     type: prometheus
     access: proxy
     url: ${PROMETHEUS_INTERNAL_URL:-http://prometheus:9090}
