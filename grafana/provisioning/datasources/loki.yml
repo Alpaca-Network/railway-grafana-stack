@@ -2,6 +2,7 @@ apiVersion: 1
 
 datasources:
   - name: Loki
+    uid: grafana_loki  # Fixed UID to match dashboard references
     type: loki
     access: proxy
     url: ${LOKI_URL:-http://loki:3100}
