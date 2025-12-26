@@ -1,95 +1,29 @@
 server:
   http_listen_port: 3200
-  http_server_read_timeout: 600s
-  http_server_write_timeout: 600s
   grpc_listen_port: 3201
-  grpc_server_max_recv_msg_size: 16777216
-  grpc_server_max_send_msg_size: 16777216
-  log_level: warn
-  log_format: json
 
-# Distributor - Receives spans from applications
 distributor:
-  rate_limit_bytes: 10737418240
-  ring:
-    kvstore:
-      store: inmemory
   receivers:
     otlp:
       protocols:
         grpc:
           endpoint: "0.0.0.0:4317"
-          max_recv_msg_size_mb: 16
         http:
           endpoint: "0.0.0.0:4318"
 
-# Ingester - Receives and caches spans
 ingester:
   max_block_duration: 5m
-  trace_idle_period: 10s
-  trace_max_age: 5m
-  lifecycler:
-    ring:
-      kvstore:
-        store: inmemory
-    heartbeat_timeout: 5s
-    num_tokens: 128
 
-# Storage - Local filesystem backend
 storage:
   trace:
     backend: local
     local:
       path: /var/tempo/traces
-      wal:
-        path: /var/tempo/wal
-        checkpoint_duration: 5s
-        flush_on_shutdown: true
 
-# Compactor - Compacts and retains blocks
 compactor:
   compaction:
     compaction_window: 1h
     max_block_bytes: 107374182400
-    retention: 720h
-    v2_in_buffer_bytes: 5242880
-    v2_out_buffer_bytes: 10485760
-  ring:
-    kvstore:
-      store: inmemory
 
-# Metrics Generator - Extracts metrics from spans
-metrics_generator:
-  enabled: true
-  registry:
-    external_labels:
-      source: tempo
-      cluster: gatewayz
-  storage:
-    path: /var/tempo/generator/wal
-  processor:
-    service_graphs:
-      enabled: true
-      max_services: 10000
-    span_metrics:
-      enabled: true
-      dimensions:
-        - name
-        - status_code
-        - span.kind
-      histogram_buckets: [2ms, 6ms, 10ms, 100ms, 250ms]
-
-# Querier - Queries completed blocks
-querier:
-  max_concurrent: 20
-  frontend_worker:
-    frontend_address: 0.0.0.0:3200
-    grpc_client_config:
-      max_recv_msg_size: 16777216
-      max_send_msg_size: 16777216
-    match_max_concurrent: true
-
-# Query Frontend - Routes and caches queries
-query_frontend:
-  cache_control_header: "public, max-age=1m"
-  compression: gzip
+analytics:
+  reporting_enabled: false
