@@ -55,3 +55,11 @@ scrape_configs:
       - source_labels: []
         target_label: env
         replacement: staging
+
+  # Health Service Metrics Exporter
+  - job_name: 'health_service_exporter'
+    scheme: http
+    static_configs:
+      - targets: ['health-service-exporter:8002']
+    scrape_interval: 30s
+    scrape_timeout: 10s

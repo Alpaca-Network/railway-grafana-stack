@@ -12,4 +12,4 @@ EXPOSE 3200
 EXPOSE 4317
 EXPOSE 4318
 
-CMD ["tempo", "-config.file=/etc/tempo/tempo.yml"]
+CMD ["-config.file=/etc/tempo/tempo.yml"]
