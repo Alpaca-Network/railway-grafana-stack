@@ -16,14 +16,262 @@ Date: December 24, 2025
 import os
 import time
 import logging
+import asyncio
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 from functools import lru_cache
 
 import httpx
+from prometheus_client import Gauge, Counter, generate_latest, CONTENT_TYPE_LATEST
 from prometheus_client.parser import TextFileParser
 
 logger = logging.getLogger(__name__)
+
+
+# ============================================================================
+# HEALTH SERVICE METRICS - Defined for Prometheus export
+# ============================================================================
+
+# Service Status
+health_service_up = Gauge(
+    'gatewayz_health_service_up',
+    'Health service availability (1=up, 0=down)'
+)
+
+health_monitoring_active = Gauge(
+    'gatewayz_health_monitoring_active',
+    'Health monitoring state (1=active, 0=inactive)'
+)
+
+availability_monitoring_active = Gauge(
+    'gatewayz_availability_monitoring_active',
+    'Availability monitoring state (1=active, 0=inactive)'
+)
+
+health_check_interval = Gauge(
+    'gatewayz_health_check_interval_seconds',
+    'Health check interval in seconds'
+)
+
+# Tracked Resources
+health_tracked_models = Gauge(
+    'gatewayz_health_tracked_models',
+    'Number of models being tracked'
+)
+
+health_tracked_providers = Gauge(
+    'gatewayz_health_tracked_providers',
+    'Number of providers being tracked'
+)
+
+health_tracked_gateways = Gauge(
+    'gatewayz_health_tracked_gateways',
+    'Number of gateways being tracked'
+)
+
+availability_cache_size = Gauge(
+    'gatewayz_availability_cache_size',
+    'Size of availability cache'
+)
+
+# Total Resources
+health_total_models = Gauge(
+    'gatewayz_health_total_models',
+    'Total number of models in the system'
+)
+
+health_total_providers = Gauge(
+    'gatewayz_health_total_providers',
+    'Total number of providers in the system'
+)
+
+health_total_gateways = Gauge(
+    'gatewayz_health_total_gateways',
+    'Total number of gateways in the system'
+)
+
+tracked_models_count = Gauge(
+    'gatewayz_health_tracked_models_count',
+    'Number of actively tracked models'
+)
+
+# Health Status
+health_active_incidents = Gauge(
+    'gatewayz_health_active_incidents',
+    'Number of active incidents'
+)
+
+health_status_distribution = Gauge(
+    'gatewayz_health_status_distribution',
+    'Distribution of health statuses',
+    ['status']
+)
+
+# Cache
+health_cache_available = Gauge(
+    'gatewayz_health_cache_available',
+    'Cache availability status',
+    ['cache_type']
+)
+
+# Error Tracking
+health_service_scrape_errors = Counter(
+    'gatewayz_health_service_scrape_errors_total',
+    'Total number of scrape errors'
+)
+
+health_service_last_update = Gauge(
+    'gatewayz_health_service_last_successful_scrape',
+    'Timestamp of last successful scrape'
+)
+
+
+class HealthServiceClient:
+    """Client for calling Health Service API directly"""
+
+    def __init__(
+        self,
+        health_service_url: str = None,
+        timeout: int = 10,
+    ):
+        """
+        Initialize Health Service client
+
+        Args:
+            health_service_url: URL to health service API
+            timeout: Request timeout in seconds
+        """
+        # Default to environment variable or production URL
+        self.health_service_url = health_service_url or os.getenv(
+            "HEALTH_SERVICE_URL",
+            "https://health-service-production.up.railway.app"
+        )
+        self.timeout = timeout
+
+    async def fetch_health(self) -> Optional[Dict[str, Any]]:
+        """Fetch from /health endpoint"""
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{self.health_service_url}/health",
+                    timeout=self.timeout
+                )
+                response.raise_for_status()
+                return response.json()
+        except Exception as e:
+            logger.warning(f"Failed to fetch /health: {e}")
+            return None
+
+    async def fetch_status(self) -> Optional[Dict[str, Any]]:
+        """Fetch from /status endpoint"""
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{self.health_service_url}/status",
+                    timeout=self.timeout
+                )
+                response.raise_for_status()
+                return response.json()
+        except Exception as e:
+            logger.warning(f"Failed to fetch /status: {e}")
+            return None
+
+    async def fetch_metrics(self) -> Optional[Dict[str, Any]]:
+        """Fetch from /metrics endpoint"""
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{self.health_service_url}/metrics",
+                    timeout=self.timeout
+                )
+                response.raise_for_status()
+                return response.json()
+        except Exception as e:
+            logger.warning(f"Failed to fetch /metrics: {e}")
+            return None
+
+    async def fetch_cache_stats(self) -> Optional[Dict[str, Any]]:
+        """Fetch from /cache/stats endpoint"""
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{self.health_service_url}/cache/stats",
+                    timeout=self.timeout
+                )
+                response.raise_for_status()
+                return response.json()
+        except Exception as e:
+            logger.warning(f"Failed to fetch /cache/stats: {e}")
+            return None
+
+    async def update_all_metrics(self):
+        """Fetch all health service endpoints and update Prometheus metrics"""
+        try:
+            # Fetch all endpoints
+            health_data = await self.fetch_health()
+            status_data = await self.fetch_status()
+            metrics_data = await self.fetch_metrics()
+            cache_data = await self.fetch_cache_stats()
+
+            any_success = False
+
+            # Update metrics from /health
+            if health_data:
+                health_service_up.set(1)
+                any_success = True
+            else:
+                health_service_up.set(0)
+
+            # Update metrics from /status
+            if status_data:
+                health_monitoring_active.set(1 if status_data.get("health_monitoring_active", False) else 0)
+                availability_monitoring_active.set(1 if status_data.get("availability_monitoring_active", False) else 0)
+                health_tracked_models.set(status_data.get("models_tracked", 0))
+                health_tracked_providers.set(status_data.get("providers_tracked", 0))
+                health_tracked_gateways.set(status_data.get("gateways_tracked", 0))
+                availability_cache_size.set(status_data.get("availability_cache_size", 0))
+                health_check_interval.set(status_data.get("health_check_interval", 300))
+                any_success = True
+
+            # Update metrics from /metrics
+            if metrics_data:
+                health_total_models.set(metrics_data.get("total_models", 0))
+                health_total_providers.set(metrics_data.get("total_providers", 0))
+                health_total_gateways.set(metrics_data.get("total_gateways", 0))
+                tracked_models_count.set(metrics_data.get("tracked_models", 0))
+                health_active_incidents.set(metrics_data.get("active_incidents", 0))
+
+                # Process status distribution
+                status_dist = metrics_data.get("status_distribution", {})
+                if isinstance(status_dist, dict):
+                    for status, count in status_dist.items():
+                        health_status_distribution.labels(status=status).set(count)
+                any_success = True
+
+            # Update metrics from /cache/stats
+            if cache_data:
+                cache_available = 1 if cache_data.get("cache_available", False) else 0
+                system_health_cached = 1 if cache_data.get("system_health_cached", False) else 0
+                providers_health_cached = 1 if cache_data.get("providers_health_cached", False) else 0
+                models_health_cached = 1 if cache_data.get("models_health_cached", False) else 0
+
+                health_cache_available.labels(cache_type="redis").set(cache_available)
+                health_cache_available.labels(cache_type="system_health").set(system_health_cached)
+                health_cache_available.labels(cache_type="providers_health").set(providers_health_cached)
+                health_cache_available.labels(cache_type="models_health").set(models_health_cached)
+                any_success = True
+
+            # Update last successful scrape timestamp
+            if any_success:
+                health_service_last_update.set(time.time())
+                logger.info("Health service metrics updated successfully")
+            else:
+                health_service_scrape_errors.inc()
+                logger.warning("All health service endpoints failed")
+
+        except Exception as e:
+            logger.error(f"Error updating health service metrics: {e}")
+            health_service_scrape_errors.inc()
 
 
 class PrometheusClient:
@@ -455,6 +703,23 @@ async def setup_prometheus_routes(app):
         exporter = MetricsExporter(client)
         return await exporter.get_all_metrics()
 
+    # Prometheus /metrics endpoint for Prometheus scraping
+    # This exports health service metrics so Prometheus can scrape them
+    @router.get("", name="metrics")  # GET /prometheus/metrics
+    async def get_prometheus_metrics():
+        """
+        Prometheus-compatible metrics endpoint for /metrics scraping
+
+        Returns all health service metrics in Prometheus text format.
+        This endpoint is used by Prometheus to scrape metrics directly.
+        """
+        from fastapi.responses import Response
+        return Response(
+            content=generate_latest(),
+            media_type=CONTENT_TYPE_LATEST,
+            headers={"Content-Type": CONTENT_TYPE_LATEST}
+        )
+
     # Documentation endpoint
     @router.get("/docs", response_class=PlainTextResponse)
     async def get_docs():
@@ -546,6 +811,34 @@ If Prometheus is unavailable:
 Generated automatically by Prometheus Metrics Module
 Last updated: {datetime.utcnow().isoformat()}
         """
+
+    # Initialize Health Service client for background updates
+    health_service_url = os.getenv(
+        "HEALTH_SERVICE_URL",
+        "https://health-service-production.up.railway.app"
+    )
+    health_client = HealthServiceClient(health_service_url=health_service_url)
+
+    # Background task to update health service metrics
+    async def update_health_metrics_task():
+        """Periodically update health service metrics"""
+        while True:
+            try:
+                await health_client.update_all_metrics()
+                # Update every 30 seconds
+                await asyncio.sleep(30)
+            except Exception as e:
+                logger.error(f"Error in health metrics task: {e}")
+                await asyncio.sleep(30)
+
+    # Start background task on app startup
+    import asyncio
+    try:
+        # Create task (it will run in background)
+        asyncio.create_task(update_health_metrics_task())
+        logger.info("Health service metrics background task started")
+    except Exception as e:
+        logger.warning(f"Could not start health metrics background task: {e}")
 
     # Include router in app
     app.include_router(router)
