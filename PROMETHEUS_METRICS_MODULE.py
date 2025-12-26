@@ -23,7 +23,6 @@ from functools import lru_cache
 
 import httpx
 from prometheus_client import Gauge, Counter, generate_latest, CONTENT_TYPE_LATEST
-from prometheus_client.parser import TextFileParser
 
 logger = logging.getLogger(__name__)
 
