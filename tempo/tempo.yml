@@ -1,9 +1,8 @@
 server:
   http_listen_port: 3200
   grpc_listen_port: 3201
-  grpc_server_max_recv_msg_size: 16777216
-  grpc_server_max_send_msg_size: 16777216
-  log_level: warn
+  http_listen_address: "0.0.0.0"
+  grpc_listen_address: "0.0.0.0"
 
 distributor:
   receivers:
@@ -27,41 +26,3 @@ compactor:
   compaction:
     compaction_window: 1h
     max_block_bytes: 107374182400
-
-# Metrics Generator: Enables Prometheus metrics export from traces
-# This allows the tempo-distributed-tracing dashboard to display metrics
-metrics_generator:
-  registry:
-    external_labels:
-      source: tempo
-      cluster: gatewayz
-  storage:
-    path: /var/tempo/generator/wal
-    remote_write:
-      # Optional: Send generated metrics to Prometheus
-      # Uncomment if you want Tempo to push metrics to Prometheus
-      # - url: http://prometheus:9090/api/v1/write
-  # Generate metrics from span data
-  processor:
-    # Service graphs show relationships between services
-    service_graphs:
-      enabled: true
-      dimensions:
-        - name
-        - cluster
-        - namespace
-    # Span metrics provide RED metrics (Rate, Errors, Duration)
-    span_metrics:
-      enabled: true
-      dimensions:
-        - name
-        - service.namespace
-        - status_code
-        - span.kind
-
-querier:
-  frontend_worker:
-    frontend_address: 0.0.0.0:3200
-    grpc_client_config:
-      max_recv_msg_size: 16777216
-      max_send_msg_size: 16777216
