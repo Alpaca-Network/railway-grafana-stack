@@ -24,6 +24,3 @@ compactor:
   compaction:
     compaction_window: 1h
     max_block_bytes: 107374182400
-
-analytics:
-  reporting_enabled: false
