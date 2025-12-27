@@ -1,13 +1,12 @@
 # 🧪 Tests Directory
 
-Comprehensive test suite for Prometheus Metrics Module integration.
+Comprehensive test suite for Observability Stack configuration validation.
 
 ## Structure
 
 ```
 tests/
-├── test_prometheus_metrics.py   # Unit & performance tests
-├── test_health_check.py         # Integration & health check tests
+├── test_stack_configuration.py  # Configuration & YAML validation
 └── README.md                    # This file
 ```
 
@@ -15,7 +14,7 @@ tests/
 
 ```bash
 # Install dependencies
-pip install pytest pytest-asyncio pytest-cov httpx prometheus-client
+pip install -r requirements.txt
 
 # Run all tests
 pytest tests/ -v
@@ -23,54 +22,32 @@ pytest tests/ -v
 # Run with coverage
 pytest tests/ -v --cov=. --cov-report=html
 
-# Run specific test file
-pytest tests/test_prometheus_metrics.py -v
-
 # Run specific test class
-pytest tests/test_prometheus_metrics.py::TestHealthServiceClient -v
+pytest tests/test_stack_configuration.py::TestYAMLConfiguration -v
 
-# Run specific test method
-pytest tests/test_prometheus_metrics.py::TestHealthServiceClient::test_fetch_health_success -v
+# Run specific test
+pytest tests/test_stack_configuration.py::TestYAMLConfiguration::test_prometheus_config_valid_yaml -v
 ```
 
 ## Test Files Overview
 
-### `test_prometheus_metrics.py` (100+ tests)
+### `test_stack_configuration.py` (25+ tests)
 
-**Core functionality tests:**
-- `TestHealthServiceClient` - Health service API client tests
-- `TestPrometheusClient` - Prometheus query client tests
-- `TestMetricsExporter` - Metric export formatting tests
-- `TestMetricsSummary` - JSON summary generation tests
-- `TestPerformance` - Performance benchmarks
-- `TestErrorHandling` - Error resilience tests
+**Configuration validation tests:**
+- `TestYAMLConfiguration` - YAML syntax and structure validation
+- `TestGrafanaConfiguration` - Grafana datasources and dashboards
+- `TestDockerFiles` - Dockerfile port and configuration checks
+- `TestConfigurationIntegrity` - Cross-service configuration validation
 
 **What it tests:**
-✅ HTTP requests to health service
-✅ Prometheus queries and error handling
-✅ Metric updates and data flow
-✅ Performance (latency <1s for updates)
-✅ Error recovery and resilience
-✅ Timeout handling
-
-### `test_health_check.py` (30+ tests)
-
-**Health check and integration tests:**
-- `TestHealthCheckEndpoints` - Endpoint validation
-- `TestMetricsDataFreshness` - Data freshness verification
-- `TestPrometheusConnectivity` - Prometheus server connectivity
-- `TestHealthServiceIntegration` - Health service API integration
-- `TestMetricsEndpoints` - Aggregation endpoint validation
-- `TestBackgroundTaskHealth` - Background task reliability
-- `TestErrorCounterIncrement` - Error tracking
-
-**What it tests:**
-✅ All metric endpoints present
-✅ Prometheus text format validity
-✅ Data freshness (timestamps recent)
-✅ Health service endpoint availability
-✅ Background task operation
-✅ Error counter functionality
+✅ YAML syntax validity for all config files
+✅ Prometheus scrape job configuration (production + staging)
+✅ Loki storage and retention setup
+✅ Tempo OTLP receiver configuration
+✅ Grafana datasource URLs and structure
+✅ Docker service port bindings
+✅ Service networking (0.0.0.0 listen addresses)
+✅ Configuration consistency across services
 
 ## Running Tests
 
@@ -83,13 +60,10 @@ pytest tests/ -v
 # With coverage report (opens in browser)
 pytest tests/ -v --cov=. --cov-report=html && open htmlcov/index.html
 
-# Watch mode (requires pytest-watch)
-pip install pytest-watch
-ptw tests/ -- -v
-
-# Specific marker
-pytest tests/ -m "asyncio" -v
-pytest tests/ -m "performance" -v
+# Run specific test group
+pytest tests/test_stack_configuration.py::TestYAMLConfiguration -v
+pytest tests/test_stack_configuration.py::TestDockerFiles -v
+pytest tests/test_stack_configuration.py::TestConfigurationIntegrity -v
 ```
 
 ### CI/CD
@@ -100,124 +74,104 @@ Tests run automatically on:
 
 View results in GitHub Actions → Your branch/commit
 
-## Test Markers
+## Test Coverage
 
-```
-asyncio      - Async/await tests
-performance  - Performance benchmarks
-integration  - Integration tests with APIs
-unit         - Unit tests
-health       - Health check tests
-```
-
-## Coverage
-
-Target: **75%+**
-
-To view coverage:
-```bash
-pytest tests/ --cov=. --cov-report=html
-open htmlcov/index.html
-```
-
-## Performance Targets
-
-| Test | Target | Actual |
-|------|--------|--------|
-| Health client update | <1.0s | ~450ms |
-| Prometheus query | <100ms | ~45ms |
-| Module import | <1.0s | ~250ms |
+Validates:
+- ✅ All YAML configuration files have valid syntax
+- ✅ Prometheus is configured with production and staging scrape jobs
+- ✅ Loki has proper storage and retention configuration
+- ✅ Tempo has OTLP receivers configured for traces
+- ✅ Grafana datasources point to the right services
+- ✅ All required dashboards exist and are valid JSON
+- ✅ Services listen on correct addresses and ports
+- ✅ Configuration is consistent across services
 
 ## Success Criteria
 
 ✅ All tests pass
-✅ Coverage >75%
-✅ Performance within limits
-✅ No security vulnerabilities
-✅ Health checks operational
+✅ YAML validation succeeds
+✅ Service configuration verified
+✅ No configuration regressions
+✅ Port bindings correct
 
 ## Troubleshooting
 
 **Tests won't run:**
 ```bash
-# Install pytest-asyncio
-pip install pytest-asyncio
+# Install dependencies from requirements.txt
+pip install -r requirements.txt
 
 # Verify pytest is installed
 pytest --version
 ```
 
-**Import errors:**
+**YAML parsing errors:**
 ```bash
-# Ensure PROMETHEUS_METRICS_MODULE.py is in parent directory
-ls -la ../PROMETHEUS_METRICS_MODULE.py
-
-# Or add to Python path
-export PYTHONPATH="${PYTHONPATH}:.."
+# Verify YAML files are syntactically correct
+python -c "import yaml; yaml.safe_load(open('prometheus/prom.yml'))"
+python -c "import yaml; yaml.safe_load(open('loki/loki.yml'))"
+python -c "import yaml; yaml.safe_load(open('tempo/tempo.yml'))"
 ```
 
-**Prometheus not available:**
-- GitHub Actions automatically starts Prometheus
-- Local tests can run without Prometheus (mocked)
+**Missing configuration files:**
+- Ensure all YAML configs exist in their directories
+- Check that docker-compose.yml is in the root directory
+- Verify Grafana provisioning files are in place
 
 ## Adding New Tests
 
-1. Create test in appropriate file:
-   - Unit/performance → `test_prometheus_metrics.py`
-   - Integration/health → `test_health_check.py`
+1. Add tests to `test_stack_configuration.py`
 
 2. Follow naming convention:
    ```python
    class TestComponentName:
-       def test_action_condition_result(self):
+       def test_action_validates_result(self):
            """Docstring explaining what's tested"""
-           pass
+           # Arrange
+           # Act
+           # Assert
    ```
 
-3. Use appropriate decorators:
+3. Use fixtures for common setup:
    ```python
-   @pytest.mark.asyncio
-   async def test_async_function(self):
-       pass
-
-   @pytest.mark.performance
-   def test_performance_critical(self):
-       pass
+   @pytest.fixture
+   def repo_root(self):
+       return Path(__file__).parent.parent
    ```
 
-4. Run tests:
+4. Run tests to verify:
    ```bash
-   pytest tests/ -v
+   pytest tests/test_stack_configuration.py -v
    ```
 
 ## CI/CD Workflows
 
 ### Staging Workflow (`.github/workflows/test-staging.yml`)
 - Trigger: Push to staging
-- Tests: Unit + health checks
-- Duration: 5-10 minutes
+- Tests: Configuration validation
+- Duration: 3-5 minutes
 
 ### Production Workflow (`.github/workflows/test-production.yml`)
-- Trigger: Push to main + scheduled
-- Tests: Full suite (unit, integration, performance, security)
-- Duration: 20-30 minutes
+- Trigger: Push to main + scheduled every 6 hours
+- Tests: Full configuration validation + coverage report
+- Duration: 5-10 minutes
 
 ## Documentation
 
-- Full testing guide: See [`TESTING_GUIDE.md`](../TESTING_GUIDE.md)
+- Configuration guide: See [`RAILWAY_DEPLOYMENT_GUIDE.md`](../RAILWAY_DEPLOYMENT_GUIDE.md)
+- Quick start: See [`QUICK_START.md`](../QUICK_START.md)
 - CI/CD workflows: See `.github/workflows/`
-- Module documentation: See [`PROMETHEUS_METRICS_MODULE.py`](../PROMETHEUS_METRICS_MODULE.py)
 
 ## Support
 
-For issues or questions:
-1. Check `TESTING_GUIDE.md` troubleshooting section
-2. Run tests with `-vv` flag for verbose output
+For test issues:
+1. Run tests with `-vv` flag for verbose output: `pytest tests/ -vv`
+2. Check specific test failure: `pytest tests/test_stack_configuration.py::TestYAMLConfiguration -v`
 3. Check GitHub Actions logs for CI/CD failures
 
 ---
 
-**Last Updated:** December 24, 2025
+**Last Updated:** December 27, 2025
 **Status:** ✅ Production Ready
-**Test Count:** 130+
-**Coverage:** 80%+
+**Test Count:** 25+
+**Focus:** Configuration Validation
