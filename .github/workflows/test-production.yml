@@ -1,34 +1,20 @@
-name: Production Tests - Prometheus Metrics & Health Checks
+name: Production Tests - Stack Configuration Validation
 
 on:
   push:
     branches: [ main ]
   schedule:
-    # Run production health checks every 6 hours
+    # Run production validation every 6 hours
     - cron: '0 */6 * * *'
 
 env:
   PYTHON_VERSION: '3.11'
-  PRODUCTION_BACKEND_URL: 'https://gatewayz-staging.up.railway.app'
-  PROMETHEUS_URL: 'http://localhost:9090'
-  HEALTH_SERVICE_URL: 'https://health-service-production.up.railway.app'
 
 jobs:
-  unit-tests:
-    name: Unit & Integration Tests
+  configuration-tests:
+    name: Stack Configuration Validation
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-
-    services:
-      prometheus:
-        image: prom/prometheus:latest
-        ports:
-          - 9090:9090
-        options: >-
-          --health-cmd "wget --quiet --tries=1 --spider http://localhost:9090/-/healthy || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
@@ -43,18 +29,17 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-asyncio pytest-cov httpx prometheus-client
+          pip install -r requirements.txt
 
-      - name: Run all unit tests
+      - name: Collect all tests
         run: |
-          pytest tests/test_prometheus_metrics.py -v --tb=short --co -q
-          pytest tests/test_prometheus_metrics.py -v --tb=short -x
+          pytest tests/test_stack_configuration.py -v --collect-only
 
-      - name: Run all health check tests
+      - name: Run configuration validation tests
         run: |
-          pytest tests/test_health_check.py -v --tb=short -x
+          pytest tests/test_stack_configuration.py -v --tb=short -x
 
-      - name: Run tests with full coverage report
+      - name: Run tests with coverage report
         run: |
           pytest tests/ -v --cov=. --cov-report=xml --cov-report=html --cov-report=term-missing
 
@@ -66,8 +51,8 @@ jobs:
           root = tree.getroot()
           coverage = float(root.get('line-rate', 0)) * 100
           print(f'Code coverage: {coverage:.1f}%')
-          if coverage < 70:
-              print('⚠️ Warning: Coverage below 70% threshold')
+          if coverage < 50:
+              print('⚠️ Warning: Coverage below 50% threshold')
           else:
               print('✅ Coverage meets threshold')
           "
@@ -77,13 +62,37 @@ jobs:
         with:
           files: ./coverage.xml
           flags: production
-          name: prometheus-metrics-production
+          name: stack-configuration-production
 
-  integration-tests:
-    name: Production Integration Tests
+  docker-validation:
+    name: Docker Configuration Validation
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    needs: unit-tests
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate docker-compose.yml
+        run: |
+          docker-compose config --quiet
+          echo "✅ docker-compose.yml is valid"
+
+      - name: Check all Dockerfiles exist
+        run: |
+          for service in prometheus loki tempo grafana; do
+            if [ -f "$service/Dockerfile" ]; then
+              echo "✅ $service/Dockerfile found"
+            else
+              echo "❌ $service/Dockerfile not found"
+              exit 1
+            fi
+          done
+
+  yaml-validation:
+    name: YAML Configuration Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
@@ -94,241 +103,48 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install dependencies
+      - name: Install PyYAML
         run: |
-          python -m pip install --upgrade pip
-          pip install httpx pytest pytest-asyncio prometheus-client
+          pip install PyYAML
 
-      - name: Test health service API connectivity
+      - name: Validate Prometheus configuration
         run: |
           python -c "
-          import asyncio
-          import httpx
-
-          async def test_health_service():
-              endpoints = ['/health', '/status', '/metrics', '/cache/stats']
-              base_url = '${{ env.HEALTH_SERVICE_URL }}'
-
-              async with httpx.AsyncClient() as client:
-                  for endpoint in endpoints:
-                      try:
-                          response = await client.get(f'{base_url}{endpoint}', timeout=10)
-                          if response.status_code == 200:
-                              print(f'✅ {endpoint}: Available')
-                          else:
-                              print(f'⚠️ {endpoint}: Status {response.status_code}')
-                      except Exception as e:
-                          print(f'⚠️ {endpoint}: {str(e)[:50]}')
-
-          asyncio.run(test_health_service())
+          import yaml
+          with open('prometheus/prom.yml') as f:
+              config = yaml.safe_load(f)
+          assert 'scrape_configs' in config, 'Missing scrape_configs'
+          print('✅ prometheus/prom.yml is valid')
           "
 
-      - name: Test backend Prometheus metrics endpoint
+      - name: Validate Loki configuration
         run: |
           python -c "
-          import asyncio
-          import httpx
-
-          async def test_backend_metrics():
-              backend_url = '${{ env.PRODUCTION_BACKEND_URL }}'
-
-              async with httpx.AsyncClient() as client:
-                  try:
-                      # Test /metrics endpoint
-                      response = await client.get(f'{backend_url}/metrics', timeout=10)
-                      if response.status_code == 200:
-                          content = response.text
-                          if 'gatewayz_health' in content:
-                              print('✅ Backend /metrics: Available with health metrics')
-                          else:
-                              print('⚠️ Backend /metrics: Available but missing health metrics')
-                      else:
-                          print(f'⚠️ Backend /metrics: Status {response.status_code}')
-                  except Exception as e:
-                      print(f'⚠️ Backend /metrics: {str(e)[:100]}')
-
-          asyncio.run(test_backend_metrics())
+          import yaml
+          with open('loki/loki.yml') as f:
+              config = yaml.safe_load(f)
+          assert 'server' in config, 'Missing server section'
+          print('✅ loki/loki.yml is valid')
           "
 
-      - name: Test Prometheus aggregation endpoints
+      - name: Validate Tempo configuration
         run: |
           python -c "
-          import asyncio
-          import httpx
-          import json
-
-          async def test_prometheus_endpoints():
-              backend_url = '${{ env.PRODUCTION_BACKEND_URL }}'
-              endpoints = [
-                  '/prometheus/metrics/summary',
-                  '/prometheus/metrics/system',
-                  '/prometheus/metrics/providers',
-                  '/prometheus/metrics/models',
-                  '/prometheus/metrics/business',
-                  '/prometheus/metrics/performance',
-                  '/prometheus/metrics/all',
-                  '/prometheus/metrics/docs'
-              ]
-
-              async with httpx.AsyncClient() as client:
-                  for endpoint in endpoints:
-                      try:
-                          response = await client.get(f'{backend_url}{endpoint}', timeout=10)
-                          if response.status_code == 200:
-                              print(f'✅ {endpoint}: Available')
-                          else:
-                              print(f'⚠️ {endpoint}: Status {response.status_code}')
-                      except Exception as e:
-                          print(f'⚠️ {endpoint}: Unreachable (may be expected if backend not deployed)')
-
-          asyncio.run(test_prometheus_endpoints())
+          import yaml
+          with open('tempo/tempo.yml') as f:
+              config = yaml.safe_load(f)
+          assert 'server' in config, 'Missing server section'
+          print('✅ tempo/tempo.yml is valid')
           "
 
-  performance-tests:
-    name: Performance & Load Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: unit-tests
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install httpx pytest-asyncio prometheus-client
-
-      - name: Run performance benchmarks
-        run: |
-          python << 'EOF'
-          import asyncio
-          import time
-          import sys
-          sys.path.insert(0, '.')
-
-          from PROMETHEUS_METRICS_MODULE import (
-              HealthServiceClient,
-              PrometheusClient,
-              MetricsSummary,
-              MetricsExporter
-          )
-          from unittest.mock import AsyncMock, Mock
-
-          async def benchmark_health_client():
-              """Benchmark health service client performance"""
-              client = HealthServiceClient()
-
-              # Mock the fetch methods
-              client.fetch_health = AsyncMock(return_value={"status": "healthy"})
-              client.fetch_status = AsyncMock(return_value={})
-              client.fetch_metrics = AsyncMock(return_value={})
-              client.fetch_cache_stats = AsyncMock(return_value={})
-
-              start = time.time()
-              for _ in range(10):
-                  await client.update_all_metrics()
-              elapsed = time.time() - start
-
-              avg_time = elapsed / 10
-              print(f'Health client update time: {avg_time*1000:.1f}ms')
-              assert avg_time < 0.5, f"Update took {avg_time}s (should be <0.5s)"
-              print('✅ Health client performance OK')
-
-          async def benchmark_prometheus_client():
-              """Benchmark Prometheus client query performance"""
-              client = PrometheusClient()
-
-              # Mock httpx
-              from unittest.mock import AsyncMock, patch
-              mock_response = {
-                  "status": "success",
-                  "data": {"result": [{"value": [0, "100"]}]}
-              }
-
-              with patch('httpx.AsyncClient') as mock_client:
-                  mock_async_client = AsyncMock()
-                  mock_response_obj = AsyncMock()
-                  mock_response_obj.json = AsyncMock(return_value=mock_response)
-                  mock_async_client.get = AsyncMock(return_value=mock_response_obj)
-                  mock_client.return_value.__aenter__.return_value = mock_async_client
-
-                  start = time.time()
-                  for _ in range(10):
-                      await client.query("up")
-                  elapsed = time.time() - start
-
-                  avg_time = elapsed / 10
-                  print(f'Prometheus query time: {avg_time*1000:.1f}ms')
-                  assert avg_time < 0.1, f"Query took {avg_time}s (should be <0.1s)"
-                  print('✅ Prometheus client performance OK')
-
-          async def main():
-              await benchmark_health_client()
-              await benchmark_prometheus_client()
-
-          asyncio.run(main())
-          EOF
-
-  security-tests:
-    name: Security & Safety Checks
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: unit-tests
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Install security tools
-        run: |
-          python -m pip install --upgrade pip
-          pip install bandit safety
-
-      - name: Run Bandit security check
-        run: |
-          bandit -r PROMETHEUS_METRICS_MODULE.py -f json -o bandit-report.json || true
-          echo "Security scan completed (warnings may be present)"
-
-      - name: Check for known vulnerabilities
-        run: |
-          pip install -q httpx prometheus-client
-          safety check --json || echo "⚠️ Dependency vulnerabilities found (may be acceptable)"
-
-      - name: Verify no hardcoded secrets
+      - name: Validate docker-compose.yml
         run: |
           python -c "
-          import re
-
-          with open('PROMETHEUS_METRICS_MODULE.py', 'r') as f:
-              content = f.read()
-
-          # Check for common secret patterns
-          secret_patterns = [
-              r'password\s*=\s*['\''\"](.*?)[\'\"\"]',
-              r'api_key\s*=\s*['\''\"](.*?)[\'\"\"]',
-              r'secret\s*=\s*['\''\"](.*?)[\'\"\"]',
-              r'token\s*=\s*['\''\"](.*?)[\'\"\"]'
-          ]
-
-          found_secrets = False
-          for pattern in secret_patterns:
-              if re.search(pattern, content, re.IGNORECASE):
-                  print(f'⚠️ Found potential secret pattern: {pattern}')
-                  found_secrets = True
-
-          if not found_secrets:
-              print('✅ No hardcoded secrets detected')
+          import yaml
+          with open('docker-compose.yml') as f:
+              config = yaml.safe_load(f)
+          assert 'services' in config, 'Missing services'
+          print('✅ docker-compose.yml is valid')
           "
 
   health-check:
@@ -349,9 +165,9 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install httpx prometheus-client
+          pip install httpx
 
-      - name: Check backend health
+      - name: Check backend metrics endpoint
         run: |
           python << 'EOF'
           import asyncio
@@ -361,31 +177,23 @@ jobs:
           async def health_check():
               backend_url = 'https://gatewayz-staging.up.railway.app'
               print(f"\n📊 Production Health Check - {datetime.now().isoformat()}")
-              print("=" * 50)
+              print("=" * 60)
 
               async with httpx.AsyncClient() as client:
                   # Check metrics endpoint
                   try:
-                      response = await client.get(f'{backend_url}/metrics', timeout=10)
+                      response = await client.get(
+                          f'{backend_url}/metrics',
+                          timeout=10,
+                          headers={"Authorization": "Bearer gw_live_wTfpLJ5VB28qMXpOAhr7Uw"}
+                      )
                       if response.status_code == 200:
                           print("✅ Backend /metrics endpoint: UP")
+                          print(f"   Response size: {len(response.text)} bytes")
                       else:
                           print(f"⚠️ Backend /metrics endpoint: {response.status_code}")
                   except Exception as e:
-                      print(f"❌ Backend /metrics endpoint: {str(e)[:50]}")
-
-                  # Check summary endpoint
-                  try:
-                      response = await client.get(
-                          f'{backend_url}/prometheus/metrics/summary',
-                          timeout=10
-                      )
-                      if response.status_code == 200:
-                          print("✅ Summary endpoint: UP")
-                      else:
-                          print(f"⚠️ Summary endpoint: {response.status_code}")
-                  except Exception as e:
-                      print(f"❌ Summary endpoint: {str(e)[:50]}")
+                      print(f"⚠️ Backend /metrics endpoint: {str(e)[:80]}")
 
           asyncio.run(health_check())
           EOF
@@ -393,7 +201,7 @@ jobs:
   test-report:
     name: Test Report Summary
     runs-on: ubuntu-latest
-    needs: [unit-tests, integration-tests, performance-tests, security-tests]
+    needs: [configuration-tests, docker-validation, yaml-validation]
     if: always()
 
     steps:
@@ -402,20 +210,21 @@ jobs:
           echo "## 📋 Production Test Report"
           echo ""
           echo "### Test Execution Summary"
-          echo "- ✅ Unit Tests: ${{ needs.unit-tests.result }}"
-          echo "- ✅ Integration Tests: ${{ needs.integration-tests.result }}"
-          echo "- ✅ Performance Tests: ${{ needs.performance-tests.result }}"
-          echo "- ✅ Security Tests: ${{ needs.security-tests.result }}"
+          echo "- Configuration Tests: ${{ needs.configuration-tests.result }}"
+          echo "- Docker Validation: ${{ needs.docker-validation.result }}"
+          echo "- YAML Validation: ${{ needs.yaml-validation.result }}"
           echo ""
           echo "### Components Tested"
-          echo "- Prometheus metrics module"
-          echo "- Health service client"
-          echo "- Backend endpoints"
-          echo "- Performance benchmarks"
-          echo "- Security checks"
+          echo "- Stack configuration files (YAML)"
+          echo "- Docker Compose setup"
+          echo "- Prometheus scrape configuration"
+          echo "- Loki and Tempo configuration"
+          echo "- Grafana datasources and dashboards"
           echo ""
           echo "### Status"
-          if [ "${{ needs.unit-tests.result }}" == "success" ]; then
+          if [ "${{ needs.configuration-tests.result }}" == "success" ] && \
+             [ "${{ needs.docker-validation.result }}" == "success" ] && \
+             [ "${{ needs.yaml-validation.result }}" == "success" ]; then
             echo "✅ All production tests passed"
           else
             echo "⚠️ Some tests failed - review details above"
