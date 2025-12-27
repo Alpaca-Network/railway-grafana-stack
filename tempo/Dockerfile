@@ -9,6 +9,7 @@ COPY tempo.yml /etc/tempo/tempo.yml
 
 # Expose Tempo ports for Railway private networking
 EXPOSE 3200
+EXPOSE 3201
 EXPOSE 4317
 EXPOSE 4318
 

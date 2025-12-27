@@ -258,7 +258,9 @@ class TestConfigurationIntegrity:
         )
 
         assert staging_job is not None, "Staging scrape job not found"
-        assert staging_job.get("targets") == ["gatewayz-staging.up.railway.app"], \
+        static_configs = staging_job.get("static_configs", [])
+        assert len(static_configs) > 0, "Staging job missing static_configs"
+        assert static_configs[0].get("targets") == ["gatewayz-staging.up.railway.app"], \
             "Staging job target not configured correctly"
 
     def test_prometheus_production_scrape_job_configured(self, repo_root):
@@ -275,5 +277,7 @@ class TestConfigurationIntegrity:
         )
 
         assert prod_job is not None, "Production scrape job not found"
-        assert prod_job.get("targets") == ["api.gatewayz.ai"], \
+        static_configs = prod_job.get("static_configs", [])
+        assert len(static_configs) > 0, "Production job missing static_configs"
+        assert static_configs[0].get("targets") == ["api.gatewayz.ai"], \
             "Production job target not configured correctly"
