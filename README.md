@@ -27,45 +27,29 @@ A production-ready observability solution for **GatewayZ AI Backend**, providing
 
 ## 📚 Documentation
 
-### 🎯 Getting Started
+### 🎯 Quick Reference (Start Here!)
+
+| Document | Purpose |
+|----------|---------|
+| [QUICK_START.md](QUICK_START.md) | **Local development with Docker Compose** |
+| [RAILWAY_DEPLOYMENT_GUIDE.md](RAILWAY_DEPLOYMENT_GUIDE.md) | **Deploy to Railway (production/staging)** |
+| [IMMEDIATE_ACTION_REQUIRED.md](IMMEDIATE_ACTION_REQUIRED.md) | **5-minute fixes for common issues** |
+
+### 🔧 Troubleshooting & Diagnostics
+
+| Document | Use When |
+|----------|----------|
+| [DIAGNOSE_CONNECTIVITY.md](DIAGNOSE_CONNECTIVITY.md) | Datasources not connecting or showing "No data" |
+| [STAGING_METRICS_TROUBLESHOOTING.md](STAGING_METRICS_TROUBLESHOOTING.md) | Staging environment not collecting metrics |
+| [RAILWAY_DATASOURCE_FIX_SUMMARY.md](RAILWAY_DATASOURCE_FIX_SUMMARY.md) | Understanding Railway network configuration |
+| [docs/troubleshooting/](docs/troubleshooting/) | Additional service-specific fixes |
+
+### 📈 Backend Integration & Metrics
 
 | Document | Description |
 |----------|-------------|
-| [Quick Start](QUICK_START.md) | Local development setup (Docker Compose) |
-| [Railway Deployment](docs/deployment/RAILWAY_DEPLOYMENT_QUICK_START.md) | Deploy to Railway (production) |
-| [Staging Workflow](docs/deployment/STAGING_WORKFLOW.md) | Test changes before production |
-
-### 🔧 Backend Integration
-
-| Document | Description |
-|----------|-------------|
-| [Backend Metrics Requirements](docs/backend/BACKEND_METRICS_REQUIREMENTS.md) | **Required metrics for dashboards** |
-| [Redis Monitoring Guide](docs/REDIS_MONITORING_GUIDE.md) | Redis monitoring setup & options |
-
-### 📈 Dashboard Guides
-
-| Document | Description |
-|----------|-------------|
-| [Models Monitoring Setup](docs/dashboards/MODELS_MONITORING_SETUP.md) | AI model performance tracking |
-| [Provider Management](docs/dashboards/PROVIDER_MANAGEMENT_DASHBOARD.md) | Provider health & metrics |
-| [Provider Endpoints](docs/dashboards/PROVIDER_ENDPOINTS_INTEGRATION.md) | Provider API integration |
-| [Prometheus Metrics](docs/dashboards/PROMETHEUS_METRICS_EXPANSION.md) | Custom metrics expansion |
-
-### 🔍 Troubleshooting
-
-| Document | Description |
-|----------|-------------|
-| [Grafana Connections](docs/troubleshooting/GRAFANA_CONNECTIONS.md) | Datasource connectivity issues |
-| [Loki Fix Guide](docs/troubleshooting/LOKI_FIX_GUIDE.md) | Log ingestion troubleshooting |
-| [Loki Deployment Fix](docs/troubleshooting/LOKI_DEPLOYMENT_FIX.md) | Railway deployment issues |
-| [Tempo Integration](docs/troubleshooting/TEMPO_INTEGRATION.md) | Tracing setup & fixes |
-| [Sentry Setup](docs/troubleshooting/SENTRY_SETUP.md) | Error tracking integration |
-
-### 📋 Change Log
-
-| Document | Description |
-|----------|-------------|
-| [Changes Summary](CHANGES_SUMMARY.md) | Recent infrastructure optimizations |
+| [docs/backend/BACKEND_METRICS_REQUIREMENTS.md](docs/backend/BACKEND_METRICS_REQUIREMENTS.md) | Required metrics for dashboards |
+| [docs/dashboards/MODELS_MONITORING_SETUP.md](docs/dashboards/MODELS_MONITORING_SETUP.md) | AI model performance tracking |
 
 ---
 
@@ -346,7 +330,7 @@ with tracer.start_as_current_span("model_inference"):
     result = await call_model_api()
 ```
 
-**Full examples:** [docs/backend/BACKEND_METRICS_REQUIREMENTS.md](docs/backend/BACKEND_METRICS_REQUIREMENTS.md)
+**Full integration guide:** [docs/backend/BACKEND_METRICS_REQUIREMENTS.md](docs/backend/BACKEND_METRICS_REQUIREMENTS.md)
 
 ---
 
@@ -426,17 +410,13 @@ for i in {1..20}; do curl http://localhost:8000/metrics; sleep 0.5; done
 
 ---
 
-## 📦 Recent Changes
+## 📦 Latest Optimizations (2025-12-27)
 
-See [CHANGES_SUMMARY.md](CHANGES_SUMMARY.md) for detailed change log.
-
-### Latest Optimizations (2025-12-23)
-
-✅ **Loki:** Enabled 30-day retention + compaction (prevents disk growth)
-✅ **Tempo:** Enabled metrics generation (span metrics + service graphs)
-✅ **Prometheus:** Fixed duplicate scraping, added environment labels
-✅ **Grafana:** Fixed datasource UIDs for stable connectivity
-✅ **Documentation:** Consolidated 30+ files into organized structure
+✅ **Railway Deployment:** Fixed datasource connectivity with explicit `.railway.internal` URLs
+✅ **Loki & Tempo:** Configured explicit listen addresses (0.0.0.0) for inter-service communication
+✅ **Prometheus:** Pre-configured for both production and staging backends
+✅ **Documentation:** Cleaned up repo - kept essential guides, removed historical/redundant docs
+✅ **Staging Metrics:** Diagnostics and troubleshooting guides for metric collection issues
 
 ---
 
@@ -448,30 +428,38 @@ See [CHANGES_SUMMARY.md](CHANGES_SUMMARY.md) for detailed change log.
 railway-grafana-stack/
 ├── grafana/
 │   ├── Dockerfile
-│   ├── dashboards/           # 8 pre-built dashboards (JSON)
-│   └── provisioning/         # Datasource auto-configuration
+│   ├── dashboards/              # 7 pre-built dashboards (JSON)
+│   │   ├── fastapi-dashboard.json
+│   │   ├── model-health.json
+│   │   ├── gatewayz-application-health.json
+│   │   ├── gatewayz-redis-services.json
+│   │   ├── loki-logs.json
+│   │   ├── prometheus-metrics.json
+│   │   └── tempo-distributed-tracing.json
+│   └── provisioning/            # Datasource auto-configuration
 ├── prometheus/
 │   ├── Dockerfile
-│   ├── prom.yml              # Scrape configuration
-│   └── alert.rules.yml       # Alert rules
+│   ├── prom.yml                 # Scrape jobs (production, staging)
+│   └── alert.rules.yml          # Alert rules
 ├── loki/
 │   ├── Dockerfile
-│   └── loki.yml              # Storage & retention config
+│   └── loki.yml                 # Storage, retention, compaction config
 ├── tempo/
 │   ├── Dockerfile
-│   └── tempo.yml             # Tracing & metrics config
-├── examples/
-│   ├── api/                  # Node.js monitoring example
-│   └── provider-metrics-exporter.py  # Python exporter example
+│   └── tempo.yml                # OTLP receivers, metrics generation
+├── tests/
+│   ├── test_prometheus_metrics.py  # Configuration validation
+│   └── test_health_check.py        # Service health checks
 ├── docs/
-│   ├── backend/              # Backend integration guides
-│   ├── deployment/           # Deployment guides
-│   ├── dashboards/           # Dashboard documentation
-│   ├── troubleshooting/      # Fix guides
-│   └── archive/              # Deprecated docs
-├── docker-compose.yml        # Local development setup
-├── railway.toml              # Railway deployment config
-└── README.md                 # This file
+│   ├── backend/                 # Backend integration guides
+│   ├── dashboards/              # Dashboard documentation
+│   └── troubleshooting/         # Service-specific fix guides
+├── docker-compose.yml           # Local development (all services)
+├── .github/workflows/           # CI/CD pipelines (test on push)
+├── QUICK_START.md               # Local setup guide
+├── RAILWAY_DEPLOYMENT_GUIDE.md  # Production deployment
+├── DIAGNOSE_CONNECTIVITY.md     # Troubleshooting datasources
+└── README.md                    # This file
 ```
 
 ### Contributing
@@ -498,12 +486,12 @@ railway-grafana-stack/
 
 ### Documentation Issues
 - Check [docs/troubleshooting/](docs/troubleshooting/) directory
-- Review [CHANGES_SUMMARY.md](CHANGES_SUMMARY.md) for recent changes
+- See [IMMEDIATE_ACTION_REQUIRED.md](IMMEDIATE_ACTION_REQUIRED.md) for quick fixes
 - Search existing issues in repository
 
 ### Backend Integration Help
 - See [docs/backend/BACKEND_METRICS_REQUIREMENTS.md](docs/backend/BACKEND_METRICS_REQUIREMENTS.md)
-- Check example implementations in [examples/](examples/) directory
+- Review [RAILWAY_DEPLOYMENT_GUIDE.md](RAILWAY_DEPLOYMENT_GUIDE.md) for deployment specifics
 
 ---
 
