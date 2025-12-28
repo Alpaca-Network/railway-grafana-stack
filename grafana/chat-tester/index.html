@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GatewayZ Model Performance & Chat Tester</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px 0;
+            border-bottom: 2px solid #334155;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: #475569;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #60a5fa;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        select {
+            padding: 10px 15px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 500px;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid #334155;
+            border-top-color: #60a5fa;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #7f1d1d;
+            border: 1px solid #dc2626;
+            color: #fecaca;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .success {
+            background: #1f2937;
+            border: 1px solid #10b981;
+            color: #a7f3d0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success.show {
+            display: block;
+        }
+
+        .info-text {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-box {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #60a5fa;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .tab-button {
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: #94a3b8;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .tab-button.active {
+            color: #60a5fa;
+            border-bottom-color: #60a5fa;
+        }
+
+        .tab-button:hover {
+            color: #cbd5e1;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .response-box {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #a1f3d0;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .response-box.error {
+            color: #fca5a5;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .control-group {
+                width: 100%;
+            }
+
+            input[type="text"],
+            input[type="password"],
+            select {
+                width: 100%;
+            }
+
+            .chart-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 GatewayZ Model Performance & Chat Tester</h1>
+            <p class="subtitle">Monitor model performance and test chat completion endpoints</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Scatter Plot Section -->
+            <div class="card">
+                <h2>📊 Model Performance Scatter Plot</h2>
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="timeRange">Time Range</label>
+                        <select id="timeRange">
+                            <option value="1h">Last 1 Hour</option>
+                            <option value="1d">Last 1 Day</option>
+                            <option value="1w">Last 1 Week</option>
+                            <option value="1m">Last 1 Month</option>
+                            <option value="1y">Last 1 Year</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label for="apiKeyScatter">API Key</label>
+                        <input type="password" id="apiKeyScatter" placeholder="Enter your GatewayZ API key">
+                    </div>
+                    <button onclick="loadScatterPlotData()">Load Data</button>
+                </div>
+                <div id="scatterError" class="error"></div>
+                <div id="scatterLoading" class="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <span>Loading model data...</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="scatterChart"></canvas>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-label">Top Models</div>
+                        <div class="stat-value" id="topModelsCount">-</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Avg Tokens/Sec</div>
+                        <div class="stat-value" id="avgTokensPerSec">-</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Avg Response Time</div>
+                        <div class="stat-value" id="avgResponseTime">-</div>
+                    </div>
+                </div>
+                <p class="info-text">📌 X-axis: Tokens per second | Y-axis: Response time (seconds) | Shows top 3 most popular models</p>
+            </div>
+
+            <!-- Chat Completion Testers -->
+            <div class="card">
+                <h2>💬 Chat Completion Endpoint Testers</h2>
+                <div class="tabs">
+                    <button class="tab-button active" onclick="switchTab('chat-completions')">Chat Completions</button>
+                    <button class="tab-button" onclick="switchTab('responses')">Responses (v1/responses)</button>
+                    <button class="tab-button" onclick="switchTab('messages')">Messages (v1/messages)</button>
+                </div>
+
+                <!-- Chat Completions Tab -->
+                <div id="chat-completions" class="tab-content active">
+                    <div class="controls">
+                        <div class="control-group">
+                            <label for="apiKeyChatCompletions">API Key</label>
+                            <input type="password" id="apiKeyChatCompletions" placeholder="Enter your GatewayZ API key">
+                        </div>
+                        <div class="control-group">
+                            <label for="modelChatCompletions">Model</label>
+                            <input type="text" id="modelChatCompletions" placeholder="e.g., gpt-4o-mini" value="gpt-4o-mini">
+                        </div>
+                        <button onclick="testChatCompletions()">Test Endpoint</button>
+                    </div>
+                    <div id="chatCompletionsError" class="error"></div>
+                    <div id="chatCompletionsSuccess" class="success"></div>
+                    <div id="chatCompletionsLoading" class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <span>Testing endpoint...</span>
+                    </div>
+                    <textarea id="chatCompletionsMessage" placeholder="Enter your message here..." style="width: 100%; height: 100px; padding: 10px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #e2e8f0; margin-bottom: 15px; resize: vertical;">Hello! Can you tell me a short joke?</textarea>
+                    <div id="chatCompletionsResponse" class="response-box" style="display: none;"></div>
+                    <p class="info-text">✅ Healthy: 2xx response | ❌ Error: 4xx/5xx response</p>
+                </div>
+
+                <!-- Responses Tab -->
+                <div id="responses" class="tab-content">
+                    <div class="controls">
+                        <div class="control-group">
+                            <label for="apiKeyResponses">API Key</label>
+                            <input type="password" id="apiKeyResponses" placeholder="Enter your GatewayZ API key">
+                        </div>
+                        <div class="control-group">
+                            <label for="modelResponses">Model</label>
+                            <input type="text" id="modelResponses" placeholder="e.g., gpt-4o-mini" value="gpt-4o-mini">
+                        </div>
+                        <button onclick="testResponses()">Test Endpoint</button>
+                    </div>
+                    <div id="responsesError" class="error"></div>
+                    <div id="responsesSuccess" class="success"></div>
+                    <div id="responsesLoading" class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <span>Testing endpoint...</span>
+                    </div>
+                    <textarea id="responsesInput" placeholder="Enter your input here..." style="width: 100%; height: 100px; padding: 10px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #e2e8f0; margin-bottom: 15px; resize: vertical;">What is 2+2?</textarea>
+                    <div id="responsesResponse" class="response-box" style="display: none;"></div>
+                    <p class="info-text">📝 Uses 'input' instead of 'messages' | Returns 'output' instead of 'choices'</p>
+                </div>
+
+                <!-- Messages Tab -->
+                <div id="messages" class="tab-content">
+                    <div class="controls">
+                        <div class="control-group">
+                            <label for="apiKeyMessages">API Key</label>
+                            <input type="password" id="apiKeyMessages" placeholder="Enter your GatewayZ API key">
+                        </div>
+                        <div class="control-group">
+                            <label for="modelMessages">Model</label>
+                            <input type="text" id="modelMessages" placeholder="e.g., claude-sonnet-4-5-20250929" value="claude-sonnet-4-5-20250929">
+                        </div>
+                        <div class="control-group">
+                            <label for="maxTokens">Max Tokens (Required)</label>
+                            <input type="text" id="maxTokens" placeholder="e.g., 1024" value="1024">
+                        </div>
+                        <button onclick="testMessages()">Test Endpoint</button>
+                    </div>
+                    <div id="messagesError" class="error"></div>
+                    <div id="messagesSuccess" class="success"></div>
+                    <div id="messagesLoading" class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <span>Testing endpoint...</span>
+                    </div>
+                    <textarea id="messagesContent" placeholder="Enter your message here..." style="width: 100%; height: 100px; padding: 10px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #e2e8f0; margin-bottom: 15px; resize: vertical;">Hello, Claude!</textarea>
+                    <div id="messagesResponse" class="response-box" style="display: none;"></div>
+                    <p class="info-text">🤖 Anthropic-style endpoint | 'system' is separate parameter | Returns 'stop_reason' instead of 'finish_reason'</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://api.gatewayz.ai';
+        let scatterChart = null;
+
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.classList.add('show');
+        }
+
+        function hideError(elementId) {
+            const element = document.getElementById(elementId);
+            element.classList.remove('show');
+        }
+
+        function showSuccess(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.classList.add('show');
+        }
+
+        function hideSuccess(elementId) {
+            const element = document.getElementById(elementId);
+            element.classList.remove('show');
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        async function loadScatterPlotData() {
+            const apiKey = document.getElementById('apiKeyScatter').value.trim();
+            const timeRange = document.getElementById('timeRange').value;
+
+            if (!apiKey) {
+                showError('scatterError', '❌ API key is required');
+                return;
+            }
+
+            hideError('scatterError');
+            document.getElementById('scatterLoading').style.display = 'flex';
+
+            try {
+                // Mock data for demonstration - replace with actual API call
+                const mockData = generateMockScatterData(timeRange);
+                
+                renderScatterPlot(mockData);
+                updateScatterStats(mockData);
+                document.getElementById('scatterLoading').style.display = 'none';
+            } catch (error) {
+                document.getElementById('scatterLoading').style.display = 'none';
+                showError('scatterError', `❌ Error: ${error.message}`);
+            }
+        }
+
+        function generateMockScatterData(timeRange) {
+            // Generate time-series data for "Total Tokens Over Time"
+            const models = ['gpt-4o-mini', 'claude-sonnet-4-5', 'llama-2-70b'];
+            const now = Date.now();
+            let timeStep = 3600000; // 1 hour default
+            let dataPoints = 24; // 24 data points
+
+            // Adjust time range and data points
+            switch(timeRange) {
+                case '1h':
+                    timeStep = 300000; // 5 minutes
+                    dataPoints = 12;
+                    break;
+                case '1d':
+                    timeStep = 3600000; // 1 hour
+                    dataPoints = 24;
+                    break;
+                case '1w':
+                    timeStep = 21600000; // 6 hours
+                    dataPoints = 28;
+                    break;
+                case '1m':
+                    timeStep = 86400000; // 1 day
+                    dataPoints = 30;
+                    break;
+                case '1y':
+                    timeStep = 604800000; // 1 week
+                    dataPoints = 52;
+                    break;
+            }
+
+            // Generate time series data for each model
+            const data = models.map((model, modelIdx) => {
+                const points = [];
+                const baseTokensPerReq = 50 + (modelIdx * 30); // Different base per model
+                const volatility = 0.3; // 30% variance
+
+                for (let i = 0; i < dataPoints; i++) {
+                    const timestamp = now - (dataPoints - i - 1) * timeStep;
+
+                    // Simulate realistic token generation with trend and noise
+                    const trend = i / dataPoints; // Slight upward trend
+                    const noise = (Math.random() - 0.5) * volatility * baseTokensPerReq;
+                    const requestsAtTime = Math.floor(50 + Math.random() * 200); // Requests per interval
+                    const tokensPerReq = baseTokensPerReq + (trend * 20) + noise;
+                    const totalTokens = Math.floor(requestsAtTime * tokensPerReq);
+
+                    points.push({
+                        x: new Date(timestamp).toLocaleTimeString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }),
+                        timestamp: timestamp,
+                        y: totalTokens,
+                        requests: requestsAtTime,
+                        tokensPerRequest: Math.round(tokensPerReq)
+                    });
+                }
+
+                return {
+                    model: model,
+                    totalTokens: points.reduce((sum, p) => sum + p.y, 0),
+                    avgTokensPerTime: Math.round(points.reduce((sum, p) => sum + p.y, 0) / points.length),
+                    maxTokensPerTime: Math.max(...points.map(p => p.y)),
+                    points: points,
+                    requests: points.reduce((sum, p) => sum + p.requests, 0)
+                };
+            });
+
+            return data;
+        }
+
+        function renderScatterPlot(data) {
+            const ctx = document.getElementById('scatterChart').getContext('2d');
+
+            if (scatterChart) {
+                scatterChart.destroy();
+            }
+
+            const colors = ['#60a5fa', '#a78bfa', '#34d399'];
+            const chartData = {
+                labels: data[0].points.map(p => p.x), // Time labels
+                datasets: data.map((item, idx) => ({
+                    label: `${item.model} (Total: ${item.totalTokens.toLocaleString()} tokens)`,
+                    data: item.points.map(p => p.y), // Total tokens per time point
+                    backgroundColor: colors[idx],
+                    borderColor: colors[idx],
+                    fill: false,
+                    tension: 0.3,
+                    borderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: colors[idx]
+                }))
+            };
+
+            scatterChart = new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#cbd5e1',
+                                font: { size: 12, weight: 'bold' }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#0f172a',
+                            titleColor: '#60a5fa',
+                            bodyColor: '#e2e8f0',
+                            borderColor: '#334155',
+                            borderWidth: 1,
+                            padding: 12,
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    const dataPoint = data[context.datasetIndex].points[context.dataIndex];
+                                    return [
+                                        `Requests: ${dataPoint.requests}`,
+                                        `Tokens/Request: ${dataPoint.tokensPerRequest}`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time',
+                                color: '#cbd5e1',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: {
+                                color: '#334155'
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                maxRotation: 45,
+                                minRotation: 0
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Total Tokens Generated',
+                                color: '#cbd5e1',
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            grid: {
+                                color: '#334155'
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateScatterStats(data) {
+            // Display statistics for total tokens over time
+            document.getElementById('topModelsCount').textContent = data.length + ' models';
+
+            // Calculate total tokens across all models
+            const totalTokensAllModels = data.reduce((sum, d) => sum + d.totalTokens, 0);
+            const avgTokensPerModel = Math.round(totalTokensAllModels / data.length);
+
+            // Calculate average across time points
+            const totalRequests = data.reduce((sum, d) => sum + d.requests, 0);
+
+            document.getElementById('avgTokensPerSec').textContent = avgTokensPerModel.toLocaleString() + ' avg';
+            document.getElementById('avgResponseTime').textContent = totalTokensAllModels.toLocaleString() + ' total tokens';
+        }
+
+        async function testChatCompletions() {
+            const apiKey = document.getElementById('apiKeyChatCompletions').value.trim();
+            const model = document.getElementById('modelChatCompletions').value.trim();
+            const message = document.getElementById('chatCompletionsMessage').value.trim();
+
+            if (!apiKey || !model || !message) {
+                showError('chatCompletionsError', '❌ All fields are required');
+                return;
+            }
+
+            hideError('chatCompletionsError');
+            hideSuccess('chatCompletionsSuccess');
+            document.getElementById('chatCompletionsLoading').style.display = 'flex';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/v1/chat/completions`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [{ role: 'user', content: message }]
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById('chatCompletionsLoading').style.display = 'none';
+
+                if (response.ok) {
+                    showSuccess('chatCompletionsSuccess', '✅ Endpoint is healthy (2xx response)');
+                    document.getElementById('chatCompletionsResponse').textContent = JSON.stringify(data, null, 2);
+                    document.getElementById('chatCompletionsResponse').style.display = 'block';
+                    document.getElementById('chatCompletionsResponse').classList.remove('error');
+                } else {
+                    showError('chatCompletionsError', `❌ Error (${response.status}): ${data.detail || JSON.stringify(data)}`);
+                    document.getElementById('chatCompletionsResponse').textContent = JSON.stringify(data, null, 2);
+                    document.getElementById('chatCompletionsResponse').style.display = 'block';
+                    document.getElementById('chatCompletionsResponse').classList.add('error');
+                }
+            } catch (error) {
+                document.getElementById('chatCompletionsLoading').style.display = 'none';
+                showError('chatCompletionsError', `❌ Network error: ${error.message}`);
+            }
+        }
+
+        async function testResponses() {
+            const apiKey = document.getElementById('apiKeyResponses').value.trim();
+            const model = document.getElementById('modelResponses').value.trim();
+            const input = document.getElementById('responsesInput').value.trim();
+
+            if (!apiKey || !model || !input) {
+                showError('responsesError', '❌ All fields are required');
+                return;
+            }
+
+            hideError('responsesError');
+            hideSuccess('responsesSuccess');
+            document.getElementById('responsesLoading').style.display = 'flex';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/v1/responses`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        input: input
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById('responsesLoading').style.display = 'none';
+
+                if (response.ok) {
+                    showSuccess('responsesSuccess', '✅ Endpoint is healthy (2xx response)');
+                    document.getElementById('responsesResponse').textContent = JSON.stringify(data, null, 2);
+                    document.getElementById('responsesResponse').style.display = 'block';
+                    document.getElementById('responsesResponse').classList.remove('error');
+                } else {
+                    showError('responsesError', `❌ Error (${response.status}): ${data.detail || JSON.stringify(data)}`);
+                    document.getElementById('responsesResponse').textContent = JSON.stringify(data, null, 2);
+                    document.getElementById('responsesResponse').style.display = 'block';
+                    document.getElementById('responsesResponse').classList.add('error');
+                }
+            } catch (error) {
+                document.getElementById('responsesLoading').style.display = 'none';
+                showError('responsesError', `❌ Network error: ${error.message}`);
+            }
+        }
+
+        async function testMessages() {
+            const apiKey = document.getElementById('apiKeyMessages').value.trim();
+            const model = document.getElementById('modelMessages').value.trim();
+            const content = document.getElementById('messagesContent').value.trim();
+            const maxTokens = document.getElementById('maxTokens').value.trim();
+
+            if (!apiKey || !model || !content || !maxTokens) {
+                showError('messagesError', '❌ All fields are required');
+                return;
+            }
+
+            hideError('messagesError');
+            hideSuccess('messagesSuccess');
+            document.getElementById('messagesLoading').style.display = 'flex';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/v1/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        max_tokens: parseInt(maxTokens),
+                        messages: [{ role: 'user', content: content }]
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById('messagesLoading').style.display = 'none';
+
+                if (response.ok) {
+                    showSuccess('messagesSuccess', '✅ Endpoint is healthy (2xx response)');
+                    document.getElementById('messagesResponse').textContent = JSON.stringify(data, null, 2);
+                    document.getElementById('messagesResponse').style.display = 'block';
+                    document.getElementById('messagesResponse').classList.remove('error');
+                } else {
+                    showError('messagesError', `❌ Error (${response.status}): ${data.detail || JSON.stringify(data)}`);
+                    document.getElementById('messagesResponse').textContent = JSON.stringify(data, null, 2);
+                    document.getElementById('messagesResponse').style.display = 'block';
+                    document.getElementById('messagesResponse').classList.add('error');
+                }
+            } catch (error) {
+                document.getElementById('messagesLoading').style.display = 'none';
+                showError('messagesError', `❌ Network error: ${error.message}`);
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            console.log('GatewayZ Chat Tester loaded');
+        });
+    </script>
+</body>
+</html>
