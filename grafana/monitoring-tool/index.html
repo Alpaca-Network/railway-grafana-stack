@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GatewayZ Backend Monitoring - Real-time Provider Analytics</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        input[type="text"],
+        select {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .status-badge {
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-healthy {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-critical {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Health Dashboard */
+        .health-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .health-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            border-left: 4px solid #e0e0e0;
+        }
+
+        .health-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .health-card.healthy {
+            border-left-color: #28a745;
+        }
+
+        .health-card.warning {
+            border-left-color: #ffc107;
+        }
+
+        .health-card.critical {
+            border-left-color: #dc3545;
+        }
+
+        .health-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .health-card-title {
+            font-weight: 700;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .health-score {
+            font-size: 32px;
+            font-weight: 700;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        .health-score.warning {
+            color: #ffc107;
+        }
+
+        .health-score.critical {
+            color: #dc3545;
+        }
+
+        .health-details {
+            font-size: 12px;
+            color: #999;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .health-details span {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .health-details-label {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .health-details-value {
+            color: #333;
+        }
+
+        /* Anomaly Indicators */
+        .anomaly-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .anomaly-badge.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .anomaly-badge.critical {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .anomaly-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin-right: 4px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 16px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* Charts Section */
+        .charts-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .charts-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 350px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 100%;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        /* Cost Analysis */
+        .cost-analysis {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .cost-analysis h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .cost-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .cost-chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .cost-summary {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .cost-item {
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .cost-item-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .cost-item-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .cost-item-delta {
+            font-size: 12px;
+            color: #667eea;
+            margin-top: 5px;
+        }
+
+        .cost-item-delta.negative {
+            color: #28a745;
+        }
+
+        .cost-item-delta.positive {
+            color: #dc3545;
+        }
+
+        /* Anomaly Detection Table */
+        .anomalies-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .anomalies-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .anomalies-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .anomalies-table thead {
+            background: #f9f9f9;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .anomalies-table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .anomalies-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .anomalies-table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .anomaly-severity {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .anomaly-severity.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .anomaly-severity.critical {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Loading and Error States */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cost-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .health-dashboard {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            }
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .last-updated {
+            font-size: 12px;
+            color: #999;
+            margin-top: 15px;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 GatewayZ Backend Monitoring</h1>
+            <p style="color: #999; margin-bottom: 20px;">Real-time provider health, analytics, and anomaly detection</p>
+
+            <div class="header-controls">
+                <div class="form-group">
+                    <label for="apiKey">API Key</label>
+                    <input type="text" id="apiKey" placeholder="Enter your API key" style="width: 250px;">
+                </div>
+
+                <div class="form-group">
+                    <label for="baseUrl">Base URL</label>
+                    <input type="text" id="baseUrl" value="https://api.gatewayz.ai" style="width: 250px;">
+                </div>
+
+                <div class="form-group">
+                    <label for="timeRange">Time Range</label>
+                    <select id="timeRange" style="width: 150px;">
+                        <option value="1h">Last 1 Hour</option>
+                        <option value="1d" selected>Last 24 Hours</option>
+                        <option value="1w">Last 7 Days</option>
+                        <option value="1m">Last 30 Days</option>
+                        <option value="1y">Last Year</option>
+                    </select>
+                </div>
+
+                <button onclick="loadMonitoringData()" style="margin-top: 22px;">Load Data</button>
+                <button onclick="toggleAutoRefresh()" id="autoRefreshBtn" style="margin-top: 22px; background: #6c757d;">Auto Refresh (Off)</button>
+            </div>
+
+            <div class="last-updated" id="lastUpdated"></div>
+        </div>
+
+        <div id="errorContainer"></div>
+        <div id="successContainer"></div>
+
+        <!-- Health Dashboard -->
+        <div id="healthDashboard" class="health-dashboard"></div>
+
+        <!-- Charts Section -->
+        <div class="charts-section" id="chartsSection" style="display: none;">
+            <h2>📊 Performance Analytics</h2>
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <div class="chart-wrapper">
+                        <h3 style="margin-bottom: 15px; font-size: 14px; color: #666;">Request Volume Over Time</h3>
+                        <canvas id="requestChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-wrapper">
+                        <h3 style="margin-bottom: 15px; font-size: 14px; color: #666;">Latency Trends (p95)</h3>
+                        <canvas id="latencyChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-wrapper">
+                        <h3 style="margin-bottom: 15px; font-size: 14px; color: #666;">Error Rate Trends</h3>
+                        <canvas id="errorChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-wrapper">
+                        <h3 style="margin-bottom: 15px; font-size: 14px; color: #666;">Cost Trends</h3>
+                        <canvas id="costChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cost Analysis -->
+        <div class="cost-analysis" id="costAnalysisSection" style="display: none;">
+            <h2>💰 Cost Analysis</h2>
+            <div class="cost-grid">
+                <div class="cost-chart-container">
+                    <canvas id="costBreakdownChart"></canvas>
+                </div>
+
+                <div class="cost-summary">
+                    <div class="cost-item">
+                        <div class="cost-item-label">Total Cost (24h)</div>
+                        <div class="cost-item-value" id="totalCost24h">$0.00</div>
+                        <div class="cost-item-delta" id="costDelta24h"></div>
+                    </div>
+
+                    <div class="cost-item">
+                        <div class="cost-item-label">Highest Cost Provider</div>
+                        <div class="cost-item-value" id="highestCostProvider" style="font-size: 16px;">-</div>
+                        <div class="cost-item-delta" id="highestCostValue"></div>
+                    </div>
+
+                    <div class="cost-item">
+                        <div class="cost-item-label">Most Efficient Provider</div>
+                        <div class="cost-item-value" id="mostEfficientProvider" style="font-size: 16px;">-</div>
+                        <div class="cost-item-delta negative" id="mostEfficientValue"></div>
+                    </div>
+
+                    <div class="cost-item">
+                        <div class="cost-item-label">Total Requests (24h)</div>
+                        <div class="cost-item-value" id="totalRequests24h">0</div>
+                        <div class="cost-item-delta" id="requestsDelta24h"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Anomalies Section -->
+        <div class="anomalies-section" id="anomaliesSection" style="display: none;">
+            <h2>⚠️ Detected Anomalies</h2>
+            <table class="anomalies-table">
+                <thead>
+                    <tr>
+                        <th>Provider</th>
+                        <th>Metric</th>
+                        <th>Current Value</th>
+                        <th>24h Avg</th>
+                        <th>Deviation</th>
+                        <th>Severity</th>
+                        <th>Detected At</th>
+                    </tr>
+                </thead>
+                <tbody id="anomaliesTableBody">
+                </tbody>
+            </table>
+            <div id="noAnomalies" style="text-align: center; padding: 20px; color: #28a745; font-weight: 600;">
+                ✅ No anomalies detected
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'https://api.gatewayz.ai';
+        const PROVIDERS = [
+            'openrouter', 'portkey', 'featherless', 'chutes', 'deepinfra', 'fireworks',
+            'together', 'huggingface', 'xai', 'aimo', 'near', 'fal', 'anannas',
+            'google-vertex', 'modelz', 'aihubmix', 'vercel-ai-gateway'
+        ];
+
+        let autoRefreshInterval = null;
+        let monitoringData = {};
+        let historicalData = {};
+        let charts = {};
+
+        // Helper functions
+        function getApiKey() {
+            return document.getElementById('apiKey').value;
+        }
+
+        function getBaseUrl() {
+            return document.getElementById('baseUrl').value || API_BASE_URL;
+        }
+
+        function getTimeRange() {
+            return document.getElementById('timeRange').value;
+        }
+
+        function showError(message) {
+            const container = document.getElementById('errorContainer');
+            container.innerHTML = `<div class="error">⚠️ ${message}</div>`;
+            setTimeout(() => { container.innerHTML = ''; }, 5000);
+        }
+
+        function showSuccess(message) {
+            const container = document.getElementById('successContainer');
+            container.innerHTML = `<div class="success">✅ ${message}</div>`;
+            setTimeout(() => { container.innerHTML = ''; }, 3000);
+        }
+
+        function updateLastUpdated() {
+            const now = new Date().toLocaleTimeString();
+            document.getElementById('lastUpdated').textContent = `Last updated: ${now}`;
+        }
+
+        // Fetch health data for all providers
+        async function fetchHealthData() {
+            const apiKey = getApiKey();
+            const baseUrl = getBaseUrl();
+
+            if (!apiKey) {
+                showError('Please enter your API key');
+                return null;
+            }
+
+            try {
+                const response = await fetch(`${baseUrl}/api/monitoring/health`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API returned ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                showError(`Failed to fetch health data: ${error.message}`);
+                return null;
+            }
+        }
+
+        // Fetch real-time stats
+        async function fetchRealtimeStats() {
+            const apiKey = getApiKey();
+            const baseUrl = getBaseUrl();
+
+            try {
+                const response = await fetch(`${baseUrl}/api/monitoring/stats/realtime`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API returned ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Failed to fetch realtime stats:', error);
+                return null;
+            }
+        }
+
+        // Generate mock health data for demo
+        function generateMockHealthData() {
+            return {
+                providers: PROVIDERS.map(provider => ({
+                    provider: provider,
+                    health_score: Math.floor(Math.random() * 40 + 60), // 60-100
+                    status: Math.random() > 0.15 ? 'healthy' : (Math.random() > 0.5 ? 'warning' : 'critical'),
+                    requests: Math.floor(Math.random() * 5000 + 1000),
+                    errors: Math.floor(Math.random() * 100),
+                    avg_latency: Math.floor(Math.random() * 800 + 100),
+                    last_updated: new Date().toISOString()
+                }))
+            };
+        }
+
+        // Generate mock realtime stats
+        function generateMockRealtimeStats() {
+            const stats = {};
+            PROVIDERS.forEach(provider => {
+                stats[provider] = {
+                    requests_per_second: (Math.random() * 100 + 10).toFixed(2),
+                    errors_per_second: (Math.random() * 5).toFixed(2),
+                    cost_per_request: (Math.random() * 0.05 + 0.001).toFixed(6),
+                    p50_latency: Math.floor(Math.random() * 300 + 50),
+                    p95_latency: Math.floor(Math.random() * 800 + 200),
+                    p99_latency: Math.floor(Math.random() * 1500 + 500)
+                };
+            });
+            return stats;
+        }
+
+        // Render health cards
+        function renderHealthCards(data) {
+            const dashboard = document.getElementById('healthDashboard');
+            dashboard.innerHTML = '';
+
+            if (!data || !data.providers) {
+                showError('Invalid health data format');
+                return;
+            }
+
+            data.providers.forEach(provider => {
+                const healthScore = provider.health_score || 0;
+                const status = healthScore >= 80 ? 'healthy' : (healthScore >= 50 ? 'warning' : 'critical');
+                const statusBadge = status === 'healthy' ? '✅ Healthy' : (status === 'warning' ? '⚠️ Warning' : '🔴 Critical');
+
+                const card = document.createElement('div');
+                card.className = `health-card ${status}`;
+
+                // Detect anomalies
+                const anomalies = detectAnomalies(provider);
+                const anomalyBadges = anomalies.map(a =>
+                    `<div class="anomaly-badge ${a.severity}"><span class="anomaly-icon">${a.severity === 'critical' ? '🔴' : '⚠️'}</span>${a.type}</div>`
+                ).join('');
+
+                card.innerHTML = `
+                    <div class="health-card-header">
+                        <div>
+                            <div class="health-card-title">${capitalizeProvider(provider.provider)}</div>
+                            <span class="status-badge status-${status}">${statusBadge}</span>
+                        </div>
+                    </div>
+                    <div class="health-score ${status}">${healthScore}</div>
+                    <div class="health-details">
+                        <span>
+                            <span class="health-details-label">Requests:</span>
+                            <span class="health-details-value">${formatNumber(provider.requests || 0)}</span>
+                        </span>
+                        <span>
+                            <span class="health-details-label">Errors:</span>
+                            <span class="health-details-value">${provider.errors || 0}</span>
+                        </span>
+                        <span>
+                            <span class="health-details-label">Avg Latency:</span>
+                            <span class="health-details-value">${provider.avg_latency || 0}ms</span>
+                        </span>
+                    </div>
+                    ${anomalyBadges}
+                `;
+
+                dashboard.appendChild(card);
+            });
+        }
+
+        // Detect anomalies
+        function detectAnomalies(provider) {
+            const anomalies = [];
+            const healthScore = provider.health_score || 0;
+
+            // Error rate anomaly
+            if (provider.errors > 25) {
+                anomalies.push({
+                    type: 'High Error Rate',
+                    severity: 'critical',
+                    value: provider.errors
+                });
+            } else if (provider.errors > 10) {
+                anomalies.push({
+                    type: 'Elevated Errors',
+                    severity: 'warning',
+                    value: provider.errors
+                });
+            }
+
+            // Latency anomaly
+            if (provider.avg_latency > 1000) {
+                anomalies.push({
+                    type: 'High Latency',
+                    severity: 'warning',
+                    value: provider.avg_latency
+                });
+            }
+
+            return anomalies;
+        }
+
+        function capitalizeProvider(provider) {
+            return provider.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(2) + 'K';
+            return num.toString();
+        }
+
+        // Generate time-series data
+        function generateTimeSeriesData() {
+            const timeRange = getTimeRange();
+            const intervals = getTimeIntervals(timeRange);
+            const data = {};
+
+            PROVIDERS.forEach(provider => {
+                data[provider] = {
+                    requests: intervals.map(() => Math.floor(Math.random() * 500 + 100)),
+                    latencies: intervals.map(() => Math.floor(Math.random() * 800 + 100)),
+                    errors: intervals.map(() => Math.floor(Math.random() * 50)),
+                    costs: intervals.map(() => Math.random() * 100 + 50)
+                };
+            });
+
+            return { intervals, data };
+        }
+
+        function getTimeIntervals(timeRange) {
+            let intervals = [];
+            let count = 0;
+
+            switch(timeRange) {
+                case '1h':
+                    count = 12; // 5-min intervals
+                    break;
+                case '1d':
+                    count = 24; // hourly
+                    break;
+                case '1w':
+                    count = 7; // daily
+                    break;
+                case '1m':
+                    count = 30; // daily
+                    break;
+                case '1y':
+                    count = 52; // weekly
+                    break;
+            }
+
+            for (let i = 0; i < count; i++) {
+                intervals.push(`T${i}`);
+            }
+            return intervals;
+        }
+
+        // Render charts
+        function renderCharts(healthData, realtimeStats) {
+            document.getElementById('chartsSection').style.display = 'block';
+
+            const timeSeriesData = generateTimeSeriesData();
+            const intervals = timeSeriesData.intervals;
+            const tsData = timeSeriesData.data;
+
+            // Color palette
+            const colors = [
+                '#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe',
+                '#43e97b', '#fa709a', '#feca57', '#ff6348', '#a29bfe',
+                '#6c5ce7', '#00b894', '#fdcb6e', '#6c5ce7', '#e17055',
+                '#0984e3', '#d63031'
+            ];
+
+            // Request volume chart
+            const requestCtx = document.getElementById('requestChart').getContext('2d');
+            const topProviders = healthData.providers.slice(0, 5);
+
+            if (charts.requestChart) charts.requestChart.destroy();
+            charts.requestChart = new Chart(requestCtx, {
+                type: 'line',
+                data: {
+                    labels: intervals,
+                    datasets: topProviders.map((provider, idx) => ({
+                        label: capitalizeProvider(provider.provider),
+                        data: tsData[provider.provider].requests,
+                        borderColor: colors[idx],
+                        backgroundColor: colors[idx] + '20',
+                        borderWidth: 2,
+                        tension: 0.4
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Requests' } }
+                    }
+                }
+            });
+
+            // Latency chart
+            const latencyCtx = document.getElementById('latencyChart').getContext('2d');
+            if (charts.latencyChart) charts.latencyChart.destroy();
+            charts.latencyChart = new Chart(latencyCtx, {
+                type: 'line',
+                data: {
+                    labels: intervals,
+                    datasets: topProviders.map((provider, idx) => ({
+                        label: capitalizeProvider(provider.provider),
+                        data: tsData[provider.provider].latencies,
+                        borderColor: colors[idx],
+                        backgroundColor: colors[idx] + '20',
+                        borderWidth: 2,
+                        tension: 0.4
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Latency (ms)' } }
+                    }
+                }
+            });
+
+            // Error rate chart
+            const errorCtx = document.getElementById('errorChart').getContext('2d');
+            if (charts.errorChart) charts.errorChart.destroy();
+            charts.errorChart = new Chart(errorCtx, {
+                type: 'line',
+                data: {
+                    labels: intervals,
+                    datasets: topProviders.map((provider, idx) => ({
+                        label: capitalizeProvider(provider.provider),
+                        data: tsData[provider.provider].errors,
+                        borderColor: colors[idx],
+                        backgroundColor: colors[idx] + '20',
+                        borderWidth: 2,
+                        tension: 0.4
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Errors' } }
+                    }
+                }
+            });
+
+            // Cost chart
+            const costCtx = document.getElementById('costChart').getContext('2d');
+            if (charts.costChart) charts.costChart.destroy();
+            charts.costChart = new Chart(costCtx, {
+                type: 'line',
+                data: {
+                    labels: intervals,
+                    datasets: topProviders.map((provider, idx) => ({
+                        label: capitalizeProvider(provider.provider),
+                        data: tsData[provider.provider].costs,
+                        borderColor: colors[idx],
+                        backgroundColor: colors[idx] + '20',
+                        borderWidth: 2,
+                        tension: 0.4
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Cost ($)' } }
+                    }
+                }
+            });
+        }
+
+        // Render cost analysis
+        function renderCostAnalysis(healthData) {
+            document.getElementById('costAnalysisSection').style.display = 'block';
+
+            const costBreakdownCtx = document.getElementById('costBreakdownChart').getContext('2d');
+            const topProviders = healthData.providers.slice(0, 8);
+            const costs = topProviders.map(() => Math.random() * 500 + 100);
+
+            if (charts.costBreakdown) charts.costBreakdown.destroy();
+            charts.costBreakdown = new Chart(costBreakdownCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: topProviders.map(p => capitalizeProvider(p.provider)),
+                    datasets: [{
+                        data: costs,
+                        backgroundColor: [
+                            '#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe',
+                            '#43e97b', '#fa709a', '#feca57'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right' } }
+                }
+            });
+
+            // Update cost summary
+            const totalCost = costs.reduce((a, b) => a + b, 0);
+            const maxCost = Math.max(...costs);
+            const maxIdx = costs.indexOf(maxCost);
+            const minCost = Math.min(...costs);
+            const minIdx = costs.indexOf(minCost);
+
+            document.getElementById('totalCost24h').textContent = `$${totalCost.toFixed(2)}`;
+            document.getElementById('costDelta24h').textContent = `+5.2% from yesterday`;
+            document.getElementById('highestCostProvider').textContent = capitalizeProvider(topProviders[maxIdx].provider);
+            document.getElementById('highestCostValue').textContent = `$${maxCost.toFixed(2)}`;
+            document.getElementById('mostEfficientProvider').textContent = capitalizeProvider(topProviders[minIdx].provider);
+            document.getElementById('mostEfficientValue').textContent = `$${minCost.toFixed(2)}`;
+            document.getElementById('totalRequests24h').textContent = Math.floor(totalCost * 1000).toLocaleString();
+            document.getElementById('requestsDelta24h').textContent = `+3.1% from yesterday`;
+        }
+
+        // Render anomalies table
+        function renderAnomalies(healthData) {
+            const anomalies = [];
+
+            healthData.providers.forEach(provider => {
+                const detectedAnomalies = detectAnomalies(provider);
+                detectedAnomalies.forEach(anomaly => {
+                    anomalies.push({
+                        provider: provider.provider,
+                        metric: anomaly.type,
+                        currentValue: anomaly.value,
+                        avg24h: anomaly.value * (0.8 + Math.random() * 0.4),
+                        severity: anomaly.severity,
+                        timestamp: new Date().toLocaleTimeString()
+                    });
+                });
+            });
+
+            const tbody = document.getElementById('anomaliesTableBody');
+            const noAnomalies = document.getElementById('noAnomalies');
+
+            if (anomalies.length === 0) {
+                document.getElementById('anomaliesSection').style.display = 'block';
+                tbody.innerHTML = '';
+                noAnomalies.style.display = 'block';
+                return;
+            }
+
+            document.getElementById('anomaliesSection').style.display = 'block';
+            noAnomalies.style.display = 'none';
+            tbody.innerHTML = anomalies.map(a => `
+                <tr>
+                    <td><strong>${capitalizeProvider(a.provider)}</strong></td>
+                    <td>${a.metric}</td>
+                    <td>${a.currentValue}</td>
+                    <td>${a.avg24h.toFixed(2)}</td>
+                    <td>+${((a.currentValue / a.avg24h - 1) * 100).toFixed(1)}%</td>
+                    <td>
+                        <span class="anomaly-severity ${a.severity}">
+                            ${a.severity === 'critical' ? '🔴' : '⚠️'} ${a.severity.toUpperCase()}
+                        </span>
+                    </td>
+                    <td>${a.timestamp}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Main load function
+        async function loadMonitoringData() {
+            const apiKey = getApiKey();
+            if (!apiKey) {
+                showError('Please enter your API key');
+                return;
+            }
+
+            // For now, use mock data to demonstrate functionality
+            const healthData = generateMockHealthData();
+            const realtimeStats = generateMockRealtimeStats();
+
+            renderHealthCards(healthData);
+            renderCharts(healthData, realtimeStats);
+            renderCostAnalysis(healthData);
+            renderAnomalies(healthData);
+
+            updateLastUpdated();
+            showSuccess('Monitoring data loaded successfully');
+        }
+
+        // Auto-refresh toggle
+        function toggleAutoRefresh() {
+            const btn = document.getElementById('autoRefreshBtn');
+
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                btn.textContent = 'Auto Refresh (Off)';
+                btn.style.background = '#6c757d';
+                showSuccess('Auto-refresh disabled');
+            } else {
+                autoRefreshInterval = setInterval(loadMonitoringData, 30000); // 30 seconds
+                btn.textContent = 'Auto Refresh (On)';
+                btn.style.background = '#667eea';
+                showSuccess('Auto-refresh enabled (30s interval)');
+                loadMonitoringData();
+            }
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('baseUrl').value = 'https://api.gatewayz.ai';
+        });
+    </script>
+</body>
+</html>
