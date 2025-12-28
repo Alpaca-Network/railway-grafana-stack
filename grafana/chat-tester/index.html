@@ -519,38 +519,105 @@
         }
 
         function generateMockScatterData(timeRange) {
+            // Generate time-series data for "Total Tokens Over Time"
             const models = ['gpt-4o-mini', 'claude-sonnet-4-5', 'llama-2-70b'];
-            const data = models.map((model, idx) => ({
-                model: model,
-                tokensPerSec: 100 + Math.random() * 400,
-                responseTime: 0.5 + Math.random() * 2,
-                requests: Math.floor(1000 + Math.random() * 5000)
-            }));
+            const now = Date.now();
+            let timeStep = 3600000; // 1 hour default
+            let dataPoints = 24; // 24 data points
+
+            // Adjust time range and data points
+            switch(timeRange) {
+                case '1h':
+                    timeStep = 300000; // 5 minutes
+                    dataPoints = 12;
+                    break;
+                case '1d':
+                    timeStep = 3600000; // 1 hour
+                    dataPoints = 24;
+                    break;
+                case '1w':
+                    timeStep = 21600000; // 6 hours
+                    dataPoints = 28;
+                    break;
+                case '1m':
+                    timeStep = 86400000; // 1 day
+                    dataPoints = 30;
+                    break;
+                case '1y':
+                    timeStep = 604800000; // 1 week
+                    dataPoints = 52;
+                    break;
+            }
+
+            // Generate time series data for each model
+            const data = models.map((model, modelIdx) => {
+                const points = [];
+                const baseTokensPerReq = 50 + (modelIdx * 30); // Different base per model
+                const volatility = 0.3; // 30% variance
+
+                for (let i = 0; i < dataPoints; i++) {
+                    const timestamp = now - (dataPoints - i - 1) * timeStep;
+
+                    // Simulate realistic token generation with trend and noise
+                    const trend = i / dataPoints; // Slight upward trend
+                    const noise = (Math.random() - 0.5) * volatility * baseTokensPerReq;
+                    const requestsAtTime = Math.floor(50 + Math.random() * 200); // Requests per interval
+                    const tokensPerReq = baseTokensPerReq + (trend * 20) + noise;
+                    const totalTokens = Math.floor(requestsAtTime * tokensPerReq);
+
+                    points.push({
+                        x: new Date(timestamp).toLocaleTimeString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }),
+                        timestamp: timestamp,
+                        y: totalTokens,
+                        requests: requestsAtTime,
+                        tokensPerRequest: Math.round(tokensPerReq)
+                    });
+                }
+
+                return {
+                    model: model,
+                    totalTokens: points.reduce((sum, p) => sum + p.y, 0),
+                    avgTokensPerTime: Math.round(points.reduce((sum, p) => sum + p.y, 0) / points.length),
+                    maxTokensPerTime: Math.max(...points.map(p => p.y)),
+                    points: points,
+                    requests: points.reduce((sum, p) => sum + p.requests, 0)
+                };
+            });
+
             return data;
         }
 
         function renderScatterPlot(data) {
             const ctx = document.getElementById('scatterChart').getContext('2d');
-            
+
             if (scatterChart) {
                 scatterChart.destroy();
             }
 
             const colors = ['#60a5fa', '#a78bfa', '#34d399'];
             const chartData = {
+                labels: data[0].points.map(p => p.x), // Time labels
                 datasets: data.map((item, idx) => ({
-                    label: item.model,
-                    data: [{ x: item.tokensPerSec, y: item.responseTime }],
+                    label: `${item.model} (Total: ${item.totalTokens.toLocaleString()} tokens)`,
+                    data: item.points.map(p => p.y), // Total tokens per time point
                     backgroundColor: colors[idx],
                     borderColor: colors[idx],
-                    pointRadius: 15,
-                    pointHoverRadius: 18,
-                    borderWidth: 2
+                    fill: false,
+                    tension: 0.3,
+                    borderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: colors[idx]
                 }))
             };
 
             scatterChart = new Chart(ctx, {
-                type: 'scatter',
+                type: 'line',
                 data: chartData,
                 options: {
                     responsive: true,
@@ -570,12 +637,11 @@
                             borderWidth: 1,
                             padding: 12,
                             callbacks: {
-                                label: function(context) {
-                                    const dataPoint = data[context.datasetIndex];
+                                afterLabel: function(context) {
+                                    const dataPoint = data[context.datasetIndex].points[context.dataIndex];
                                     return [
-                                        `Tokens/Sec: ${dataPoint.tokensPerSec.toFixed(2)}`,
-                                        `Response Time: ${dataPoint.responseTime.toFixed(2)}s`,
-                                        `Requests: ${dataPoint.requests}`
+                                        `Requests: ${dataPoint.requests}`,
+                                        `Tokens/Request: ${dataPoint.tokensPerRequest}`
                                     ];
                                 }
                             }
@@ -583,11 +649,9 @@
                     },
                     scales: {
                         x: {
-                            type: 'linear',
-                            position: 'bottom',
                             title: {
                                 display: true,
-                                text: 'Tokens per Second',
+                                text: 'Time',
                                 color: '#cbd5e1',
                                 font: { size: 12, weight: 'bold' }
                             },
@@ -595,13 +659,15 @@
                                 color: '#334155'
                             },
                             ticks: {
-                                color: '#94a3b8'
+                                color: '#94a3b8',
+                                maxRotation: 45,
+                                minRotation: 0
                             }
                         },
                         y: {
                             title: {
                                 display: true,
-                                text: 'Response Time (seconds)',
+                                text: 'Total Tokens Generated',
                                 color: '#cbd5e1',
                                 font: { size: 12, weight: 'bold' }
                             },
@@ -609,7 +675,10 @@
                                 color: '#334155'
                             },
                             ticks: {
-                                color: '#94a3b8'
+                                color: '#94a3b8',
+                                callback: function(value) {
+                                    return value.toLocaleString();
+                                }
                             }
                         }
                     }
@@ -618,11 +687,18 @@
         }
 
         function updateScatterStats(data) {
-            document.getElementById('topModelsCount').textContent = data.length;
-            const avgTokens = (data.reduce((sum, d) => sum + d.tokensPerSec, 0) / data.length).toFixed(2);
-            const avgTime = (data.reduce((sum, d) => sum + d.responseTime, 0) / data.length).toFixed(2);
-            document.getElementById('avgTokensPerSec').textContent = avgTokens;
-            document.getElementById('avgResponseTime').textContent = avgTime + 's';
+            // Display statistics for total tokens over time
+            document.getElementById('topModelsCount').textContent = data.length + ' models';
+
+            // Calculate total tokens across all models
+            const totalTokensAllModels = data.reduce((sum, d) => sum + d.totalTokens, 0);
+            const avgTokensPerModel = Math.round(totalTokensAllModels / data.length);
+
+            // Calculate average across time points
+            const totalRequests = data.reduce((sum, d) => sum + d.requests, 0);
+
+            document.getElementById('avgTokensPerSec').textContent = avgTokensPerModel.toLocaleString() + ' avg';
+            document.getElementById('avgResponseTime').textContent = totalTokensAllModels.toLocaleString() + ' total tokens';
         }
 
         async function testChatCompletions() {
