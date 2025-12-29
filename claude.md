@@ -132,6 +132,43 @@ Expected result: `✅ VERIFICATION SUCCESSFUL - All endpoints are real and respo
    - TESTING_GUIDE.md for verification steps
    - ENDPOINT_VERIFICATION_REPORT.md for proof
 
+4. **Dashboard Naming Convention** - Replaced generic Series A/B with specific field names
+   - Added field overrides for all data series
+   - Applied descriptive display names mapped to API field names
+   - Included proper units (%, USD, ms, etc.)
+   - 19 panels updated across all 5 dashboards
+
+---
+
+## 🎨 Dashboard Field Naming Convention
+
+**All dashboards automatically map API fields to specific display names:**
+
+| API Field | Display Name | Unit |
+|-----------|--------------|------|
+| `requests` | Total Requests | short |
+| `errors` | Error Count | short |
+| `error_rate` | Error Rate % | percent |
+| `cost` | Daily Cost (USD) | currencyUSD |
+| `tokens` | Token Count | short |
+| `latency` | Latency (ms) | short |
+| `success_rate` | Success Rate % | percent |
+| `uptime` | Uptime % | percent |
+| `availability` | Availability % | percent |
+
+**Panels with field overrides: 19 total**
+- Executive Overview: 6 panels
+- Model Performance Analytics: 2 panels
+- Gateway & Provider Comparison: 3 panels
+- Real-Time Incident Response: 2 panels
+- Tokens & Throughput Analysis: 6 panels
+
+**Benefits:**
+✅ Clear, descriptive metric names (no "Series A/B")
+✅ Proper units for all measurements
+✅ Consistent naming across all dashboards
+✅ Better readability for end users
+
 ---
 
 ## 🚀 How to Deploy
