@@ -21,7 +21,9 @@
       "asDropdown": true,
       "icon": "doc",
       "includeVars": true,
-      "tags": ["gatewayz"],
+      "tags": [
+        "gatewayz"
+      ],
       "targetBlank": false,
       "title": "Other Dashboards",
       "type": "dashboards"
@@ -42,7 +44,7 @@
       },
       "id": 1,
       "options": {
-        "content": "# 🎯 Tokens & Throughput Analysis\n\n**Deep dive into token usage, efficiency, and throughput metrics**. Optimize token consumption and understand unit economics of each model.\n\n🔗 [Executive Overview](d/executive-overview-v1) | [Model Performance](d/model-performance-v1) | [Gateway Comparison](d/gateway-comparison-v1) | [Incident Response](d/incident-response-v1)",
+        "content": "# \ud83c\udfaf Tokens & Throughput Analysis\n\n**Deep dive into token usage, efficiency, and throughput metrics**. Optimize token consumption and understand unit economics of each model.\n\n\ud83d\udd17 [Executive Overview](d/executive-overview-v1) | [Model Performance](d/model-performance-v1) | [Gateway Comparison](d/gateway-comparison-v1) | [Incident Response](d/incident-response-v1)",
         "mode": "markdown"
       },
       "pluginVersion": "8.0.0",
@@ -72,7 +74,20 @@
           },
           "unit": "short"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tokens"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Token Count"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 5,
@@ -123,7 +138,20 @@
           },
           "unit": "short"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tokens"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Token Count"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 5,
@@ -223,7 +251,20 @@
           },
           "unit": "percent"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tokens"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Token Count"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 5,
@@ -302,7 +343,20 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tokens"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Token Count"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -415,7 +469,20 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tokens"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Token Count"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -428,7 +495,9 @@
         "footer": {
           "countRows": false,
           "fields": "",
-          "reducer": ["sum"],
+          "reducer": [
+            "sum"
+          ],
           "show": false
         },
         "showHeader": true
@@ -495,7 +564,20 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tokens"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Token Count"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 10,
@@ -588,7 +670,10 @@
               {
                 "id": "custom.lineStyle",
                 "value": {
-                  "dash": [10, 10]
+                  "dash": [
+                    10,
+                    10
+                  ]
                 }
               }
             ]
@@ -604,7 +689,11 @@
       "id": 10,
       "options": {
         "legend": {
-          "calcs": ["min", "max", "mean"],
+          "calcs": [
+            "min",
+            "max",
+            "mean"
+          ],
           "displayMode": "table",
           "placement": "right",
           "showLegend": true
@@ -633,7 +722,12 @@
   "refresh": "60s",
   "schemaVersion": 36,
   "style": "dark",
-  "tags": ["gatewayz", "tokens", "throughput", "efficiency"],
+  "tags": [
+    "gatewayz",
+    "tokens",
+    "throughput",
+    "efficiency"
+  ],
   "templating": {
     "list": [
       {
@@ -668,7 +762,16 @@
     "to": "now"
   },
   "timepicker": {
-    "refresh_intervals": ["30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
+    "refresh_intervals": [
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ]
   },
   "timezone": "",
   "title": "Tokens & Throughput Analysis",

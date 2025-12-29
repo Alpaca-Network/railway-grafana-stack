@@ -21,7 +21,9 @@
       "asDropdown": true,
       "icon": "doc",
       "includeVars": true,
-      "tags": ["gatewayz"],
+      "tags": [
+        "gatewayz"
+      ],
       "targetBlank": false,
       "title": "Other Dashboards",
       "type": "dashboards"
@@ -42,7 +44,7 @@
       },
       "id": 1,
       "options": {
-        "content": "# 🚨 Real-Time Incident Response\n\n**For on-call engineers**. Quick identification of problems with drill-down capabilities. Monitor critical alerts, error rates, SLO compliance, and provider status.\n\n🔗 [Executive Overview](d/executive-overview-v1) | [Model Performance](d/model-performance-v1) | [Gateway Comparison](d/gateway-comparison-v1) | [Token Analytics](d/tokens-throughput-v1)",
+        "content": "# \ud83d\udea8 Real-Time Incident Response\n\n**For on-call engineers**. Quick identification of problems with drill-down capabilities. Monitor critical alerts, error rates, SLO compliance, and provider status.\n\n\ud83d\udd17 [Executive Overview](d/executive-overview-v1) | [Model Performance](d/model-performance-v1) | [Gateway Comparison](d/gateway-comparison-v1) | [Token Analytics](d/tokens-throughput-v1)",
         "mode": "markdown"
       },
       "pluginVersion": "8.0.0",
@@ -92,12 +94,12 @@
                       "CRITICAL": {
                         "color": "dark-red",
                         "index": 0,
-                        "text": "🔴 CRITICAL"
+                        "text": "\ud83d\udd34 CRITICAL"
                       },
                       "WARNING": {
                         "color": "dark-yellow",
                         "index": 1,
-                        "text": "⚠️ WARNING"
+                        "text": "\u26a0\ufe0f WARNING"
                       }
                     },
                     "type": "value"
@@ -119,7 +121,9 @@
         "footer": {
           "countRows": false,
           "fields": "",
-          "reducer": ["sum"],
+          "reducer": [
+            "sum"
+          ],
           "show": false
         },
         "showHeader": true
@@ -132,7 +136,7 @@
           "url": "${API_BASE_URL}/api/monitoring/anomalies"
         }
       ],
-      "title": "🚨 Active Alerts & Anomalies (Sorted by Severity)",
+      "title": "\ud83d\udea8 Active Alerts & Anomalies (Sorted by Severity)",
       "type": "table"
     },
     {
@@ -307,7 +311,20 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "errors"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Error Count"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 12,
@@ -320,7 +337,9 @@
         "footer": {
           "countRows": true,
           "fields": "",
-          "reducer": ["sum"],
+          "reducer": [
+            "sum"
+          ],
           "show": true
         },
         "showHeader": true
@@ -357,17 +376,17 @@
                 "CLOSED": {
                   "color": "green",
                   "index": 0,
-                  "text": "✅ CLOSED"
+                  "text": "\u2705 CLOSED"
                 },
                 "OPEN": {
                   "color": "red",
                   "index": 2,
-                  "text": "🔴 OPEN"
+                  "text": "\ud83d\udd34 OPEN"
                 },
                 "HALF_OPEN": {
                   "color": "yellow",
                   "index": 1,
-                  "text": "⚠️ HALF_OPEN"
+                  "text": "\u26a0\ufe0f HALF_OPEN"
                 }
               },
               "type": "value"
@@ -396,7 +415,9 @@
         "footer": {
           "countRows": false,
           "fields": "",
-          "reducer": ["sum"],
+          "reducer": [
+            "sum"
+          ],
           "show": false
         },
         "showHeader": true
@@ -472,7 +493,24 @@
           },
           "unit": "percent"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "availability"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Availability %"
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -598,7 +636,12 @@
   "refresh": "10s",
   "schemaVersion": 36,
   "style": "dark",
-  "tags": ["gatewayz", "incident", "realtime", "oncall"],
+  "tags": [
+    "gatewayz",
+    "incident",
+    "realtime",
+    "oncall"
+  ],
   "templating": {
     "list": [
       {
@@ -633,7 +676,16 @@
     "to": "now"
   },
   "timepicker": {
-    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h"]
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h"
+    ]
   },
   "timezone": "",
   "title": "Real-Time Incident Response",
