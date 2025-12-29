@@ -26,6 +26,37 @@ curl http://localhost:8000/error
 - **Tempo**: http://localhost:3200
 - **Loki**: http://localhost:3100
 
+### Access New Monitoring Dashboards
+
+The following 5 monitoring dashboards are pre-configured and use **REAL API endpoints** (not mock data):
+
+1. **Executive Overview** - Health snapshot for management teams
+   - Path: `/d/executive-overview-v1`
+   - Refresh: 30 seconds
+   - Best for: Quick health checks, ops team overview
+
+2. **Model Performance Analytics** - Deep dive into AI model metrics
+   - Path: `/d/model-performance-v1`
+   - Refresh: 60 seconds
+   - Best for: Model selection, performance optimization
+
+3. **Gateway & Provider Comparison** - Compare all 17 providers
+   - Path: `/d/gateway-comparison-v1`
+   - Refresh: 60 seconds
+   - Best for: Provider reliability, cost analysis
+
+4. **Real-Time Incident Response** - On-call incident management
+   - Path: `/d/incident-response-v1`
+   - Refresh: 10 seconds (real-time)
+   - Best for: Emergency response, SLO monitoring
+
+5. **Tokens & Throughput Analysis** - Token usage optimization
+   - Path: `/d/tokens-throughput-v1`
+   - Refresh: 60 seconds
+   - Best for: Cost optimization, usage analytics
+
+**Note:** These dashboards require the API_BASE_URL variable to be set. Default is `https://api.gatewayz.ai`. Update the variable in dashboard settings if using a different backend.
+
 ### Import FastAPI Dashboard in Grafana
 1. Go to http://localhost:3000
 2. Navigate to **Dashboards → Import**

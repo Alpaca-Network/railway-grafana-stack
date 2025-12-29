@@ -15,7 +15,7 @@ A production-ready observability solution for **GatewayZ AI Backend**, providing
 
 | Service | Port(s) | Purpose | Status |
 |---------|---------|---------|--------|
-| **Grafana 11.5.2** | 3000 | Visualization & dashboarding | ✅ 8 dashboards |
+| **Grafana 11.5.2** | 3000 | Visualization & dashboarding | ✅ 13 dashboards |
 | **Prometheus v3.2.1** | 9090 | Time-series metrics collection | ✅ 3 scrape jobs |
 | **Loki 3.4** | 3100 | Log aggregation | ✅ 30-day retention |
 | **Tempo** | 3200, 4317, 4318 | Distributed tracing | ✅ Metrics enabled |
@@ -34,6 +34,8 @@ A production-ready observability solution for **GatewayZ AI Backend**, providing
 | [QUICK_START.md](QUICK_START.md) | **Local development with Docker Compose** |
 | [RAILWAY_DEPLOYMENT_GUIDE.md](RAILWAY_DEPLOYMENT_GUIDE.md) | **Deploy to Railway (production/staging)** |
 | [IMMEDIATE_ACTION_REQUIRED.md](IMMEDIATE_ACTION_REQUIRED.md) | **5-minute fixes for common issues** |
+| [MONITORING_GUIDE.md](MONITORING_GUIDE.md) | **API endpoints for GatewayZ monitoring backend** |
+| [ENDPOINT_VERIFICATION_REPORT.md](ENDPOINT_VERIFICATION_REPORT.md) | **Verification that all 22 endpoints are REAL (not mock)** |
 
 ### 🔧 Troubleshooting & Diagnostics
 
@@ -82,6 +84,10 @@ A production-ready observability solution for **GatewayZ AI Backend**, providing
                    │ 8 Dashboards│
                    │ 3 Datasources│
                    └─────────────┘
+                   │
+                   ├─ 8 Legacy Dashboards (Prometheus/Loki/Tempo)
+                   └─ 5 Monitoring Dashboards (API Endpoints)
+                      └─ 22 Real Endpoints (from /api/monitoring/*)
 ```
 
 ### Data Flow
@@ -95,6 +101,7 @@ A production-ready observability solution for **GatewayZ AI Backend**, providing
 
 ## 📊 Dashboards Available
 
+### Core Observability Dashboards (Legacy)
 | Dashboard | Panels | Metrics | Status |
 |-----------|--------|---------|--------|
 | **1. FastAPI Dashboard** | 17 | `fastapi_requests_total`, latency, errors | ✅ Working |
@@ -105,6 +112,82 @@ A production-ready observability solution for **GatewayZ AI Backend**, providing
 | **6. Loki Logs** | 9 | Log search, filtering, aggregation | ✅ Working |
 | **7. Prometheus Metrics** | 10 | Prometheus internals | ✅ Working |
 | **8. Tempo Distributed Tracing** | 6 | Trace search, span metrics | ✅ Working (after restart) |
+
+### 🆕 GatewayZ Monitoring Dashboards (Real API Endpoints)
+| Dashboard | Purpose | Panels | Refresh | Status |
+|-----------|---------|--------|---------|--------|
+| **Executive Overview** | Management & ops team health snapshot | 8 | 30s | ✅ 22 Real Endpoints |
+| **Model Performance Analytics** | Deep dive into AI model performance | 8 | 60s | ✅ 22 Real Endpoints |
+| **Gateway & Provider Comparison** | Compare all 17 providers side-by-side | 8 | 60s | ✅ 22 Real Endpoints |
+| **Real-Time Incident Response** | On-call engineer incident management | 8 | 10s | ✅ 22 Real Endpoints |
+| **Tokens & Throughput Analysis** | Token usage and efficiency optimization | 8 | 60s | ✅ 22 Real Endpoints |
+
+**All new dashboards use REAL API endpoints from your monitoring backend - not mock data. See [ENDPOINT_VERIFICATION_REPORT.md](ENDPOINT_VERIFICATION_REPORT.md) for complete verification.**
+
+### 📊 Dashboard Features
+
+**Executive Overview** (30s refresh)
+- Overall health gauge for all providers
+- Active requests/min, avg response time, daily cost KPIs
+- Request volume trends over time
+- Error rate distribution by provider
+- Critical alerts list (anomalies)
+
+**Model Performance Analytics** (60s refresh)
+- Top 5 models by request volume
+- Models with issues or degradation
+- Request volume trends by model
+- Cost per request ranking
+- Latency distribution (p50, p95, p99)
+
+**Gateway & Provider Comparison** (60s refresh)
+- Health scorecard grid for all 17 providers
+- Multi-metric comparison matrix
+- Cost vs reliability bubble chart
+- Request distribution by provider
+- Latency and cost trends
+
+**Real-Time Incident Response** (10s refresh) ⚡
+- Active alerts & anomalies (sorted by severity)
+- Error rate with alert thresholds
+- SLO compliance gauge (target: 99%)
+- Recent error logs (tail)
+- Circuit breaker status for all providers
+- Provider availability heatmap (24h)
+
+**Tokens & Throughput Analysis** (60s refresh)
+- Total tokens processed
+- Tokens per second (hourly/weekly)
+- Cost per 1M tokens
+- Token efficiency score
+- Tokens by model
+- Input:output ratio analysis
+
+### ✅ Endpoint Verification
+
+All 22 endpoints backing these dashboards are verified as **REAL** (not mock data):
+
+```bash
+# Test all endpoints
+/tmp/test_all_endpoints.sh "YOUR_API_KEY" https://api.gatewayz.ai
+
+# Or read detailed verification report
+cat ENDPOINT_VERIFICATION_REPORT.md
+```
+
+**Verified Endpoints:**
+- `/api/monitoring/health` - Provider health status
+- `/api/monitoring/stats/realtime` - Real-time metrics (1h, 24h, 7d)
+- `/api/monitoring/error-rates` - Error tracking
+- `/api/monitoring/anomalies` - Detected anomalies
+- `/v1/models/trending` - Top models (with time_range, sort_by)
+- `/api/monitoring/cost-analysis` - Cost breakdown by provider/model
+- `/api/monitoring/latency-trends/{provider}` - Latency distribution
+- `/api/monitoring/errors/{provider}` - Error logs
+- `/api/monitoring/circuit-breakers` - Circuit breaker status
+- `/api/monitoring/providers/availability` - Provider availability
+- `/v1/chat/completions/metrics/tokens-per-second` - Token throughput
+- `/api/tokens/efficiency` - Token efficiency metrics
 
 ---
 
@@ -428,14 +511,20 @@ for i in {1..20}; do curl http://localhost:8000/metrics; sleep 0.5; done
 railway-grafana-stack/
 ├── grafana/
 │   ├── Dockerfile
-│   ├── dashboards/              # 7 pre-built dashboards (JSON)
+│   ├── dashboards/              # 13 pre-built dashboards (JSON)
 │   │   ├── fastapi-dashboard.json
 │   │   ├── model-health.json
 │   │   ├── gatewayz-application-health.json
+│   │   ├── gatewayz-backend-metrics.json
 │   │   ├── gatewayz-redis-services.json
 │   │   ├── loki-logs.json
 │   │   ├── prometheus-metrics.json
-│   │   └── tempo-distributed-tracing.json
+│   │   ├── tempo-distributed-tracing.json
+│   │   ├── executive-overview-v1.json       # 🆕 Real API endpoints
+│   │   ├── model-performance-v1.json        # 🆕 Real API endpoints
+│   │   ├── gateway-comparison-v1.json       # 🆕 Real API endpoints
+│   │   ├── incident-response-v1.json        # 🆕 Real API endpoints
+│   │   └── tokens-throughput-v1.json        # 🆕 Real API endpoints
 │   └── provisioning/            # Datasource auto-configuration
 ├── prometheus/
 │   ├── Dockerfile
