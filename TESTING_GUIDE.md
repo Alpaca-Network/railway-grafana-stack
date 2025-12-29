@@ -7,7 +7,9 @@
 
 ## Overview
 
-This guide covers all testing for the Prometheus metrics integration, including:
+This guide covers all testing for the monitoring stack, including:
+
+### Part 1: Prometheus Metrics Module
 - Unit tests for metric updates and error handling
 - Integration tests with health service API
 - Performance benchmarks
@@ -18,6 +20,17 @@ This guide covers all testing for the Prometheus metrics integration, including:
 **Test Coverage:** 70%+ of Prometheus metrics module
 **Execution Time:** ~5-10 minutes per run
 **Environments:** Staging (on push) & Production (on schedule + push)
+
+### Part 2: GatewayZ Monitoring Dashboards (🆕)
+- 5 production-ready dashboards with 22 real API endpoints
+- Endpoint verification (all real, not mock data)
+- Dashboard functionality testing
+- API endpoint testing with cURL
+- Data validation and freshness checks
+
+**Dashboards:** 5 (Executive Overview, Model Performance, Gateway Comparison, Incident Response, Tokens & Throughput)
+**Endpoints:** 22 verified REAL API endpoints
+**Execution Time:** ~2-5 minutes for endpoint verification
 
 ---
 
@@ -58,6 +71,158 @@ pytest tests/test_prometheus_metrics.py::TestHealthServiceClient::test_fetch_hea
 pytest -m "asyncio" -v
 pytest -m "performance" -v
 ```
+
+---
+
+## 🆕 Testing Monitoring Dashboards (New)
+
+### Quick Endpoint Verification
+
+**Verify all 22 endpoints are REAL and responding:**
+
+```bash
+# Make the script executable
+chmod +x /tmp/test_all_endpoints.sh
+
+# Run verification with your API key
+/tmp/test_all_endpoints.sh "YOUR_API_KEY" https://api.gatewayz.ai
+
+# Expected output:
+# ✅ Passed: 22
+# ❌ Failed: 0
+# ⚠️ Skipped: 0
+# ✅ VERIFICATION SUCCESSFUL - All endpoints are real and responding!
+```
+
+**Individual endpoint tests:**
+
+```bash
+# Test 1: Health Status
+curl -X GET "https://api.gatewayz.ai/api/monitoring/health" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" | jq '.[0]'
+
+# Expected: HTTP 200 with provider health data (real, not mock)
+
+# Test 2: Real-time Stats (1 hour)
+curl -X GET "https://api.gatewayz.ai/api/monitoring/stats/realtime?hours=1" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" | jq '.timestamp'
+
+# Expected: HTTP 200 with current timestamp (not static)
+
+# Test 3: Models Trending (top 5)
+curl -X GET "https://api.gatewayz.ai/v1/models/trending?limit=5&sort_by=requests" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" | jq '.[] | {model, requests}'
+
+# Expected: HTTP 200 with real model data and varying request counts
+```
+
+### Dashboard Testing in Grafana
+
+**Test each dashboard loads correctly:**
+
+1. **Executive Overview** (`/d/executive-overview-v1`)
+   - [ ] All 8 panels load
+   - [ ] Health gauge shows 0-100 value
+   - [ ] KPI tiles display numbers (not "No data")
+   - [ ] Charts update every 30 seconds
+
+2. **Model Performance Analytics** (`/d/model-performance-v1`)
+   - [ ] Top 5 models table populated
+   - [ ] Cost per request ranking visible
+   - [ ] Latency distribution chart rendered
+   - [ ] Health score display shows value
+
+3. **Gateway & Provider Comparison** (`/d/gateway-comparison-v1`)
+   - [ ] Health scorecard shows all 17 providers
+   - [ ] Comparison matrix has data
+   - [ ] Cost/reliability bubble chart visible
+   - [ ] Trends updated in last 60 seconds
+
+4. **Real-Time Incident Response** (`/d/incident-response-v1`)
+   - [ ] Alert table shows anomalies (if any)
+   - [ ] Error rate chart updating (10s refresh)
+   - [ ] SLO compliance gauge showing ≥95%
+   - [ ] Circuit breaker grid visible
+   - [ ] Availability heatmap rendered
+
+5. **Tokens & Throughput Analysis** (`/d/tokens-throughput-v1`)
+   - [ ] Total tokens KPI displayed
+   - [ ] Tokens per second chart updating
+   - [ ] Efficiency score visible
+   - [ ] Token by model table populated
+
+### Endpoint Data Validation
+
+**Verify endpoints return REAL data (not mock):**
+
+```bash
+# Run these 3 times in a row - values should change each time
+for i in 1 2 3; do
+  echo "=== Run $i ==="
+  curl -s "https://api.gatewayz.ai/api/monitoring/health" \
+    -H "Authorization: Bearer YOUR_API_KEY" | \
+    jq '.[] | {provider, health_score}' | head -6
+  sleep 5
+done
+
+# If you see DIFFERENT health_score values = REAL DATA ✅
+# If you see SAME health_score values = MOCK DATA ❌
+```
+
+**Check data freshness:**
+
+```bash
+# Get timestamp from latest response
+curl -s "https://api.gatewayz.ai/api/monitoring/stats/realtime?hours=1" \
+  -H "Authorization: Bearer YOUR_API_KEY" | \
+  jq '.timestamp'
+
+# Compare with current time - should be within last 30 seconds
+date -u +"%Y-%m-%dT%H:%M:%SZ"
+
+# Timestamps should match (within ±30s) = REAL DATA ✅
+# If timestamp is old (hours ago) = STALE MOCK DATA ❌
+```
+
+### Complete Verification Checklist
+
+```
+Dashboard Setup
+  ☐ All 5 dashboards appear in Grafana sidebar
+  ☐ Each dashboard loads without errors
+  ☐ API_BASE_URL variable is set correctly
+
+Endpoint Connectivity
+  ☐ All 22 endpoints respond with HTTP 200
+  ☐ No 401 Unauthorized errors
+  ☐ No 404 Not Found errors
+  ☐ Response JSON is valid (not HTML error page)
+
+Data Authenticity
+  ☐ Data values change between calls (not static)
+  ☐ Timestamps are current (within last 30 seconds)
+  ☐ Numbers are realistic (not hardcoded constants)
+  ☐ Error rates vary 0-100% (not always 0 or 100)
+
+Panel Rendering
+  ☐ Health gauge displays 0-100
+  ☐ Tables show 3+ rows of data
+  ☐ Charts render properly (not blank)
+  ☐ Thresholds visible (green/yellow/red)
+  ☐ Legends display metric names
+
+Refresh Behavior
+  ☐ Executive Overview updates every 30s
+  ☐ Model Performance updates every 60s
+  ☐ Gateway Comparison updates every 60s
+  ☐ Incident Response updates every 10s ⚡
+  ☐ Tokens & Throughput updates every 60s
+```
+
+**See [ENDPOINT_VERIFICATION_REPORT.md](ENDPOINT_VERIFICATION_REPORT.md) for detailed verification of all 22 endpoints.**
 
 ---
 

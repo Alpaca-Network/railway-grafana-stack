@@ -1,8 +1,31 @@
 # 🚀 DEPLOYMENT CHECKLIST
-**Health Service Metrics Exporter**
+**Health Service Metrics Exporter + GatewayZ Monitoring Dashboards**
 
-**Last Updated:** December 24, 2025
+**Last Updated:** December 28, 2025
 **Status:** Ready for deployment
+
+## 🆕 DASHBOARD DEPLOYMENT CHECKLIST
+
+**5 New Monitoring Dashboards with Real API Endpoints:**
+- [ ] All 5 dashboard JSON files committed to `grafana/dashboards/`
+- [ ] Dashboard files:
+  - [ ] `executive-overview-v1.json`
+  - [ ] `model-performance-v1.json`
+  - [ ] `gateway-comparison-v1.json`
+  - [ ] `incident-response-v1.json`
+  - [ ] `tokens-throughput-v1.json`
+- [ ] Grafana provisioning auto-imports all 5 dashboards
+- [ ] API_BASE_URL variable defaults to `https://api.gatewayz.ai`
+- [ ] All 22 endpoints verified as REAL (see ENDPOINT_VERIFICATION_REPORT.md)
+- [ ] Test all endpoints respond with HTTP 200 using `/tmp/test_all_endpoints.sh`
+
+**Post-Deployment Verification:**
+- [ ] All 5 dashboards appear in Grafana sidebar
+- [ ] Executive Overview dashboard loads without errors
+- [ ] Model Performance dashboard shows real model data
+- [ ] Gateway Comparison shows all 17 providers
+- [ ] Incident Response dashboard updates every 10 seconds
+- [ ] Tokens & Throughput dashboard displays token metrics
 
 ---
 
