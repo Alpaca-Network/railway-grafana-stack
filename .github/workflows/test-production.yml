@@ -9,6 +9,7 @@ on:
 
 env:
   PYTHON_VERSION: '3.11'
+  API_BASE_URL: 'https://api.gatewayz.ai'
 
 jobs:
   configuration-tests:
@@ -168,16 +169,24 @@ jobs:
           pip install httpx
 
       - name: Check backend metrics endpoint
+        env:
+          API_KEY: ${{ secrets.PRODUCTION_API_KEY }}
         run: |
           python << 'EOF'
           import asyncio
           import httpx
+          import os
           from datetime import datetime
 
           async def health_check():
               backend_url = 'https://gatewayz-staging.up.railway.app'
+              api_key = os.getenv('API_KEY', '')
               print(f"\n📊 Production Health Check - {datetime.now().isoformat()}")
               print("=" * 60)
+
+              if not api_key:
+                  print("⚠️ API_KEY not configured - skipping endpoint tests")
+                  return
 
               async with httpx.AsyncClient() as client:
                   # Check metrics endpoint
@@ -185,7 +194,7 @@ jobs:
                       response = await client.get(
                           f'{backend_url}/metrics',
                           timeout=10,
-                          headers={"Authorization": "Bearer gw_live_wTfpLJ5VB28qMXpOAhr7Uw"}
+                          headers={"Authorization": f"Bearer {api_key}"}
                       )
                       if response.status_code == 200:
                           print("✅ Backend /metrics endpoint: UP")
@@ -198,10 +207,72 @@ jobs:
           asyncio.run(health_check())
           EOF
 
+  endpoint-tests:
+    name: API Endpoint Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run API endpoint tests
+        env:
+          API_KEY: ${{ secrets.PRODUCTION_API_KEY }}
+          API_BASE_URL: ${{ env.API_BASE_URL }}
+        run: |
+          if [ -z "$API_KEY" ]; then
+            echo "⚠️ API_KEY not configured - skipping endpoint tests"
+            echo "To enable endpoint testing, add PRODUCTION_API_KEY to GitHub Secrets"
+          else
+            pytest tests/test_api_endpoints.py -v --tb=short -m endpoint
+          fi
+
+  dashboard-tests:
+    name: Dashboard Validation Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run dashboard structure validation
+        run: |
+          pytest tests/test_dashboards.py -v --tb=short -m dashboard
+
+      - name: Run dashboard validation script
+        run: |
+          chmod +x scripts/validate_dashboards.sh
+          ./scripts/validate_dashboards.sh
+
   test-report:
     name: Test Report Summary
     runs-on: ubuntu-latest
-    needs: [configuration-tests, docker-validation, yaml-validation]
+    needs: [configuration-tests, docker-validation, yaml-validation, endpoint-tests, dashboard-tests]
     if: always()
 
     steps:
@@ -213,6 +284,8 @@ jobs:
           echo "- Configuration Tests: ${{ needs.configuration-tests.result }}"
           echo "- Docker Validation: ${{ needs.docker-validation.result }}"
           echo "- YAML Validation: ${{ needs.yaml-validation.result }}"
+          echo "- Endpoint Tests: ${{ needs.endpoint-tests.result }}"
+          echo "- Dashboard Tests: ${{ needs.dashboard-tests.result }}"
           echo ""
           echo "### Components Tested"
           echo "- Stack configuration files (YAML)"
@@ -220,11 +293,15 @@ jobs:
           echo "- Prometheus scrape configuration"
           echo "- Loki and Tempo configuration"
           echo "- Grafana datasources and dashboards"
+          echo "- All 22 real API endpoints (with API key)"
+          echo "- Dashboard JSON structure and naming conventions"
           echo ""
           echo "### Status"
           if [ "${{ needs.configuration-tests.result }}" == "success" ] && \
              [ "${{ needs.docker-validation.result }}" == "success" ] && \
-             [ "${{ needs.yaml-validation.result }}" == "success" ]; then
+             [ "${{ needs.yaml-validation.result }}" == "success" ] && \
+             [ "${{ needs.endpoint-tests.result }}" == "success" ] && \
+             [ "${{ needs.dashboard-tests.result }}" == "success" ]; then
             echo "✅ All production tests passed"
           else
             echo "⚠️ Some tests failed - review details above"
