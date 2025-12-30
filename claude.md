@@ -11,8 +11,13 @@
 
 This project is the **GatewayZ AI Backend Observability Stack** - a production-ready monitoring solution using Docker, Grafana, Prometheus, Loki, and Tempo. It provides:
 
+<<<<<<< HEAD
+- **13 Grafana Dashboards** (8 legacy + 5 new monitoring dashboards)
+- **22+ Real API Endpoints** (verified, not mock data)
+=======
 - **14 Grafana Dashboards** (8 legacy + 6 new monitoring dashboards)
 - **25+ Real API Endpoints** (verified, not mock data)
+>>>>>>> main
 - **Comprehensive Logging** via Loki with real instrumentation
 - **Distributed Tracing** via Tempo with real endpoint testing
 - **Automated Testing** for all endpoints and dashboards
@@ -36,6 +41,9 @@ This project is the **GatewayZ AI Backend Observability Stack** - a production-r
 - Enhanced Model Performance (timeseries → barchart & heatmap)
 - Optimized Tokens & Throughput (table → barchart)
 
+<<<<<<< HEAD
+### Phase 3: ✅ COMPLETED - Loki/Tempo Instrumentation
+=======
 ### Phase 3: ✅ COMPLETED - Chat Completion Dashboard Refactor
 - **Branch:** `refactor/chat-completion-dashboard`
 - Created `chat-completion-v1.json` with working stat cards
@@ -44,6 +52,7 @@ This project is the **GatewayZ AI Backend Observability Stack** - a production-r
 - Added proper field overrides and thresholds
 
 ### Phase 4: ✅ COMPLETED - Loki/Tempo Instrumentation
+>>>>>>> main
 - **Branch:** `fix/loki-tempo-error`
 - Added real instrumentation endpoints for log/trace ingestion
 - Created `scripts/test_loki_instrumentation.sh`
@@ -71,7 +80,11 @@ This project is the **GatewayZ AI Backend Observability Stack** - a production-r
 | Prometheus Metrics | 10 | prometheus internals | 88% field overrides |
 | Tempo Distributed Tracing | 6 | span metrics | 83% field overrides |
 
+<<<<<<< HEAD
+### New Monitoring Dashboards (5)
+=======
 ### New Monitoring Dashboards (6)
+>>>>>>> main
 | Dashboard | UID | Panels | Real Endpoints | Refresh |
 |-----------|-----|--------|---|---------|
 | Executive Overview | `executive-overview-v1` | 8 | 4 | 30s |
@@ -79,13 +92,20 @@ This project is the **GatewayZ AI Backend Observability Stack** - a production-r
 | Gateway & Provider Comparison | `gateway-comparison-v1` | 8 | 4 | 60s |
 | Real-Time Incident Response | `incident-response-v1` | 8 | 5 | 10s |
 | Tokens & Throughput Analysis | `tokens-throughput-v1` | 10 | 4 | 60s |
+<<<<<<< HEAD
+=======
 | **Chat Completion Monitoring** | `chat-completion-v1` | 6 | 3 | 60s |
+>>>>>>> main
 
 **All new dashboards have 100% field override coverage with proper display names and units.**
 
 ---
 
+<<<<<<< HEAD
+## 🔗 Real API Endpoints (22 Total)
+=======
 ## 🔗 Real API Endpoints (25 Total)
+>>>>>>> main
 
 ### Monitoring Endpoints (22)
 ```
@@ -103,6 +123,8 @@ This project is the **GatewayZ AI Backend Observability Stack** - a production-r
 12. /api/tokens/efficiency
 ```
 
+<<<<<<< HEAD
+=======
 ### Chat Request Endpoints (3 - NEW)
 ```
 1. /api/monitoring/chat-requests/counts - Total requests, error rate, latency
@@ -110,6 +132,7 @@ This project is the **GatewayZ AI Backend Observability Stack** - a production-r
 3. /api/monitoring/chat-requests - Chat metrics (if needed)
 ```
 
+>>>>>>> main
 ### Instrumentation Endpoints (5 - NEW)
 ```
 1. GET /api/instrumentation/health - System health
@@ -133,6 +156,14 @@ This project is the **GatewayZ AI Backend Observability Stack** - a production-r
 ### Active Feature/Fix Branches
 | Branch | Purpose | Status | Commits |
 |--------|---------|--------|---------|
+<<<<<<< HEAD
+| `refactor/chat-completion-dashboard` | Dashboard refactoring (chat-completion removed) | ✅ Ready | 1 |
+| `fix/loki-tempo-error` | Loki/Tempo instrumentation | ✅ Pushed | 1 |
+| `docs/update-readme-claude-context` | Documentation updates | ✅ Ready | (New) |
+
+### Recent Commits
+```
+=======
 | `refactor/chat-completion-dashboard` | New working chat dashboard | ✅ Ready | 1 |
 | `fix/loki-tempo-error` | Loki/Tempo instrumentation | ✅ Pushed | 1 |
 | `feature/comprehensive-analytics-dashboards` | Original dashboard work | ✅ Merged | 4 |
@@ -140,6 +171,7 @@ This project is the **GatewayZ AI Backend Observability Stack** - a production-r
 ### Recent Commits
 ```
 3374b84 - refactor: Add Chat Completion dashboard with proper API endpoint queries
+>>>>>>> main
 4742065 - fix: Add Loki/Tempo instrumentation endpoints and testing script
 ac35318 - docs: Update claude.md with dashboard naming convention details
 3c10044 - refactor: Add specific field naming to all dashboard panels
@@ -150,7 +182,11 @@ d7d3c37 - docs: Add claude.md context document for future sessions
 
 ## 📁 Key Files & Locations
 
+<<<<<<< HEAD
+### Dashboards (13 files)
+=======
 ### Dashboards (14 files)
+>>>>>>> main
 ```
 grafana/dashboards/
 ├── fastapi-dashboard.json
@@ -165,6 +201,15 @@ grafana/dashboards/
 ├── model-performance-v1.json
 ├── gateway-comparison-v1.json
 ├── incident-response-v1.json
+<<<<<<< HEAD
+└── tokens-throughput-v1.json
+```
+
+### Documentation (13 files)
+```
+├── README.md - Main documentation (updated)
+├── claude.md - This file (context for future sessions) (NEW)
+=======
 ├── tokens-throughput-v1.json
 └── chat-completion-v1.json  (NEW)
 ```
@@ -172,6 +217,7 @@ grafana/dashboards/
 ### Documentation (12 files)
 ```
 ├── README.md - Main documentation (updated)
+>>>>>>> main
 ├── QUICK_START.md - Local development guide
 ├── TESTING_GUIDE.md - Testing procedures
 ├── ENDPOINT_VERIFICATION_REPORT.md - Endpoint verification
@@ -181,7 +227,10 @@ grafana/dashboards/
 ├── RAILWAY_DEPLOYMENT_GUIDE.md - Railway-specific deployment
 ├── MONITORING_GUIDE.md - Backend metrics guide
 ├── METRIC_DEFINITIONS.md - Metric interpretation
+<<<<<<< HEAD
+=======
 ├── claude.md - This file (context for future sessions)
+>>>>>>> main
 └── API_ENDPOINT_TESTER_GUIDE.md - Legacy endpoint testing
 ```
 
@@ -303,6 +352,18 @@ curl -X POST "https://api.gatewayz.ai/api/instrumentation/test-log" \
 
 ### Key Things to Remember
 1. **This is NOT mock data** - All 25+ endpoints are real and verified
+<<<<<<< HEAD
+2. **6 new monitoring dashboards** created (3 for Loki/Tempo + 1 Chat Completion)
+3. **111+ panels enhanced** with field overrides (86.7% coverage)
+4. **Three active refactoring branches:**
+   - `refactor/chat-completion-dashboard` - Chat completion dashboard (ready to merge)
+   - `fix/loki-tempo-error` - Loki/Tempo instrumentation (ready to merge)
+   - `docs/update-readme-claude-context` - Documentation updates (ready to merge)
+5. **Comprehensive documentation** - See all .md files for detailed info
+
+### Questions for Next Session
+- Should we merge all three refactoring branches to main?
+=======
 2. **6 new monitoring dashboards** created (3 Loki/Tempo, 6 chat-completion related)
 3. **111+ panels enhanced** with field overrides (86.7% coverage)
 4. **Two active refactoring branches:**
@@ -312,6 +373,7 @@ curl -X POST "https://api.gatewayz.ai/api/instrumentation/test-log" \
 
 ### Questions for Next Session
 - Should we merge both refactoring branches to main?
+>>>>>>> main
 - Should we deprecate `api-endpoint-tester-v2.json`?
 - Do we need to update any production deployment scripts?
 - Should we implement the remaining Phase 2-3 visualization improvements?
@@ -355,6 +417,8 @@ curl -X POST "https://api.gatewayz.ai/api/instrumentation/test-log" \
   }
 }
 ```
+<<<<<<< HEAD
+=======
 
 ### Field Override Pattern
 ```json
@@ -367,6 +431,7 @@ curl -X POST "https://api.gatewayz.ai/api/instrumentation/test-log" \
   ]
 }
 ```
+>>>>>>> main
 
 ---
 
@@ -382,6 +447,10 @@ git branch -vv
 # See changes on refactoring branches
 git diff main..refactor/chat-completion-dashboard --stat
 git diff main..fix/loki-tempo-error --stat
+<<<<<<< HEAD
+git diff main..docs/update-readme-claude-context --stat
+=======
+>>>>>>> main
 
 # Test endpoints
 ./scripts/test_loki_instrumentation.sh "YOUR_API_KEY" "https://api.gatewayz.ai"
@@ -391,9 +460,12 @@ jq '.panels[0]' grafana/dashboards/chat-completion-v1.json
 
 # Count panels in all dashboards
 for f in grafana/dashboards/*.json; do echo "$f: $(jq '.panels | length' $f)"; done
+<<<<<<< HEAD
+=======
 
 # Verify field override coverage
 jq '[.panels[] | select(.fieldConfig.overrides | length > 0)] | length' grafana/dashboards/*.json
+>>>>>>> main
 ```
 
 ---
@@ -405,14 +477,23 @@ jq '[.panels[] | select(.fieldConfig.overrides | length > 0)] | length' grafana/
 - **Total Panels:** 128+ across all dashboards
 - **Field Overrides:** 111+ panels enhanced (86.7%)
 - **Real API Endpoints:** 25+ (verified, not mock)
+<<<<<<< HEAD
+- **Documentation Files:** 13
+- **Lines of Documentation:** 2,500+
+=======
 - **Documentation Files:** 12
 - **Lines of Documentation:** 2,000+
+>>>>>>> main
 
 ### Dashboard Metrics
 - **Stat Cards with Working Data:** 22+ (across all dashboards)
 - **Tables:** 14+ panels
 - **Time Series Charts:** 19+ panels
+<<<<<<< HEAD
+- **Gauges:** 8+ panels
+=======
 - **Gauges/Gauges:** 8+ panels
+>>>>>>> main
 - **Pie/Doughnut Charts:** 5+ panels
 
 ### Testing Coverage
@@ -424,7 +505,11 @@ jq '[.panels[] | select(.fieldConfig.overrides | length > 0)] | length' grafana/
 ---
 
 **Status:** ✅ Complete and Production-Ready
+<<<<<<< HEAD
+**Last Verified:** December 29, 2025, 12:00 PM UTC
+=======
 **Last Verified:** December 29, 2025, 11:30 AM UTC
+>>>>>>> main
 **All Tests:** Passing ✅
 **Documentation:** Complete ✅
 **Endpoints:** 25+ verified as REAL ✅

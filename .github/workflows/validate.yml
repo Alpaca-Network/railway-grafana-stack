@@ -67,6 +67,63 @@ jobs:
               sys.exit(1)
           EOF
 
+  dashboard-validation:
+    name: Validate Dashboard Configuration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run dashboard validation script
+        run: |
+          chmod +x scripts/validate_dashboards.sh
+          ./scripts/validate_dashboards.sh strict
+
+      - name: Run dashboard pytest tests
+        run: |
+          pytest tests/test_dashboards.py -v --tb=short -m dashboard
+
+      - name: Verify all dashboards have unique UIDs
+        run: |
+          python << 'EOF'
+          import json
+          import glob
+          from pathlib import Path
+
+          dashboards_dir = Path('grafana/dashboards')
+          uids = {}
+          errors = []
+
+          for json_file in sorted(dashboards_dir.glob('*.json')):
+              with open(json_file, 'r') as f:
+                  dashboard = json.load(f)
+
+              uid = dashboard.get('uid', 'MISSING')
+              if uid in uids:
+                  errors.append(f"Duplicate UID '{uid}': {json_file.name} and {uids[uid]}")
+              else:
+                  uids[uid] = json_file.name
+
+          if errors:
+              print("❌ Duplicate UIDs found:")
+              for error in errors:
+                  print(f"  - {error}")
+              exit(1)
+          else:
+              print(f"✅ All {len(uids)} dashboards have unique UIDs")
+          EOF
+
   lint-docker:
     name: Lint Dockerfiles
     runs-on: ubuntu-latest
