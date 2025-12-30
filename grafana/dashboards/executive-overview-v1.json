@@ -117,8 +117,8 @@
         {
           "refId": "A",
           "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/health",
-          "jsonPath": ".[*].health_score"
+          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
+          "jsonPath": "avg_health_score"
         }
       ],
       "title": "Overall System Health",
@@ -573,8 +573,7 @@
         {
           "refId": "A",
           "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=24",
-          "jsonPath": "hourly_breakdown[*].requests"
+          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=24"
         }
       ],
       "title": "Request Volume (24h)",
