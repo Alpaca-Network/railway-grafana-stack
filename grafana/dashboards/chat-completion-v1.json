@@ -1,0 +1,697 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "datasource",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Grafana --"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "content": "# 💬 Chat Completion Monitoring Dashboard\n\n**Real-time monitoring of chat completion requests, model performance, and API metrics**\n\n📊 Base URL: `${API_BASE_URL}` | 🔑 Bearer Token Required",
+        "mode": "markdown"
+      },
+      "pluginVersion": "10.2.0",
+      "title": "",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "grafana_json_api"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 100
+              },
+              {
+                "color": "yellow",
+                "value": 1000
+              },
+              {
+                "color": "orange",
+                "value": 5000
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Total Requests"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Chat Requests"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 3
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana_json_api"
+          },
+          "method": "GET",
+          "url": "${API_BASE_URL}/api/monitoring/chat-requests/counts",
+          "headers": "Authorization: Bearer ${API_KEY}",
+          "jsonPath": "$.total_requests",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Chat Requests",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "grafana_json_api"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "purple",
+                "value": null
+              },
+              {
+                "color": "blue",
+                "value": 10
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Active Models"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Active Models"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 3
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana_json_api"
+          },
+          "method": "GET",
+          "url": "${API_BASE_URL}/api/monitoring/chat-requests/models",
+          "headers": "Authorization: Bearer ${API_KEY}",
+          "jsonPath": "$.count",
+          "refId": "A"
+        }
+      ],
+      "title": "Active Models",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "grafana_json_api"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "cyan",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 0.1
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Error Rate"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Error Rate %"
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 3
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana_json_api"
+          },
+          "method": "GET",
+          "url": "${API_BASE_URL}/api/monitoring/chat-requests/counts",
+          "headers": "Authorization: Bearer ${API_KEY}",
+          "jsonPath": "$.error_rate",
+          "refId": "A"
+        }
+      ],
+      "title": "Error Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "grafana_json_api"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 100
+              },
+              {
+                "color": "yellow",
+                "value": 500
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Avg Latency"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Avg Latency (ms)"
+              },
+              {
+                "id": "unit",
+                "value": "ms"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 3
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana_json_api"
+          },
+          "method": "GET",
+          "url": "${API_BASE_URL}/api/monitoring/chat-requests/counts",
+          "headers": "Authorization: Bearer ${API_KEY}",
+          "jsonPath": "$.avg_latency",
+          "refId": "A"
+        }
+      ],
+      "title": "Average Latency",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "grafana_json_api"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "requests"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Request Count"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "model_name"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Model Name"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "avg_response_time"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Avg Response Time (ms)"
+              },
+              {
+                "id": "unit",
+                "value": "ms"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 7
+      },
+      "id": 6,
+      "options": {
+        "footer": {
+          "countRows": "all",
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Request Count",
+            "desc": true
+          }
+        ]
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana_json_api"
+          },
+          "method": "GET",
+          "url": "${API_BASE_URL}/api/monitoring/chat-requests/models",
+          "headers": "Authorization: Bearer ${API_KEY}",
+          "jsonPath": "$.models",
+          "refId": "A"
+        }
+      ],
+      "title": "Top Models by Request Count",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "grafana_json_api"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Request Count",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 7
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana_json_api"
+          },
+          "method": "GET",
+          "url": "${API_BASE_URL}/api/monitoring/chat-requests/counts",
+          "headers": "Authorization: Bearer ${API_KEY}",
+          "jsonPath": "$.trends",
+          "refId": "A"
+        }
+      ],
+      "title": "Request Trends Over Time",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "60s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": [
+    "chat-completion",
+    "api-monitoring",
+    "real-endpoints"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "https://api.gatewayz.ai",
+          "value": "https://api.gatewayz.ai"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "API Base URL",
+        "multi": false,
+        "name": "API_BASE_URL",
+        "options": [
+          {
+            "selected": true,
+            "text": "https://api.gatewayz.ai",
+            "value": "https://api.gatewayz.ai"
+          }
+        ],
+        "query": "https://api.gatewayz.ai",
+        "queryValue": "",
+        "sort": 0,
+        "type": "custom"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "your-api-key",
+          "value": "your-api-key"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "API Key",
+        "multi": false,
+        "name": "API_KEY",
+        "options": [
+          {
+            "selected": true,
+            "text": "your-api-key",
+            "value": "your-api-key"
+          }
+        ],
+        "query": "your-api-key",
+        "queryValue": "",
+        "sort": 0,
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Chat Completion Monitoring",
+  "uid": "chat-completion-v1",
+  "version": 1,
+  "weekStart": ""
+}
