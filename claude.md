@@ -11,8 +11,8 @@
 
 This project is the **GatewayZ AI Backend Observability Stack** - a production-ready monitoring solution using Docker, Grafana, Prometheus, Loki, and Tempo. It provides:
 
-- **14 Grafana Dashboards** (8 legacy + 6 new monitoring dashboards)
-- **25+ Real API Endpoints** (verified, not mock data)
+- **13 Grafana Dashboards** (8 legacy + 5 new monitoring dashboards)
+- **22+ Real API Endpoints** (verified, not mock data)
 - **Comprehensive Logging** via Loki with real instrumentation
 - **Distributed Tracing** via Tempo with real endpoint testing
 - **Automated Testing** for all endpoints and dashboards
@@ -36,14 +36,7 @@ This project is the **GatewayZ AI Backend Observability Stack** - a production-r
 - Enhanced Model Performance (timeseries → barchart & heatmap)
 - Optimized Tokens & Throughput (table → barchart)
 
-### Phase 3: ✅ COMPLETED - Chat Completion Dashboard Refactor
-- **Branch:** `refactor/chat-completion-dashboard`
-- Created `chat-completion-v1.json` with working stat cards
-- Integrated 3 new endpoints: `/api/monitoring/chat-requests/*`
-- Fixed "no data" issue in stat cards through proper query setup
-- Added proper field overrides and thresholds
-
-### Phase 4: ✅ COMPLETED - Loki/Tempo Instrumentation
+### Phase 3: ✅ COMPLETED - Loki/Tempo Instrumentation
 - **Branch:** `fix/loki-tempo-error`
 - Added real instrumentation endpoints for log/trace ingestion
 - Created `scripts/test_loki_instrumentation.sh`
@@ -71,7 +64,7 @@ This project is the **GatewayZ AI Backend Observability Stack** - a production-r
 | Prometheus Metrics | 10 | prometheus internals | 88% field overrides |
 | Tempo Distributed Tracing | 6 | span metrics | 83% field overrides |
 
-### New Monitoring Dashboards (6)
+### New Monitoring Dashboards (5)
 | Dashboard | UID | Panels | Real Endpoints | Refresh |
 |-----------|-----|--------|---|---------|
 | Executive Overview | `executive-overview-v1` | 8 | 4 | 30s |
@@ -79,13 +72,12 @@ This project is the **GatewayZ AI Backend Observability Stack** - a production-r
 | Gateway & Provider Comparison | `gateway-comparison-v1` | 8 | 4 | 60s |
 | Real-Time Incident Response | `incident-response-v1` | 8 | 5 | 10s |
 | Tokens & Throughput Analysis | `tokens-throughput-v1` | 10 | 4 | 60s |
-| **Chat Completion Monitoring** | `chat-completion-v1` | 6 | 3 | 60s |
 
 **All new dashboards have 100% field override coverage with proper display names and units.**
 
 ---
 
-## 🔗 Real API Endpoints (25 Total)
+## 🔗 Real API Endpoints (22 Total)
 
 ### Monitoring Endpoints (22)
 ```
@@ -101,13 +93,6 @@ This project is the **GatewayZ AI Backend Observability Stack** - a production-r
 10. /api/monitoring/providers/availability?days=1
 11. /v1/chat/completions/metrics/tokens-per-second?time=hour|week (2 calls)
 12. /api/tokens/efficiency
-```
-
-### Chat Request Endpoints (3 - NEW)
-```
-1. /api/monitoring/chat-requests/counts - Total requests, error rate, latency
-2. /api/monitoring/chat-requests/models - Active models count, list
-3. /api/monitoring/chat-requests - Chat metrics (if needed)
 ```
 
 ### Instrumentation Endpoints (5 - NEW)
@@ -133,13 +118,12 @@ This project is the **GatewayZ AI Backend Observability Stack** - a production-r
 ### Active Feature/Fix Branches
 | Branch | Purpose | Status | Commits |
 |--------|---------|--------|---------|
-| `refactor/chat-completion-dashboard` | New working chat dashboard | ✅ Ready | 1 |
+| `refactor/chat-completion-dashboard` | Dashboard refactoring (chat-completion removed) | ✅ Ready | 1 |
 | `fix/loki-tempo-error` | Loki/Tempo instrumentation | ✅ Pushed | 1 |
 | `docs/update-readme-claude-context` | Documentation updates | ✅ Ready | (New) |
 
 ### Recent Commits
 ```
-3374b84 - refactor: Add Chat Completion dashboard with proper API endpoint queries
 4742065 - fix: Add Loki/Tempo instrumentation endpoints and testing script
 ac35318 - docs: Update claude.md with dashboard naming convention details
 3c10044 - refactor: Add specific field naming to all dashboard panels
@@ -150,7 +134,7 @@ d7d3c37 - docs: Add claude.md context document for future sessions
 
 ## 📁 Key Files & Locations
 
-### Dashboards (14 files)
+### Dashboards (13 files)
 ```
 grafana/dashboards/
 ├── fastapi-dashboard.json
@@ -165,8 +149,7 @@ grafana/dashboards/
 ├── model-performance-v1.json
 ├── gateway-comparison-v1.json
 ├── incident-response-v1.json
-├── tokens-throughput-v1.json
-└── chat-completion-v1.json  (NEW)
+└── tokens-throughput-v1.json
 ```
 
 ### Documentation (13 files)
