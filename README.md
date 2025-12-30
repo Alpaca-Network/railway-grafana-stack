@@ -15,18 +15,13 @@ A production-ready observability solution for **GatewayZ AI Backend**, providing
 
 | Service | Port(s) | Purpose | Status |
 |---------|---------|---------|--------|
-| **Grafana 11.5.2** | 3000 | Visualization & dashboarding | ✅ 13 dashboards |
+| **Grafana 11.5.2** | 3000 | Visualization & dashboarding | ✅ 14 dashboards |
 | **Prometheus v3.2.1** | 9090 | Time-series metrics collection | ✅ 3 scrape jobs |
 | **Loki 3.4** | 3100 | Log aggregation | ✅ 30-day retention |
 | **Tempo** | 3200, 4317, 4318 | Distributed tracing | ✅ Real instrumentation endpoints |
 | **Redis Exporter** | 9121 | Redis metrics export | ✅ Configured |
 
 **All services are pre-configured, interconnected, and production-ready.**
-
-### Latest Updates (December 29, 2025)
-- ✅ **Loki/Tempo Instrumentation** - Real endpoints for log and trace ingestion
-- ✅ **Metric Naming** - All dashboards now use specific field names (no "Series A/B")
-- ✅ **Field Overrides** - 111+ panels with proper units and color thresholds
 
 ---
 
@@ -122,11 +117,11 @@ A production-ready observability solution for **GatewayZ AI Backend**, providing
 ### 🆕 GatewayZ Monitoring Dashboards (Real API Endpoints)
 | Dashboard | Purpose | Panels | Refresh | Status |
 |-----------|---------|--------|---------|--------|
-| **Executive Overview** | Management & ops team health snapshot | 8 | 30s | ✅ Real Endpoints |
-| **Model Performance Analytics** | Deep dive into AI model performance | 8 | 60s | ✅ Real Endpoints |
-| **Gateway & Provider Comparison** | Compare all 17 providers side-by-side | 8 | 60s | ✅ Real Endpoints |
-| **Real-Time Incident Response** | On-call engineer incident management | 8 | 10s | ✅ Real Endpoints |
-| **Tokens & Throughput Analysis** | Token usage and efficiency optimization | 8 | 60s | ✅ Real Endpoints |
+| **Executive Overview** | Management & ops team health snapshot | 8 | 30s | ✅ 22 Real Endpoints |
+| **Model Performance Analytics** | Deep dive into AI model performance | 8 | 60s | ✅ 22 Real Endpoints |
+| **Gateway & Provider Comparison** | Compare all 17 providers side-by-side | 8 | 60s | ✅ 22 Real Endpoints |
+| **Real-Time Incident Response** | On-call engineer incident management | 8 | 10s | ✅ 22 Real Endpoints |
+| **Tokens & Throughput Analysis** | Token usage and efficiency optimization | 8 | 60s | ✅ 22 Real Endpoints |
 
 **All new dashboards use REAL API endpoints from your monitoring backend - not mock data. See [ENDPOINT_VERIFICATION_REPORT.md](ENDPOINT_VERIFICATION_REPORT.md) for complete verification.**
 
@@ -168,6 +163,14 @@ A production-ready observability solution for **GatewayZ AI Backend**, providing
 - Token efficiency score
 - Tokens by model
 - Input:output ratio analysis
+
+**Chat Completion Monitoring** (60s refresh) 🆕
+- Total chat requests (with working stat cards)
+- Active models count
+- Error rate % (with thresholds)
+- Average latency in milliseconds
+- Top models by request count (sortable table)
+- Request trends over time
 
 ### ✅ Endpoint Verification
 
