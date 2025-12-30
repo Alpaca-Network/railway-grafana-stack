@@ -79,18 +79,56 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Requests"
+              "options": "request_count"
             },
             "properties": [
               {
-                "id": "custom.displayMode",
-                "value": "color-background"
+                "id": "displayName",
+                "value": "Total Requests"
               },
               {
-                "id": "color",
-                "value": {
-                  "mode": "value"
-                }
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "requests"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Requests"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "model_name"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Model Name"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "model_id"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Model ID"
               }
             ]
           }
@@ -119,7 +157,7 @@
         {
           "refId": "A",
           "datasource": "JSON API",
-          "url": "${API_BASE_URL}/v1/models/trending?limit=5&sort_by=requests"
+          "url": "${API_BASE_URL}/api/monitoring/chat-requests/counts?limit=5"
         }
       ],
       "title": "\ud83d\udd1d Top 5 Models by Requests",
@@ -287,7 +325,40 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tokens"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Tokens (cumulative)"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total_tokens"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Tokens"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -397,15 +468,28 @@
       },
       "id": 5,
       "options": {
+        "barRadius": 0.97,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
         "legend": {
-          "calcs": [],
+          "calcs": [
+            "value"
+          ],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": false
+          "showLegend": true
         },
+        "orientation": "vertical",
+        "showValue": "auto",
+        "stacking": "none",
+        "text": {},
         "tooltip": {
-          "mode": "single"
-        }
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabel": "",
+        "xTickLabelMaxLength": 0,
+        "xTickLabelRotation": 0
       },
       "pluginVersion": "8.0.0",
       "targets": [
@@ -415,8 +499,8 @@
           "url": "${API_BASE_URL}/api/monitoring/cost-analysis?days=7"
         }
       ],
-      "title": "Cost per Request (Ranked)",
-      "type": "timeseries"
+      "title": "\ud83d\udcb0 Cost per Request (Ranked by Model)",
+      "type": "barchart"
     },
     {
       "datasource": {
@@ -474,7 +558,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "latency"
+              "options": "processing_time_ms"
             },
             "properties": [
               {
@@ -497,18 +581,25 @@
       },
       "id": 6,
       "options": {
+        "calculate": false,
+        "cellGap": 2,
+        "cellRadius": 2,
+        "color": {
+          "scheme": "YlGn",
+          "mode": "scheme"
+        },
+        "exemplars": {
+          "color": "rgba(255,0,255,0.7)"
+        },
+        "filterValues": {
+          "le": 1e-09
+        },
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "mean"
-          ],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true
+          "show": true
         },
         "tooltip": {
-          "mode": "multi"
+          "show": true,
+          "yHistogram": false
         }
       },
       "pluginVersion": "8.0.0",
@@ -516,11 +607,11 @@
         {
           "refId": "A",
           "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/latency/{provider}?hours=24"
+          "url": "${API_BASE_URL}/api/monitoring/chat-requests?limit=100"
         }
       ],
-      "title": "Latency Distribution (P50, P95, P99)",
-      "type": "timeseries"
+      "title": "\ud83d\udd25 Latency Distribution Heatmap (p50, p95, p99)",
+      "type": "heatmap"
     },
     {
       "datasource": {
@@ -550,7 +641,56 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total_tokens"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total Tokens"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "request_count"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Requests"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "avg_processing_time"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Avg Latency (ms)"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -575,7 +715,7 @@
         {
           "refId": "A",
           "datasource": "JSON API",
-          "url": "${API_BASE_URL}/v1/models/trending?limit=20"
+          "url": "${API_BASE_URL}/api/monitoring/chat-requests/models?limit=20"
         }
       ],
       "title": "Success Rate vs Usage (Bubble Size = Cost)",
@@ -613,7 +753,24 @@
           },
           "unit": "short"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "health_score"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Model Health Score"
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,

@@ -319,7 +319,9 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "short",
+          "max": 100,
+          "min": 0
         },
         "overrides": []
       },
@@ -553,7 +555,11 @@
         }
       ],
       "title": "Log Stream",
-      "type": "logs"
+      "type": "logs",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
     },
     {
       "datasource": {
@@ -750,7 +756,10 @@
   ],
   "refresh": "10s",
   "schemaVersion": 41,
-  "tags": ["loki", "logs"],
+  "tags": [
+    "loki",
+    "logs"
+  ],
   "templating": {
     "list": [
       {

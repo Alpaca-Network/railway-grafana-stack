@@ -130,7 +130,13 @@
           "value": "null"
         }
       ],
-      "valueName": "current"
+      "valueName": "current",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      }
     },
     {
       "cacheTimeout": null,
@@ -203,7 +209,13 @@
           "value": "null"
         }
       ],
-      "valueName": "current"
+      "valueName": "current",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      }
     },
     {
       "cacheTimeout": null,
@@ -276,7 +288,13 @@
           "value": "null"
         }
       ],
-      "valueName": "current"
+      "valueName": "current",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      }
     },
     {
       "cacheTimeout": null,
@@ -349,7 +367,11 @@
           "value": "null"
         }
       ],
-      "valueName": "current"
+      "valueName": "current",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
     },
     {
       "collapsed": false,
@@ -455,6 +477,12 @@
       "yaxis": {
         "align": false,
         "alignLevel": null
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
       }
     },
     {
@@ -548,6 +576,12 @@
       "yaxis": {
         "align": false,
         "alignLevel": null
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
       }
     },
     {
@@ -644,6 +678,12 @@
       "yaxis": {
         "align": false,
         "alignLevel": null
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
       }
     },
     {
@@ -727,6 +767,12 @@
       "yaxis": {
         "align": false,
         "alignLevel": null
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
       }
     }
   ],

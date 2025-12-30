@@ -27,7 +27,7 @@
       "keepTime": false,
       "tags": [],
       "targetBlank": true,
-      "title": "📖 Testing Guide",
+      "title": "\ud83d\udcd6 Testing Guide",
       "tooltip": "Complete testing guide and documentation",
       "type": "link",
       "url": "/d/gatewayz-api-tester/grafana/dashboards/API_ENDPOINT_TESTER_GUIDE.md"
@@ -74,7 +74,7 @@
       },
       "id": 1,
       "options": {
-        "content": "# 🚀 GatewayZ API Endpoint Tester\n\n**Real-time testing and monitoring dashboard for OpenAI-compatible, custom responses, and Anthropic-style API endpoints**\n\n📖 [View Complete Testing Guide](./API_ENDPOINT_TESTER_GUIDE.md) | 🔗 Base URL: `https://api.gatewayz.ai`",
+        "content": "# \ud83d\ude80 GatewayZ API Endpoint Tester\n\n**Real-time testing and monitoring dashboard for OpenAI-compatible, custom responses, and Anthropic-style API endpoints**\n\n\ud83d\udcd6 [View Complete Testing Guide](./API_ENDPOINT_TESTER_GUIDE.md) | \ud83d\udd17 Base URL: `https://api.gatewayz.ai`",
         "mode": "markdown"
       },
       "pluginVersion": "10.2.0",
@@ -130,7 +130,8 @@
                 "value": null
               }
             ]
-          }
+          },
+          "unit": "ms"
         },
         "overrides": []
       },
@@ -163,7 +164,7 @@
           "refId": "A"
         }
       ],
-      "title": "📊 Model Performance: Tokens/Sec vs Response Time\n⚠️ Currently using mock data for demonstration",
+      "title": "\ud83d\udcca Model Performance: Tokens/Sec vs Response Time\n\u26a0\ufe0f Currently using mock data for demonstration",
       "type": "timeseries"
     },
     {
@@ -259,7 +260,7 @@
           "refId": "A"
         }
       ],
-      "title": "🎯 Top 3 Models Performance Summary",
+      "title": "\ud83c\udfaf Top 3 Models Performance Summary",
       "type": "table"
     },
     {
@@ -311,7 +312,8 @@
                 "value": null
               }
             ]
-          }
+          },
+          "unit": "ms"
         },
         "overrides": []
       },
@@ -344,7 +346,7 @@
           "refId": "A"
         }
       ],
-      "title": "💬 Chat Completions Endpoint - Response Time Trends",
+      "title": "\ud83d\udcac Chat Completions Endpoint - Response Time Trends",
       "type": "timeseries"
     },
     {
@@ -376,7 +378,9 @@
               }
             ]
           },
-          "unit": "percent"
+          "unit": "percent",
+          "max": 100,
+          "min": 0
         },
         "overrides": []
       },
@@ -408,7 +412,7 @@
           "refId": "A"
         }
       ],
-      "title": "✅ Chat Completions Success Rate",
+      "title": "\u2705 Chat Completions Success Rate",
       "type": "stat"
     },
     {
@@ -440,7 +444,9 @@
               }
             ]
           },
-          "unit": "ms"
+          "unit": "ms",
+          "max": 100,
+          "min": 0
         },
         "overrides": []
       },
@@ -472,7 +478,7 @@
           "refId": "A"
         }
       ],
-      "title": "⚡ Avg Chat Response Time",
+      "title": "\u26a1 Avg Chat Response Time",
       "type": "stat"
     },
     {
@@ -504,7 +510,9 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "short",
+          "max": 100,
+          "min": 0
         },
         "overrides": []
       },
@@ -536,7 +544,7 @@
           "refId": "A"
         }
       ],
-      "title": "🎯 Tokens per Second",
+      "title": "\ud83c\udfaf Tokens per Second",
       "type": "stat"
     },
     {
@@ -568,7 +576,9 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "short",
+          "max": 100,
+          "min": 0
         },
         "overrides": []
       },
@@ -600,7 +610,7 @@
           "refId": "A"
         }
       ],
-      "title": "📊 Total Requests",
+      "title": "\ud83d\udcca Total Requests",
       "type": "stat"
     },
     {
@@ -685,7 +695,7 @@
           "refId": "A"
         }
       ],
-      "title": "📤 Responses Endpoint - Performance Metrics",
+      "title": "\ud83d\udce4 Responses Endpoint - Performance Metrics",
       "type": "timeseries"
     },
     {
@@ -717,7 +727,9 @@
               }
             ]
           },
-          "unit": "percent"
+          "unit": "percent",
+          "max": 100,
+          "min": 0
         },
         "overrides": []
       },
@@ -749,7 +761,7 @@
           "refId": "A"
         }
       ],
-      "title": "✅ Responses Success Rate",
+      "title": "\u2705 Responses Success Rate",
       "type": "stat"
     },
     {
@@ -781,7 +793,9 @@
               }
             ]
           },
-          "unit": "ms"
+          "unit": "ms",
+          "max": 100,
+          "min": 0
         },
         "overrides": []
       },
@@ -813,7 +827,7 @@
           "refId": "A"
         }
       ],
-      "title": "⚡ Avg Responses Time",
+      "title": "\u26a1 Avg Responses Time",
       "type": "stat"
     },
     {
@@ -845,7 +859,9 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "short",
+          "max": 100,
+          "min": 0
         },
         "overrides": []
       },
@@ -877,7 +893,7 @@
           "refId": "A"
         }
       ],
-      "title": "🎯 Responses Throughput",
+      "title": "\ud83c\udfaf Responses Throughput",
       "type": "stat"
     },
     {
@@ -909,7 +925,9 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "short",
+          "max": 100,
+          "min": 0
         },
         "overrides": []
       },
@@ -941,7 +959,7 @@
           "refId": "A"
         }
       ],
-      "title": "📊 Responses Total Requests",
+      "title": "\ud83d\udcca Responses Total Requests",
       "type": "stat"
     },
     {
@@ -990,7 +1008,7 @@
           "refId": "A"
         }
       ],
-      "title": "🎯 Overall Endpoint Health Status",
+      "title": "\ud83c\udfaf Overall Endpoint Health Status",
       "type": "piechart"
     },
     {
@@ -1044,7 +1062,7 @@
           "refId": "A"
         }
       ],
-      "title": "📈 Endpoint Comparison Summary",
+      "title": "\ud83d\udcc8 Endpoint Comparison Summary",
       "type": "table"
     }
   ],
@@ -1148,7 +1166,7 @@
     ]
   },
   "timezone": "",
-  "title": "🚀 GatewayZ API Endpoint Tester",
+  "title": "\ud83d\ude80 GatewayZ API Endpoint Tester",
   "uid": "gatewayz-api-tester-v2",
   "version": 0,
   "weekStart": ""

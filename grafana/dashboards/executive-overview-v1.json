@@ -143,27 +143,47 @@
           },
           "mappings": []
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "health_score"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Provider Health Score"
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
-        "w": 18,
-        "x": 6,
+        "w": 24,
+        "x": 0,
         "y": 3
       },
       "id": 3,
       "options": {
-        "legend": {
+        "graphMode": "none",
+        "colorMode": "background",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "reduceOptions": {
+          "values": false,
+          "fields": "",
           "calcs": [
-            "value"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "pieType": "donut",
-        "tooltip": {
-          "mode": "single"
+            "lastNotNull"
+          ]
         }
       },
       "pluginVersion": "8.0.0",
@@ -174,8 +194,8 @@
           "url": "${API_BASE_URL}/api/monitoring/health"
         }
       ],
-      "title": "Provider Health Status Grid (17 Providers)",
-      "type": "piechart"
+      "title": "\ud83c\udfe5 Provider Health Status (17 Providers)",
+      "type": "stat"
     },
     {
       "datasource": {
@@ -543,7 +563,10 @@
         },
         "tooltip": {
           "mode": "single"
-        }
+        },
+        "drawStyle": "line",
+        "fillOpacity": 30,
+        "gradientMode": "opacity"
       },
       "pluginVersion": "8.0.0",
       "targets": [
@@ -576,7 +599,24 @@
           },
           "mappings": []
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "error_rate"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Error Rate %"
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,

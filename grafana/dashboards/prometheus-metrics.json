@@ -65,7 +65,9 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "short",
+          "max": 100,
+          "min": 0
         },
         "overrides": []
       },
@@ -134,7 +136,9 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "short",
+          "max": 100,
+          "min": 0
         },
         "overrides": []
       },
@@ -199,7 +203,9 @@
               }
             ]
           },
-          "unit": "bytes"
+          "unit": "bytes",
+          "max": 100,
+          "min": 0
         },
         "overrides": []
       },
@@ -264,7 +270,9 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "short",
+          "max": 100,
+          "min": 0
         },
         "overrides": []
       },
@@ -705,7 +713,10 @@
   ],
   "refresh": "30s",
   "schemaVersion": 41,
-  "tags": ["prometheus", "metrics"],
+  "tags": [
+    "prometheus",
+    "metrics"
+  ],
   "templating": {
     "list": []
   },
