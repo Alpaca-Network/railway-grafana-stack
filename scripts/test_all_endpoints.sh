@@ -119,7 +119,7 @@ test_endpoint() {
             --max-time "$TIMEOUT" 2>&1)
 
         http_code=$(echo "$response" | tail -n 1)
-        body=$(echo "$response" | head -n -1)
+        body=$(echo "$response" | sed '$d')
     else
         # Unsupported method
         echo -e "${YELLOW}⚠️  $name${RESET} (Unsupported method: $method)"
