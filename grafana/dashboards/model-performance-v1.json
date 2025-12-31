@@ -76,7 +76,7 @@
         "x": 0,
         "y": 0,
         "w": 24,
-        "h": 2
+        "h": 4
       },
       "id": 1,
       "options": {
@@ -155,7 +155,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 2,
+        "y": 4,
         "w": 24,
         "h": 14
       },
@@ -163,6 +163,7 @@
       "options": {
         "barRadius": 0.97,
         "groupWidth": 0.7,
+        "fullHighlight": false,
         "legend": {
           "calcs": [
             "mean",
@@ -173,12 +174,11 @@
           "showLegend": true
         },
         "orientation": "auto",
+        "showValue": "auto",
         "text": {},
         "tooltip": {
           "mode": "multi"
-        },
-        "displayMode": "auto",
-        "drawStyle": "bars"
+        }
       },
       "pluginVersion": "8.0.0",
       "targets": [
@@ -186,7 +186,21 @@
           "refId": "A",
           "datasource": "JSON API",
           "url": "${API_BASE_URL}/v1/models/trending?limit=15&time_range=7d&sort_by=requests",
-          "jsonPath": "$.request_count"
+          "jsonPath": "$",
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {},
+                "indexByName": {},
+                "renameByName": {
+                  "model_id": "Model",
+                  "model_name": "Model",
+                  "request_count": "Requests (7d)"
+                }
+              }
+            }
+          ]
         }
       ],
       "title": "\ud83d\udcca Request Volume by Model (7d) - Top 15",
@@ -258,7 +272,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 16,
+        "y": 18,
         "w": 24,
         "h": 14
       },
@@ -266,6 +280,7 @@
       "options": {
         "barRadius": 0.97,
         "groupWidth": 0.65,
+        "fullHighlight": false,
         "legend": {
           "calcs": [],
           "displayMode": "list",
@@ -277,10 +292,7 @@
         "text": {},
         "tooltip": {
           "mode": "multi"
-        },
-        "xField": "avg_latency",
-        "xTickLabelRotation": 0,
-        "xTickLabelSpacing": 100
+        }
       },
       "pluginVersion": "8.0.0",
       "targets": [
@@ -288,7 +300,21 @@
           "refId": "A",
           "datasource": "JSON API",
           "url": "${API_BASE_URL}/v1/models/trending?limit=15&sort_by=avg_latency",
-          "jsonPath": "$.avg_latency"
+          "jsonPath": "$",
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {},
+                "indexByName": {},
+                "renameByName": {
+                  "model_id": "Model",
+                  "model_name": "Model",
+                  "avg_latency": "Latency (ms)"
+                }
+              }
+            }
+          ]
         }
       ],
       "title": "\u23f1\ufe0f Average Latency by Model (ms) - Top 15",
@@ -352,7 +378,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 30,
+        "y": 32,
         "w": 24,
         "h": 14
       },
@@ -360,6 +386,7 @@
       "options": {
         "barRadius": 0.97,
         "groupWidth": 0.65,
+        "fullHighlight": false,
         "legend": {
           "calcs": [],
           "displayMode": "list",
@@ -371,10 +398,7 @@
         "text": {},
         "tooltip": {
           "mode": "multi"
-        },
-        "xField": "requests_per_second",
-        "xTickLabelRotation": 0,
-        "xTickLabelSpacing": 100
+        }
       },
       "pluginVersion": "8.0.0",
       "targets": [
@@ -382,16 +406,18 @@
           "refId": "A",
           "datasource": "JSON API",
           "url": "${API_BASE_URL}/v1/models/trending?limit=15&time_range=7d",
-          "jsonPath": "$.request_count",
+          "jsonPath": "$",
           "transformations": [
             {
-              "id": "calculateField",
+              "id": "organize",
               "options": {
-                "mode": "reduceRow",
-                "reduce": {
-                  "reducer": "mean"
-                },
-                "alias": "requests_per_second"
+                "excludeByName": {},
+                "indexByName": {},
+                "renameByName": {
+                  "model_id": "Model",
+                  "model_name": "Model",
+                  "request_count": "Requests"
+                }
               }
             }
           ]
@@ -484,7 +510,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 44,
+        "y": 46,
         "w": 12,
         "h": 8
       },
@@ -595,7 +621,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 44,
+        "y": 46,
         "w": 12,
         "h": 8
       },
@@ -695,7 +721,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 52,
+        "y": 54,
         "w": 12,
         "h": 8
       },
@@ -808,7 +834,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 52,
+        "y": 54,
         "w": 12,
         "h": 8
       },
@@ -927,7 +953,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 60,
+        "y": 62,
         "w": 24,
         "h": 8
       },
@@ -1007,7 +1033,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 68,
+        "y": 70,
         "w": 24,
         "h": 8
       },
