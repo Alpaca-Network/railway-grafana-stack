@@ -1,0 +1,105 @@
+apiVersion: 1
+
+notificationPolicies:
+  - orgId: 1
+    provenance: Grafana
+    policy:
+      receiver: ops-email
+      groupByStr:
+        - alertname
+        - instance
+      matchers:
+        - name: alertname
+          value: ''
+          matchType: =~
+      muteTimeIntervals: []
+      routes:
+        # Critical alerts - immediate delivery
+        - receiver: critical-email
+          groupByStr:
+            - alertname
+            - instance
+          matchers:
+            - name: severity
+              value: critical
+              matchType: '='
+          repeatInterval: 15m
+          groupInterval: 5m
+          groupWait: 0s
+          muteTimeIntervals: []
+
+        # Model alerts - group for 5 minutes
+        - receiver: ops-email
+          groupByStr:
+            - alertname
+            - model_id
+          matchers:
+            - name: category
+              value: model
+              matchType: '='
+          repeatInterval: 30m
+          groupInterval: 5m
+          groupWait: 5m
+          muteTimeIntervals: []
+
+        # Backend alerts - group for 5 minutes
+        - receiver: ops-email
+          groupByStr:
+            - alertname
+            - component
+          matchers:
+            - name: category
+              value: backend
+              matchType: '='
+          repeatInterval: 30m
+          groupInterval: 5m
+          groupWait: 5m
+          muteTimeIntervals: []
+
+        # General alerts - group for 10 minutes
+        - receiver: ops-email
+          groupByStr:
+            - alertname
+          matchers:
+            - name: category
+              value: general
+              matchType: '='
+          repeatInterval: 1h
+          groupInterval: 10m
+          groupWait: 10m
+          muteTimeIntervals: []
+
+        # Logs alerts - immediate for critical, 5min for others
+        - receiver: ops-email
+          groupByStr:
+            - alertname
+            - service
+          matchers:
+            - name: category
+              value: logs
+              matchType: '='
+            - name: severity
+              value: critical
+              matchType: '='
+          repeatInterval: 15m
+          groupInterval: 5m
+          groupWait: 0s
+          muteTimeIntervals: []
+
+        - receiver: ops-email
+          groupByStr:
+            - alertname
+            - service
+          matchers:
+            - name: category
+              value: logs
+              matchType: '='
+          repeatInterval: 30m
+          groupInterval: 5m
+          groupWait: 5m
+          muteTimeIntervals: []
+
+      # Default handling - group info alerts for 30 minutes
+      repeatInterval: 1h
+      groupInterval: 30m
+      groupWait: 30m

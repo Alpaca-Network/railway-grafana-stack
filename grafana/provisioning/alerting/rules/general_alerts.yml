@@ -1,0 +1,168 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: general_alerts
+    folder: General Alerts
+    interval: 1m
+    rules:
+      # Alert: Provider Availability Critical
+      - uid: provider_availability_critical
+        title: Provider Availability Critical
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Provider {{ $labels.provider }} availability dropped to {{ $value }}%, critical threshold reached'
+          summary: 'Provider {{ $labels.provider }} critical availability'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/provider-critical'
+        labels:
+          severity: critical
+          category: general
+          component: provider_monitoring
+        data:
+          - refId: A
+            queryType: ''
+            model:
+              expr: '(avg(provider_availability) by (provider)) < 90'
+              hide: false
+              intervalFactor: 1
+              legendFormat: '{{ provider }}'
+              refId: A
+          - refId: C
+            queryType: ''
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: lt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
+
+      # Alert: Cost Anomaly Detected
+      - uid: cost_anomaly_detected
+        title: Cost Anomaly Detected
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Daily cost anomaly detected. Current cost {{ $value }}$ is 110% above average.'
+          summary: 'Cost anomaly detected'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/cost-anomaly'
+        labels:
+          severity: warning
+          category: general
+          component: cost_monitoring
+        data:
+          - refId: A
+            queryType: ''
+            model:
+              expr: 'daily_cost > (avg_7d_cost * 1.1)'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Daily Cost Anomaly'
+              refId: A
+          - refId: C
+            queryType: ''
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
+
+      # Alert: Budget Threshold Warning
+      - uid: budget_threshold_warning
+        title: Budget Threshold Warning
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: '7-day cost total is {{ $value }}$, exceeding $50,000 budget threshold'
+          summary: 'Budget threshold warning'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/budget-warning'
+        labels:
+          severity: warning
+          category: general
+          component: budget_monitoring
+        data:
+          - refId: A
+            queryType: ''
+            model:
+              expr: 'sum(daily_cost_7d) > 50000'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Total 7d Cost'
+              refId: A
+          - refId: C
+            queryType: ''
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
+
+      # Alert: High Request Volume
+      - uid: high_request_volume
+        title: High Request Volume
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 10m
+        annotations:
+          description: 'Request volume is {{ $value }} requests/sec, 200% above baseline. Check for traffic spike or DDoS.'
+          summary: 'High request volume detected'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/high-volume'
+        labels:
+          severity: warning
+          category: general
+          component: traffic_monitoring
+        data:
+          - refId: A
+            queryType: ''
+            model:
+              expr: '(rate(requests_total[5m])) > (baseline_requests_per_sec * 2)'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Requests/Sec'
+              refId: A
+          - refId: C
+            queryType: ''
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
+    provenance: Grafana

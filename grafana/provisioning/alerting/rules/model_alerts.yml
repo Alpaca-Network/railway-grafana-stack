@@ -1,0 +1,168 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: model_alerts
+    folder: Model Alerts
+    interval: 1m
+    rules:
+      # Alert: Model Health Score Low
+      - uid: model_health_score_low
+        title: Model Health Score Low
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Model {{ $labels.model_name }} health score ({{ $value }}%) is below 80% threshold'
+          summary: 'Model {{ $labels.model_name }} health degraded'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/model-health'
+        labels:
+          severity: warning
+          category: model
+          component: model_monitoring
+        data:
+          - refId: A
+            queryType: ''
+            model:
+              expr: '(avg(health_score) by (model_id, model_name)) < 80'
+              hide: false
+              intervalFactor: 1
+              legendFormat: '{{ model_name }}'
+              refId: A
+          - refId: C
+            queryType: ''
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: lt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
+
+      # Alert: Model Error Rate High
+      - uid: model_error_rate_high
+        title: Model Error Rate High
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Model {{ $labels.model_name }} error rate is {{ $value }}%, exceeding 5% threshold'
+          summary: 'Model {{ $labels.model_name }} error rate elevated'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/model-errors'
+        labels:
+          severity: warning
+          category: model
+          component: error_tracking
+        data:
+          - refId: A
+            queryType: ''
+            model:
+              expr: '(avg(error_rate) by (model_id, model_name) * 100) > 5'
+              hide: false
+              intervalFactor: 1
+              legendFormat: '{{ model_name }}'
+              refId: A
+          - refId: C
+            queryType: ''
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
+
+      # Alert: Model Latency High
+      - uid: model_latency_high
+        title: Model Latency High
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 10m
+        annotations:
+          description: 'Model {{ $labels.model_name }} average latency is {{ $value }}ms, exceeding 500ms threshold'
+          summary: 'Model {{ $labels.model_name }} latency elevated'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/model-latency'
+        labels:
+          severity: warning
+          category: model
+          component: performance_monitoring
+        data:
+          - refId: A
+            queryType: ''
+            model:
+              expr: '(avg(avg_latency) by (model_id, model_name)) > 500'
+              hide: false
+              intervalFactor: 1
+              legendFormat: '{{ model_name }}'
+              refId: A
+          - refId: C
+            queryType: ''
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
+
+      # Alert: Model Availability Low
+      - uid: model_availability_low
+        title: Model Availability Low
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Model {{ $labels.model_name }} success rate is {{ $value }}%, below 95% threshold'
+          summary: 'Model {{ $labels.model_name }} availability degraded'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/model-availability'
+        labels:
+          severity: warning
+          category: model
+          component: availability_tracking
+        data:
+          - refId: A
+            queryType: ''
+            model:
+              expr: '(avg(success_rate) by (model_id, model_name)) < 95'
+              hide: false
+              intervalFactor: 1
+              legendFormat: '{{ model_name }}'
+              refId: A
+          - refId: C
+            queryType: ''
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: lt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
+    provenance: Grafana

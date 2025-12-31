@@ -70,6 +70,14 @@ services:
       - PROMETHEUS_INTERNAL_URL=${PROMETHEUS_INTERNAL_URL:-http://prometheus:9090}
       - LOKI_INTERNAL_URL=${LOKI_INTERNAL_URL:-http://loki:3100}
       - TEMPO_INTERNAL_URL=${TEMPO_INTERNAL_URL:-http://tempo:3200}
+      # Email/SMTP Configuration for Alerts
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_HOST=${GF_SMTP_HOST:-smtp.gmail.com:587}
+      - GF_SMTP_USER=${GF_SMTP_USER:-your-email@gmail.com}
+      - GF_SMTP_PASSWORD=${GF_SMTP_PASSWORD:-your-app-password}
+      - GF_SMTP_FROM_ADDRESS=${GF_SMTP_FROM_ADDRESS:-grafana@gatewayz.ai}
+      - GF_SMTP_FROM_NAME=${GF_SMTP_FROM_NAME:-GatewayZ Monitoring}
+      - GF_SMTP_SKIP_VERIFY=true
 
 volumes: 
   prometheus_data:

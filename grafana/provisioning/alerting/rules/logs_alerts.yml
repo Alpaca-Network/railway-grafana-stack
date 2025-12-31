@@ -1,0 +1,168 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: logs_alerts
+    folder: Logs Alerts
+    interval: 1m
+    rules:
+      # Alert: Critical Errors Detected
+      - uid: critical_errors_detected
+        title: Critical Errors Detected
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: '{{ $value }} critical errors detected in the last 5 minutes. Review logs immediately.'
+          summary: 'Critical errors detected'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/critical-errors'
+        labels:
+          severity: critical
+          category: logs
+          component: error_tracking
+        data:
+          - refId: A
+            queryType: ''
+            model:
+              expr: 'sum(critical_error_count_5m) > 10'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Critical Errors'
+              refId: A
+          - refId: C
+            queryType: ''
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
+
+      # Alert: Error Rate Spike
+      - uid: error_rate_spike
+        title: Error Rate Spike
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Error rate increased {{ $value }}% compared to 1 hour ago. Investigate error logs.'
+          summary: 'Error rate spike detected'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/error-spike'
+        labels:
+          severity: warning
+          category: logs
+          component: error_tracking
+        data:
+          - refId: A
+            queryType: ''
+            model:
+              expr: '((avg(error_rate_now) - avg(error_rate_1h_ago)) / avg(error_rate_1h_ago) * 100) > 50'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Error Rate Change %'
+              refId: A
+          - refId: C
+            queryType: ''
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
+
+      # Alert: Latency Degradation
+      - uid: latency_degradation
+        title: Latency Degradation
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 10m
+        annotations:
+          description: 'System latency increased {{ $value }}% compared to 1 hour ago. Check backend performance.'
+          summary: 'Latency degradation detected'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/latency-degradation'
+        labels:
+          severity: warning
+          category: logs
+          component: performance_monitoring
+        data:
+          - refId: A
+            queryType: ''
+            model:
+              expr: '((avg(latency_now) - avg(latency_1h_ago)) / avg(latency_1h_ago) * 100) > 50'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Latency Change %'
+              refId: A
+          - refId: C
+            queryType: ''
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
+
+      # Alert: Anomaly Count High
+      - uid: anomaly_count_high
+        title: Anomaly Count High
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 0m
+        annotations:
+          description: '{{ $value }} anomalies detected. Multiple issues detected in the system.'
+          summary: 'High anomaly count'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/anomaly-spike'
+        labels:
+          severity: critical
+          category: logs
+          component: anomaly_detection
+        data:
+          - refId: A
+            queryType: ''
+            model:
+              expr: 'sum(anomaly_count) > 5'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Anomaly Count'
+              refId: A
+          - refId: C
+            queryType: ''
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
+    provenance: Grafana

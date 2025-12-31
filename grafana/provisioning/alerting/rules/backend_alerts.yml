@@ -1,0 +1,168 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: backend_alerts
+    folder: Backend Alerts
+    interval: 1m
+    rules:
+      # Alert: System Health Degraded
+      - uid: system_health_degraded
+        title: System Health Degraded
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Overall system health score is {{ $value }}%, below 80% threshold. Check backend services immediately.'
+          summary: 'System health degraded'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/system-health'
+        labels:
+          severity: warning
+          category: backend
+          component: system_monitoring
+        data:
+          - refId: A
+            queryType: ''
+            model:
+              expr: 'avg(health_score) < 80'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'System Health'
+              refId: A
+          - refId: C
+            queryType: ''
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: lt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
+
+      # Alert: Circuit Breaker Open
+      - uid: circuit_breaker_open
+        title: Circuit Breaker Open
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 0m
+        annotations:
+          description: 'Circuit breaker for {{ $labels.service }} is OPEN. Service degradation detected.'
+          summary: 'Circuit breaker opened for {{ $labels.service }}'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/circuit-breaker'
+        labels:
+          severity: critical
+          category: backend
+          component: reliability
+        data:
+          - refId: A
+            queryType: ''
+            model:
+              expr: 'circuit_breaker_state{state="open"} == 1'
+              hide: false
+              intervalFactor: 1
+              legendFormat: '{{ service }}'
+              refId: A
+          - refId: C
+            queryType: ''
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
+
+      # Alert: Backend Error Rate High
+      - uid: backend_error_rate_high
+        title: Backend Error Rate High
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Backend error rate is {{ $value }}%, exceeding 5% threshold. Investigate error logs.'
+          summary: 'Backend error rate elevated'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/backend-errors'
+        labels:
+          severity: warning
+          category: backend
+          component: error_tracking
+        data:
+          - refId: A
+            queryType: ''
+            model:
+              expr: '(avg(error_rate) * 100) > 5'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Backend Error Rate'
+              refId: A
+          - refId: C
+            queryType: ''
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
+
+      # Alert: Provider Availability Low
+      - uid: provider_availability_low
+        title: Provider Availability Low
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 10m
+        annotations:
+          description: 'Provider {{ $labels.provider }} availability is {{ $value }}%, below 95% threshold'
+          summary: 'Provider {{ $labels.provider }} availability degraded'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/provider-availability'
+        labels:
+          severity: warning
+          category: backend
+          component: availability_tracking
+        data:
+          - refId: A
+            queryType: ''
+            model:
+              expr: '(avg(provider_availability) by (provider)) < 95'
+              hide: false
+              intervalFactor: 1
+              legendFormat: '{{ provider }}'
+              refId: A
+          - refId: C
+            queryType: ''
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: lt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
+    provenance: Grafana
