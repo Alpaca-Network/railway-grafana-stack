@@ -76,7 +76,7 @@
         "x": 0,
         "y": 0,
         "w": 24,
-        "h": 3
+        "h": 2
       },
       "id": 1,
       "options": {
@@ -87,6 +87,317 @@
       "targets": [],
       "title": "Header",
       "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Grafana --"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "displayMode": "auto",
+            "align": "auto"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tokens"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Tokens (cumulative)"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total_tokens"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Tokens"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 2,
+        "w": 24,
+        "h": 12
+      },
+      "id": 4,
+      "options": {
+        "barRadius": 0.97,
+        "groupWidth": 0.5,
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "orientation": "auto",
+        "text": {},
+        "tooltip": {
+          "mode": "multi"
+        },
+        "displayMode": "auto",
+        "drawStyle": "bars"
+      },
+      "pluginVersion": "8.0.0",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "JSON API",
+          "url": "${API_BASE_URL}/v1/models/trending?limit=20&time_range=7d&sort_by=requests",
+          "jsonPath": "$.request_count"
+        }
+      ],
+      "title": "\ud83d\udcca Request Volume by Model (7d) - Top 20",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Grafana --"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "displayMode": "auto",
+            "align": "auto"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 250
+              },
+              {
+                "color": "orange",
+                "value": 500
+              },
+              {
+                "color": "red",
+                "value": 1000
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "avg_latency"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Avg Latency (ms)"
+              },
+              {
+                "id": "unit",
+                "value": "ms"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 14,
+        "w": 24,
+        "h": 12
+      },
+      "id": 9,
+      "options": {
+        "barRadius": 0.97,
+        "groupWidth": 0.5,
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "orientation": "horizontal",
+        "text": {},
+        "tooltip": {
+          "mode": "multi"
+        },
+        "displayMode": "auto",
+        "drawStyle": "bars"
+      },
+      "pluginVersion": "8.0.0",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "JSON API",
+          "url": "${API_BASE_URL}/v1/models/trending?limit=20&sort_by=avg_latency",
+          "jsonPath": "$.avg_latency"
+        }
+      ],
+      "title": "\u23f1\ufe0f Average Latency by Model (ms) - Top 20",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Grafana --"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "displayMode": "auto",
+            "align": "auto"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 2
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "requests_per_second"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Requests/Sec"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 26,
+        "w": 24,
+        "h": 12
+      },
+      "id": 10,
+      "options": {
+        "barRadius": 0.97,
+        "groupWidth": 0.5,
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "orientation": "horizontal",
+        "text": {},
+        "tooltip": {
+          "mode": "multi"
+        },
+        "displayMode": "auto",
+        "drawStyle": "bars"
+      },
+      "pluginVersion": "8.0.0",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "JSON API",
+          "url": "${API_BASE_URL}/v1/models/trending?limit=20&time_range=7d",
+          "jsonPath": "$.request_count",
+          "transformations": [
+            {
+              "id": "calculateField",
+              "options": {
+                "mode": "reduceRow",
+                "reduce": {
+                  "reducer": "mean"
+                },
+                "alias": "requests_per_second"
+              }
+            }
+          ]
+        }
+      ],
+      "title": "\ud83d\ude80 Requests per Second by Model - Top 20",
+      "type": "barchart"
     },
     {
       "datasource": {
@@ -172,7 +483,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 19,
+        "y": 38,
         "w": 12,
         "h": 8
       },
@@ -283,7 +594,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 19,
+        "y": 38,
         "w": 12,
         "h": 8
       },
@@ -309,109 +620,6 @@
       ],
       "title": "\u26a0\ufe0f Models With High Error Rates",
       "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "displayMode": "auto",
-            "align": "auto"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "tokens"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Tokens (cumulative)"
-              },
-              {
-                "id": "unit",
-                "value": "short"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "total_tokens"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Tokens"
-              },
-              {
-                "id": "unit",
-                "value": "short"
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 3,
-        "w": 12,
-        "h": 8
-      },
-      "id": 4,
-      "options": {
-        "barRadius": 0.97,
-        "groupWidth": 0.7,
-        "legend": {
-          "calcs": [
-            "mean"
-          ],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "orientation": "auto",
-        "text": {},
-        "tooltip": {
-          "mode": "single"
-        },
-        "displayMode": "auto",
-        "drawStyle": "bars"
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/v1/models/trending?limit=20&time_range=7d&sort_by=requests",
-          "jsonPath": "$.request_count"
-        }
-      ],
-      "title": "\ud83d\udcca Request Volume by Model (7d)",
-      "type": "barchart"
     },
     {
       "datasource": {
@@ -486,7 +694,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 27,
+        "y": 46,
         "w": 12,
         "h": 8
       },
@@ -599,7 +807,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 27,
+        "y": 46,
         "w": 12,
         "h": 8
       },
@@ -718,7 +926,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 35,
+        "y": 54,
         "w": 24,
         "h": 8
       },
@@ -798,7 +1006,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 43,
+        "y": 62,
         "w": 24,
         "h": 8
       },
@@ -819,211 +1027,6 @@
       ],
       "title": "Weighted Model Health Score (Top 3 Models)",
       "type": "gauge"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "displayMode": "auto",
-            "align": "auto"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 250
-              },
-              {
-                "color": "orange",
-                "value": 500
-              },
-              {
-                "color": "red",
-                "value": 1000
-              }
-            ]
-          },
-          "unit": "ms"
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "avg_latency"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Avg Latency (ms)"
-              },
-              {
-                "id": "unit",
-                "value": "ms"
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "x": 12,
-        "y": 3,
-        "w": 12,
-        "h": 8
-      },
-      "id": 9,
-      "options": {
-        "barRadius": 0.97,
-        "groupWidth": 0.7,
-        "legend": {
-          "calcs": [
-            "mean"
-          ],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "orientation": "horizontal",
-        "text": {},
-        "tooltip": {
-          "mode": "single"
-        },
-        "displayMode": "auto",
-        "drawStyle": "bars"
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/v1/models/trending?limit=20&sort_by=avg_latency",
-          "jsonPath": "$.avg_latency"
-        }
-      ],
-      "title": "\u23f1\ufe0f Average Latency by Model",
-      "type": "barchart"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "displayMode": "auto",
-            "align": "auto"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short",
-          "decimals": 2
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "requests_per_second"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Requests/Sec"
-              },
-              {
-                "id": "unit",
-                "value": "short"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 11,
-        "w": 24,
-        "h": 8
-      },
-      "id": 10,
-      "options": {
-        "barRadius": 0.97,
-        "groupWidth": 0.7,
-        "legend": {
-          "calcs": [
-            "mean"
-          ],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "orientation": "horizontal",
-        "text": {},
-        "tooltip": {
-          "mode": "single"
-        },
-        "displayMode": "auto",
-        "drawStyle": "bars"
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/v1/models/trending?limit=20&time_range=7d",
-          "jsonPath": "$.request_count",
-          "transformations": [
-            {
-              "id": "calculateField",
-              "options": {
-                "mode": "reduceRow",
-                "reduce": {
-                  "reducer": "mean"
-                },
-                "alias": "requests_per_second"
-              }
-            }
-          ]
-        }
-      ],
-      "title": "\ud83d\ude80 Requests per Second by Model",
-      "type": "barchart"
     }
   ],
   "refresh": "60s",
