@@ -60,7 +60,7 @@
       },
       "id": 1,
       "options": {
-        "content": "# 📝 Logs & Diagnostics Dashboard\n\n**Real-time log analysis using RED method**\n- 🔴 **RED:** Rate (req/sec), Errors (failures), Duration (latency)\n- Log search, error detection, performance analysis, request tracing\n\n🔗 [Executive Overview](d/executive-overview-v1) | [Backend Health](d/backend-health-v1)",
+        "content": "# 📝 Logs & Diagnostics Dashboard\n\n**Complete event-driven log analysis using RED method**\n- 🔴 **RED:** Rate (req/sec), Errors (failures), Duration (latency)\n- All events, errors, performance issues, request tracing, severity filtering\n- Event stream | Error detection | Latency tracking | Anomalies\n\n🔗 [Executive Overview](d/executive-overview-v1) | [Backend Health](d/backend-health-v1) | [Model Performance](d/model-performance-v1) | [Providers](d/gateway-comparison-v1)",
         "mode": "markdown"
       },
       "pluginVersion": "8.0.0",

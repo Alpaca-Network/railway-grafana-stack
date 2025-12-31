@@ -25,8 +25,44 @@
         "gatewayz"
       ],
       "targetBlank": false,
-      "title": "Other Dashboards",
+      "title": "All Dashboards",
       "type": "dashboards"
+    },
+    {
+      "icon": "external link",
+      "includeVars": true,
+      "tags": [],
+      "targetBlank": true,
+      "title": "📊 Executive Overview",
+      "type": "link",
+      "url": "d/executive-overview-v1"
+    },
+    {
+      "icon": "external link",
+      "includeVars": true,
+      "tags": [],
+      "targetBlank": true,
+      "title": "📝 Logs & Diagnostics",
+      "type": "link",
+      "url": "d/logs-monitoring-v1"
+    },
+    {
+      "icon": "external link",
+      "includeVars": true,
+      "tags": [],
+      "targetBlank": true,
+      "title": "🏥 Backend Health",
+      "type": "link",
+      "url": "d/backend-health-v1"
+    },
+    {
+      "icon": "external link",
+      "includeVars": true,
+      "tags": [],
+      "targetBlank": true,
+      "title": "📊 Model Performance",
+      "type": "link",
+      "url": "d/model-performance-v1"
     }
   ],
   "panels": [
@@ -44,7 +80,7 @@
       },
       "id": 1,
       "options": {
-        "content": "# \ud83c\udf10 Gateway & Provider Comparison\n\n**Compare performance across 17+ providers**. Identify which gateways are most reliable, cost-effective, and performant.\n\n\ud83d\udd17 [Executive Overview](d/executive-overview-v1) | [Model Performance](d/model-performance-v1) | [Incident Response](d/incident-response-v1) | [Token Analytics](d/tokens-throughput-v1)",
+        "content": "# 🔄 Gateway & Provider Comparison - Central Hub\n\n**SINGLE SOURCE OF TRUTH for all 17+ provider metrics**. Compare performance, reliability, cost, and efficiency across all gateways.\n\n🔗 [Executive Overview](d/executive-overview-v1) | [Logs & Diagnostics](d/logs-monitoring-v1) | [Backend Health](d/backend-health-v1) | [Model Performance](d/model-performance-v1)",
         "mode": "markdown"
       },
       "pluginVersion": "8.0.0",

@@ -25,7 +25,7 @@
         "gatewayz"
       ],
       "targetBlank": false,
-      "title": "Other Dashboards",
+      "title": "All Dashboards",
       "type": "dashboards"
     },
     {
@@ -45,6 +45,24 @@
       "title": "🏥 Backend Health",
       "type": "link",
       "url": "d/backend-health-v1"
+    },
+    {
+      "icon": "external link",
+      "includeVars": true,
+      "tags": [],
+      "targetBlank": true,
+      "title": "📊 Model Performance",
+      "type": "link",
+      "url": "d/model-performance-v1"
+    },
+    {
+      "icon": "external link",
+      "includeVars": true,
+      "tags": [],
+      "targetBlank": true,
+      "title": "🔄 Providers (17)",
+      "type": "link",
+      "url": "d/gateway-comparison-v1"
     }
   ],
   "panels": [

@@ -25,8 +25,44 @@
         "gatewayz"
       ],
       "targetBlank": false,
-      "title": "Other Dashboards",
+      "title": "All Dashboards",
       "type": "dashboards"
+    },
+    {
+      "icon": "external link",
+      "includeVars": true,
+      "tags": [],
+      "targetBlank": true,
+      "title": "📊 Executive Overview",
+      "type": "link",
+      "url": "d/executive-overview-v1"
+    },
+    {
+      "icon": "external link",
+      "includeVars": true,
+      "tags": [],
+      "targetBlank": true,
+      "title": "📝 Logs & Diagnostics",
+      "type": "link",
+      "url": "d/logs-monitoring-v1"
+    },
+    {
+      "icon": "external link",
+      "includeVars": true,
+      "tags": [],
+      "targetBlank": true,
+      "title": "🏥 Backend Health",
+      "type": "link",
+      "url": "d/backend-health-v1"
+    },
+    {
+      "icon": "external link",
+      "includeVars": true,
+      "tags": [],
+      "targetBlank": true,
+      "title": "🔄 Providers (17)",
+      "type": "link",
+      "url": "d/gateway-comparison-v1"
     }
   ],
   "panels": [

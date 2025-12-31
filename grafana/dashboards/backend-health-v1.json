@@ -43,6 +43,24 @@
       "title": "📝 Logs & Diagnostics",
       "type": "link",
       "url": "d/logs-monitoring-v1"
+    },
+    {
+      "icon": "external link",
+      "includeVars": true,
+      "tags": [],
+      "targetBlank": true,
+      "title": "📊 Model Performance",
+      "type": "link",
+      "url": "d/model-performance-v1"
+    },
+    {
+      "icon": "external link",
+      "includeVars": true,
+      "tags": [],
+      "targetBlank": true,
+      "title": "🔄 Providers (17)",
+      "type": "link",
+      "url": "d/gateway-comparison-v1"
     }
   ],
   "panels": [
