@@ -33,7 +33,7 @@
       "includeVars": true,
       "tags": [],
       "targetBlank": true,
-      "title": "📊 Executive Overview",
+      "title": "\ud83d\udcca Executive Overview",
       "type": "link",
       "url": "d/executive-overview-v1"
     },
@@ -42,7 +42,7 @@
       "includeVars": true,
       "tags": [],
       "targetBlank": true,
-      "title": "📝 Logs & Diagnostics",
+      "title": "\ud83d\udcdd Logs & Diagnostics",
       "type": "link",
       "url": "d/logs-monitoring-v1"
     },
@@ -51,7 +51,7 @@
       "includeVars": true,
       "tags": [],
       "targetBlank": true,
-      "title": "🏥 Backend Health",
+      "title": "\ud83c\udfe5 Backend Health",
       "type": "link",
       "url": "d/backend-health-v1"
     },
@@ -60,7 +60,7 @@
       "includeVars": true,
       "tags": [],
       "targetBlank": true,
-      "title": "🔄 Providers (17)",
+      "title": "\ud83d\udd04 Providers (17)",
       "type": "link",
       "url": "d/gateway-comparison-v1"
     }
@@ -80,7 +80,7 @@
       },
       "id": 1,
       "options": {
-        "content": "# 📊 Model Performance Analytics\n\n**Deep dive into which models are performing well and where to invest resources**. Track requests, errors, latency, and costs by model across all providers.\n\n🔗 [Executive Overview](d/executive-overview-v1) | [Gateway Comparison](d/gateway-comparison-v1) | [Incident Response](d/incident-response-v1) | [Token Analytics](d/tokens-throughput-v1)",
+        "content": "# \ud83d\udcca Model Performance Analytics\n\n**Deep dive into which models are performing well and where to invest resources**. Track requests, errors, latency, and costs by model across all providers.\n\n\ud83d\udd17 [Executive Overview](d/executive-overview-v1) | [Gateway Comparison](d/gateway-comparison-v1) | [Incident Response](d/incident-response-v1) | [Token Analytics](d/tokens-throughput-v1)",
         "mode": "markdown"
       },
       "pluginVersion": "8.0.0",
@@ -189,7 +189,7 @@
           "jsonPath": "$.request_count"
         }
       ],
-      "title": "📊 Request Volume by Model (7d) - Top 15",
+      "title": "\ud83d\udcca Request Volume by Model (7d) - Top 15",
       "type": "barchart"
     },
     {
@@ -200,7 +200,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "thresholds",
+            "fixedColor": "green"
           },
           "custom": {
             "hideFrom": {
@@ -264,23 +265,22 @@
       "id": 9,
       "options": {
         "barRadius": 0.97,
-        "groupWidth": 0.7,
+        "groupWidth": 0.65,
         "legend": {
-          "calcs": [
-            "mean",
-            "max"
-          ],
-          "displayMode": "hidden",
-          "placement": "right",
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
           "showLegend": false
         },
         "orientation": "horizontal",
+        "showValue": "auto",
         "text": {},
         "tooltip": {
           "mode": "multi"
         },
-        "displayMode": "auto",
-        "drawStyle": "bars"
+        "xField": "avg_latency",
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 100
       },
       "pluginVersion": "8.0.0",
       "targets": [
@@ -291,7 +291,7 @@
           "jsonPath": "$.avg_latency"
         }
       ],
-      "title": "⏱️ Average Latency by Model (ms) - Top 15",
+      "title": "\u23f1\ufe0f Average Latency by Model (ms) - Top 15",
       "type": "barchart"
     },
     {
@@ -359,23 +359,22 @@
       "id": 10,
       "options": {
         "barRadius": 0.97,
-        "groupWidth": 0.7,
+        "groupWidth": 0.65,
         "legend": {
-          "calcs": [
-            "mean",
-            "max"
-          ],
-          "displayMode": "hidden",
-          "placement": "right",
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
           "showLegend": false
         },
         "orientation": "horizontal",
+        "showValue": "auto",
         "text": {},
         "tooltip": {
           "mode": "multi"
         },
-        "displayMode": "auto",
-        "drawStyle": "bars"
+        "xField": "requests_per_second",
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 100
       },
       "pluginVersion": "8.0.0",
       "targets": [
@@ -398,7 +397,7 @@
           ]
         }
       ],
-      "title": "🚀 Requests per Second by Model - Top 15",
+      "title": "\ud83d\ude80 Requests per Second by Model - Top 15",
       "type": "barchart"
     },
     {
@@ -509,7 +508,7 @@
           "url": "${API_BASE_URL}/api/monitoring/chat-requests/counts?limit=5"
         }
       ],
-      "title": "🔝 Top 5 Models by Requests",
+      "title": "\ud83d\udd1d Top 5 Models by Requests",
       "type": "table"
     },
     {
@@ -620,7 +619,7 @@
           "url": "${API_BASE_URL}/api/monitoring/error-rates?hours=24"
         }
       ],
-      "title": "⚠️ Models With High Error Rates",
+      "title": "\u26a0\ufe0f Models With High Error Rates",
       "type": "table"
     },
     {
@@ -733,7 +732,7 @@
           "url": "${API_BASE_URL}/api/monitoring/cost-analysis?days=7"
         }
       ],
-      "title": "💰 Cost per Request (Ranked by Model)",
+      "title": "\ud83d\udcb0 Cost per Request (Ranked by Model)",
       "type": "barchart"
     },
     {
@@ -826,7 +825,7 @@
           "color": "rgba(255,0,255,0.7)"
         },
         "filterValues": {
-          "le": 1E-9
+          "le": 1e-09
         },
         "legend": {
           "show": true
@@ -844,7 +843,7 @@
           "url": "${API_BASE_URL}/api/monitoring/chat-requests?limit=100"
         }
       ],
-      "title": "🔥 Latency Distribution Heatmap (p50, p95, p99)",
+      "title": "\ud83d\udd25 Latency Distribution Heatmap (p50, p95, p99)",
       "type": "heatmap"
     },
     {
