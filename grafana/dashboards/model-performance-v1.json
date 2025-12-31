@@ -33,7 +33,7 @@
       "includeVars": true,
       "tags": [],
       "targetBlank": true,
-      "title": "\ud83d\udcca Executive Overview",
+      "title": "📊 Executive Overview",
       "type": "link",
       "url": "d/executive-overview-v1"
     },
@@ -42,7 +42,7 @@
       "includeVars": true,
       "tags": [],
       "targetBlank": true,
-      "title": "\ud83d\udcdd Logs & Diagnostics",
+      "title": "📝 Logs & Diagnostics",
       "type": "link",
       "url": "d/logs-monitoring-v1"
     },
@@ -51,7 +51,7 @@
       "includeVars": true,
       "tags": [],
       "targetBlank": true,
-      "title": "\ud83c\udfe5 Backend Health",
+      "title": "🏥 Backend Health",
       "type": "link",
       "url": "d/backend-health-v1"
     },
@@ -60,7 +60,7 @@
       "includeVars": true,
       "tags": [],
       "targetBlank": true,
-      "title": "\ud83d\udd04 Providers (17)",
+      "title": "🔄 Providers (17)",
       "type": "link",
       "url": "d/gateway-comparison-v1"
     }
@@ -80,7 +80,7 @@
       },
       "id": 1,
       "options": {
-        "content": "# \ud83d\udcca Model Performance Analytics\n\n**Deep dive into which models are performing well and where to invest resources**. Track requests, errors, latency, and costs by model across all providers.\n\n\ud83d\udd17 [Executive Overview](d/executive-overview-v1) | [Gateway Comparison](d/gateway-comparison-v1) | [Incident Response](d/incident-response-v1) | [Token Analytics](d/tokens-throughput-v1)",
+        "content": "# 📊 Model Performance Analytics\n\n**Deep dive into which models are performing well and where to invest resources**. Track requests, errors, latency, and costs by model across all providers.\n\n🔗 [Executive Overview](d/executive-overview-v1) | [Gateway Comparison](d/gateway-comparison-v1) | [Incident Response](d/incident-response-v1) | [Token Analytics](d/tokens-throughput-v1)",
         "mode": "markdown"
       },
       "pluginVersion": "8.0.0",
@@ -157,19 +157,19 @@
         "x": 0,
         "y": 2,
         "w": 24,
-        "h": 12
+        "h": 14
       },
       "id": 4,
       "options": {
         "barRadius": 0.97,
-        "groupWidth": 0.5,
+        "groupWidth": 0.7,
         "legend": {
           "calcs": [
             "mean",
             "max"
           ],
           "displayMode": "table",
-          "placement": "right",
+          "placement": "bottom",
           "showLegend": true
         },
         "orientation": "auto",
@@ -185,11 +185,11 @@
         {
           "refId": "A",
           "datasource": "JSON API",
-          "url": "${API_BASE_URL}/v1/models/trending?limit=20&time_range=7d&sort_by=requests",
+          "url": "${API_BASE_URL}/v1/models/trending?limit=15&time_range=7d&sort_by=requests",
           "jsonPath": "$.request_count"
         }
       ],
-      "title": "\ud83d\udcca Request Volume by Model (7d) - Top 20",
+      "title": "📊 Request Volume by Model (7d) - Top 15",
       "type": "barchart"
     },
     {
@@ -209,7 +209,8 @@
               "viz": false
             },
             "displayMode": "auto",
-            "align": "auto"
+            "align": "left",
+            "textMode": "auto"
           },
           "mappings": [],
           "thresholds": {
@@ -256,22 +257,22 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 14,
+        "y": 16,
         "w": 24,
-        "h": 12
+        "h": 14
       },
       "id": 9,
       "options": {
         "barRadius": 0.97,
-        "groupWidth": 0.5,
+        "groupWidth": 0.7,
         "legend": {
           "calcs": [
             "mean",
             "max"
           ],
-          "displayMode": "table",
+          "displayMode": "hidden",
           "placement": "right",
-          "showLegend": true
+          "showLegend": false
         },
         "orientation": "horizontal",
         "text": {},
@@ -286,11 +287,11 @@
         {
           "refId": "A",
           "datasource": "JSON API",
-          "url": "${API_BASE_URL}/v1/models/trending?limit=20&sort_by=avg_latency",
+          "url": "${API_BASE_URL}/v1/models/trending?limit=15&sort_by=avg_latency",
           "jsonPath": "$.avg_latency"
         }
       ],
-      "title": "\u23f1\ufe0f Average Latency by Model (ms) - Top 20",
+      "title": "⏱️ Average Latency by Model (ms) - Top 15",
       "type": "barchart"
     },
     {
@@ -310,7 +311,8 @@
               "viz": false
             },
             "displayMode": "auto",
-            "align": "auto"
+            "align": "left",
+            "textMode": "auto"
           },
           "mappings": [],
           "thresholds": {
@@ -350,22 +352,22 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 26,
+        "y": 30,
         "w": 24,
-        "h": 12
+        "h": 14
       },
       "id": 10,
       "options": {
         "barRadius": 0.97,
-        "groupWidth": 0.5,
+        "groupWidth": 0.7,
         "legend": {
           "calcs": [
             "mean",
             "max"
           ],
-          "displayMode": "table",
+          "displayMode": "hidden",
           "placement": "right",
-          "showLegend": true
+          "showLegend": false
         },
         "orientation": "horizontal",
         "text": {},
@@ -380,7 +382,7 @@
         {
           "refId": "A",
           "datasource": "JSON API",
-          "url": "${API_BASE_URL}/v1/models/trending?limit=20&time_range=7d",
+          "url": "${API_BASE_URL}/v1/models/trending?limit=15&time_range=7d",
           "jsonPath": "$.request_count",
           "transformations": [
             {
@@ -396,7 +398,7 @@
           ]
         }
       ],
-      "title": "\ud83d\ude80 Requests per Second by Model - Top 20",
+      "title": "🚀 Requests per Second by Model - Top 15",
       "type": "barchart"
     },
     {
@@ -483,7 +485,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 38,
+        "y": 44,
         "w": 12,
         "h": 8
       },
@@ -507,7 +509,7 @@
           "url": "${API_BASE_URL}/api/monitoring/chat-requests/counts?limit=5"
         }
       ],
-      "title": "\ud83d\udd1d Top 5 Models by Requests",
+      "title": "🔝 Top 5 Models by Requests",
       "type": "table"
     },
     {
@@ -594,7 +596,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 38,
+        "y": 44,
         "w": 12,
         "h": 8
       },
@@ -618,7 +620,7 @@
           "url": "${API_BASE_URL}/api/monitoring/error-rates?hours=24"
         }
       ],
-      "title": "\u26a0\ufe0f Models With High Error Rates",
+      "title": "⚠️ Models With High Error Rates",
       "type": "table"
     },
     {
@@ -694,7 +696,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 46,
+        "y": 52,
         "w": 12,
         "h": 8
       },
@@ -731,7 +733,7 @@
           "url": "${API_BASE_URL}/api/monitoring/cost-analysis?days=7"
         }
       ],
-      "title": "\ud83d\udcb0 Cost per Request (Ranked by Model)",
+      "title": "💰 Cost per Request (Ranked by Model)",
       "type": "barchart"
     },
     {
@@ -807,7 +809,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 46,
+        "y": 52,
         "w": 12,
         "h": 8
       },
@@ -824,7 +826,7 @@
           "color": "rgba(255,0,255,0.7)"
         },
         "filterValues": {
-          "le": 1e-09
+          "le": 1E-9
         },
         "legend": {
           "show": true
@@ -842,7 +844,7 @@
           "url": "${API_BASE_URL}/api/monitoring/chat-requests?limit=100"
         }
       ],
-      "title": "\ud83d\udd25 Latency Distribution Heatmap (p50, p95, p99)",
+      "title": "🔥 Latency Distribution Heatmap (p50, p95, p99)",
       "type": "heatmap"
     },
     {
@@ -926,7 +928,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 54,
+        "y": 60,
         "w": 24,
         "h": 8
       },
@@ -1006,7 +1008,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 62,
+        "y": 68,
         "w": 24,
         "h": 8
       },
