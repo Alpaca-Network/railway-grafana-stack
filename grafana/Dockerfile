@@ -13,7 +13,11 @@ ENV TEMPO_INTERNAL_URL=http://tempo.railway.internal:3200
 # copy the datasources and dashboards
 COPY datasources /etc/grafana/provisioning/datasources
 COPY dashboards/dashboards.yml /etc/grafana/provisioning/dashboards/dashboards.yml
-COPY dashboards/*.json /etc/grafana/provisioning/dashboards/
+COPY dashboards/backend /etc/grafana/provisioning/dashboards/backend
+COPY dashboards/executive /etc/grafana/provisioning/dashboards/executive
+COPY dashboards/gateway /etc/grafana/provisioning/dashboards/gateway
+COPY dashboards/logs /etc/grafana/provisioning/dashboards/logs
+COPY dashboards/models /etc/grafana/provisioning/dashboards/models
 
 # Expose Grafana port
 EXPOSE 3000
