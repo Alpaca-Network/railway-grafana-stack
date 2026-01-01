@@ -80,7 +80,7 @@
       },
       "id": 1,
       "options": {
-        "content": "# \ud83d\ude80 Executive Overview - Real-Time Gateway Heartbeat\n\n**5-second health snapshot for management/ops teams**. Monitor system health, active request volume, response times, and cost across all 17 providers.\n\n🔗 **Dashboards:** [Model Performance](d/model-performance-v1) | [Gateway Comparison](d/gateway-comparison-v1) | [Incident Response](d/incident-response-v1) | [Token Analytics](d/tokens-throughput-v1) | [📝 Logs & Diagnostics](d/logs-monitoring-v1) | [🏥 Backend Health](d/backend-health-v1)",
+        "content": "# 🚀 Executive Overview - Real-Time Gateway Heartbeat\n\n**5-second health snapshot for management/ops teams**. Monitor system health, active request volume, response times, and cost across all 17 providers.\n\n🔗 **Dashboards:** [Model Performance](d/model-performance-v1) | [Gateway Comparison](d/gateway-comparison-v1) | [Incident Response](d/incident-response-v1) | [Token Analytics](d/tokens-throughput-v1) | [📝 Logs & Diagnostics](d/logs-monitoring-v1) | [🏥 Backend Health](d/backend-health-v1)",
         "mode": "markdown"
       },
       "pluginVersion": "8.0.0",
@@ -137,9 +137,9 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 6,
-        "x": 0,
-        "y": 3
+        "w": 12,
+        "x": 12,
+        "y": 16
       },
       "id": 2,
       "options": {
@@ -159,79 +159,6 @@
       ],
       "title": "Overall System Health",
       "type": "gauge"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            }
-          },
-          "mappings": []
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "health_score"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Provider Health Score"
-              },
-              {
-                "id": "unit",
-                "value": "percent"
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 3
-      },
-      "id": 3,
-      "options": {
-        "graphMode": "none",
-        "colorMode": "background",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "textMode": "auto",
-        "wideLayout": true,
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "reduceOptions": {
-          "values": false,
-          "fields": "",
-          "calcs": [
-            "lastNotNull"
-          ]
-        }
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/health"
-        }
-      ],
-      "title": "\ud83c\udfe5 Provider Health Status (17 Providers)",
-      "type": "stat"
     },
     {
       "datasource": {
@@ -274,7 +201,7 @@
         "h": 5,
         "w": 6,
         "x": 0,
-        "y": 11
+        "y": 3
       },
       "id": 4,
       "options": {
@@ -350,7 +277,7 @@
         "h": 5,
         "w": 6,
         "x": 6,
-        "y": 11
+        "y": 3
       },
       "id": 5,
       "options": {
@@ -418,7 +345,7 @@
         "h": 5,
         "w": 6,
         "x": 12,
-        "y": 11
+        "y": 3
       },
       "id": 6,
       "options": {
@@ -494,7 +421,7 @@
         "h": 5,
         "w": 6,
         "x": 18,
-        "y": 11
+        "y": 3
       },
       "id": 7,
       "options": {
@@ -585,9 +512,9 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 24,
         "x": 0,
-        "y": 16
+        "y": 8
       },
       "id": 8,
       "options": {
@@ -656,7 +583,7 @@
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 12,
+        "x": 0,
         "y": 16
       },
       "id": 9,
@@ -726,12 +653,12 @@
                       "CRITICAL": {
                         "color": "dark-red",
                         "index": 0,
-                        "text": "\ud83d\udd34 CRITICAL"
+                        "text": "🔴 CRITICAL"
                       },
                       "WARNING": {
                         "color": "dark-yellow",
                         "index": 1,
-                        "text": "\u26a0\ufe0f WARNING"
+                        "text": "⚠️ WARNING"
                       }
                     },
                     "type": "value"

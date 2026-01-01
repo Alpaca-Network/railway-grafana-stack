@@ -170,6 +170,82 @@
       },
       "fieldConfig": {
         "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "displayMode": "color-background",
+            "inspect": false
+          },
+          "mappings": [
+            {
+              "options": {
+                "healthy": {
+                  "color": "#31863B",
+                  "index": 0,
+                  "text": "✅ HEALTHY"
+                },
+                "degraded": {
+                  "color": "#FF9830",
+                  "index": 1,
+                  "text": "⚠️ DEGRADED"
+                },
+                "unhealthy": {
+                  "color": "#E02620",
+                  "index": 2,
+                  "text": "🔴 UNHEALTHY"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "id": 9,
+      "options": {
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "8.0.0",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "JSON API",
+          "url": "${API_BASE_URL}/api/monitoring/health"
+        }
+      ],
+      "title": "🏥 Provider Health Status Grid (17 Providers)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Grafana --"
+      },
+      "fieldConfig": {
+        "defaults": {
           "custom": {
             "align": "auto",
             "displayMode": "auto",
@@ -289,7 +365,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 21
       },
       "id": 3,
       "options": {
@@ -361,7 +437,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 23
+        "y": 31
       },
       "id": 4,
       "options": {
@@ -427,7 +503,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 23
+        "y": 31
       },
       "id": 5,
       "options": {
@@ -496,7 +572,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 33
+        "y": 41
       },
       "id": 6,
       "options": {
@@ -598,7 +674,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 33
+        "y": 41
       },
       "id": 7,
       "options": {
@@ -698,7 +774,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 43
+        "y": 51
       },
       "id": 8,
       "options": {
