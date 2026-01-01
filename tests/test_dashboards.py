@@ -22,8 +22,8 @@ DASHBOARDS_DIR = Path(__file__).parent.parent / "grafana" / "dashboards"
 
 @pytest.fixture(scope="session")
 def dashboards():
-    """Load all dashboard JSON files"""
-    dashboard_files = sorted(DASHBOARDS_DIR.glob("*.json"))
+    """Load all dashboard JSON files (including subdirectories)"""
+    dashboard_files = sorted(DASHBOARDS_DIR.glob("**/*.json"))
     dashboards_dict = {}
     for file in dashboard_files:
         with open(file, "r") as f:
@@ -33,8 +33,8 @@ def dashboards():
 
 @pytest.fixture(scope="session")
 def dashboard_list():
-    """Get list of dashboard file paths"""
-    return sorted(DASHBOARDS_DIR.glob("*.json"))
+    """Get list of dashboard file paths (including subdirectories)"""
+    return sorted(DASHBOARDS_DIR.glob("**/*.json"))
 
 
 class TestDashboardStructure:
@@ -290,7 +290,7 @@ class TestVariableConfiguration:
 
 
 @pytest.mark.parametrize("dashboard_file",
-    glob.glob(str(DASHBOARDS_DIR / "*.json")),
+    glob.glob(str(DASHBOARDS_DIR / "**/*.json"), recursive=True),
     ids=lambda x: Path(x).name)
 class TestIndividualDashboards:
     """Parametrized tests for each dashboard"""
