@@ -78,7 +78,7 @@
       },
       "id": 1,
       "options": {
-        "content": "# 🏥 Backend Health & Service Status\n\n**Real-time system health using USE & RED methods**\n- 🔴 **USE:** Utilization, Saturation, Errors (for resources)\n- 🔴 **RED:** Rate, Errors, Duration (for requests)\n- 4️⃣ **Golden Signals:** Latency, Traffic, Errors, Saturation\n\n🔗 [Executive Overview](d/executive-overview-v1) | [Logs & Diagnostics](d/logs-monitoring-v1)",
+        "content": "# 🏥 Backend Health & Service Status\n\n**Real-time system health monitoring** - Track provider health, circuit breakers, errors, and Redis performance across all services.\n\n🔗 [Executive Overview](d/executive-overview-v1) | [Logs & Diagnostics](d/logs-monitoring-v1) | [Model Performance](d/model-performance-v1) | [Providers](d/gateway-comparison-v1)",
         "mode": "markdown"
       },
       "pluginVersion": "8.0.0",
@@ -142,7 +142,7 @@
           "jsonPath": "avg_health_score"
         }
       ],
-      "title": "🎯 Overall Health Score (USE: Errors)",
+      "title": "🎯 Overall Health Score",
       "type": "gauge"
     },
     {
@@ -213,7 +213,7 @@
           "url": "${API_BASE_URL}/api/monitoring/circuit-breakers"
         }
       ],
-      "title": "⚡ Circuit Breaker Status (USE: Saturation/Errors)",
+      "title": "⚡ Circuit Breaker Status",
       "type": "table"
     },
     {
@@ -289,7 +289,7 @@
           "url": "${API_BASE_URL}/api/monitoring/health"
         }
       ],
-      "title": "🏥 Provider Health Grid (USE: Utilization + Errors) - 17 Providers",
+      "title": "🏥 Provider Health Grid (17 Providers)",
       "type": "table"
     },
     {
@@ -376,7 +376,7 @@
           "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=24"
         }
       ],
-      "title": "📈 Health Score Trend (24h) - RED: Duration Impact",
+      "title": "📈 Health Score Trend (24h)",
       "type": "timeseries"
     },
     {
@@ -469,7 +469,7 @@
           "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=24"
         }
       ],
-      "title": "🔴 Error Rate Trend (24h) - RED: Errors + Golden Signals",
+      "title": "🔴 Error Rate Trend (24h)",
       "type": "timeseries"
     },
     {
@@ -537,8 +537,366 @@
           "url": "${API_BASE_URL}/api/monitoring/anomalies"
         }
       ],
-      "title": "🚨 Active Alerts & Anomalies (Golden Signals: Saturation & Errors)",
+      "title": "🚨 Active Alerts & Anomalies",
       "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "index": 0,
+                  "text": "🔴 DISCONNECTED"
+                },
+                "1": {
+                  "color": "green",
+                  "index": 1,
+                  "text": "✅ CONNECTED"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 35
+      },
+      "id": 8,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "pluginVersion": "8.0.0",
+      "targets": [
+        {
+          "expr": "redis_up{service=\"gatewayz-api\"}",
+          "refId": "A"
+        }
+      ],
+      "title": "💾 Redis Connection Status",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 35
+      },
+      "id": 9,
+      "options": {
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "8.0.0",
+      "targets": [
+        {
+          "expr": "(redis_memory_used_bytes{service=\"gatewayz-api\"} / redis_memory_max_bytes{service=\"gatewayz-api\"}) * 100",
+          "refId": "A"
+        }
+      ],
+      "title": "💾 Redis Memory Usage",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 35
+      },
+      "id": 10,
+      "options": {
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "8.0.0",
+      "targets": [
+        {
+          "expr": "(redis_keyspace_hits_total{service=\"gatewayz-api\"} / (redis_keyspace_hits_total{service=\"gatewayz-api\"} + redis_keyspace_misses_total{service=\"gatewayz-api\"})) * 100",
+          "refId": "A"
+        }
+      ],
+      "title": "🎯 Redis Cache Hit Rate",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Connections",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 35
+      },
+      "id": 11,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "8.0.0",
+      "targets": [
+        {
+          "expr": "redis_connected_clients{service=\"gatewayz-api\"}",
+          "refId": "A"
+        }
+      ],
+      "title": "🔌 Redis Connected Clients",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Ops/sec",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 39
+      },
+      "id": 12,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "pluginVersion": "8.0.0",
+      "targets": [
+        {
+          "expr": "rate(redis_commands_processed_total{service=\"gatewayz-api\"}[5m])",
+          "legendFormat": "Commands/sec",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(redis_keyspace_hits_total{service=\"gatewayz-api\"}[5m])",
+          "legendFormat": "Hits/sec",
+          "refId": "B"
+        },
+        {
+          "expr": "rate(redis_keyspace_misses_total{service=\"gatewayz-api\"}[5m])",
+          "legendFormat": "Misses/sec",
+          "refId": "C"
+        }
+      ],
+      "title": "📊 Redis Operations Rate",
+      "type": "timeseries"
     }
   ],
   "refresh": "10s",

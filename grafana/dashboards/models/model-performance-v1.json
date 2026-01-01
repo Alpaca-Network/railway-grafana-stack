@@ -186,21 +186,20 @@
           "refId": "A",
           "datasource": "JSON API",
           "url": "${API_BASE_URL}/v1/models/trending?limit=15&time_range=7d&sort_by=requests",
-          "jsonPath": "$",
-          "transformations": [
-            {
-              "id": "organize",
-              "options": {
-                "excludeByName": {},
-                "indexByName": {},
-                "renameByName": {
-                  "model_id": "Model",
-                  "model_name": "Model",
-                  "request_count": "Requests (7d)"
-                }
-              }
+          "jsonPath": "$.data"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "model": "Model",
+              "requests": "Requests (7d)"
             }
-          ]
+          }
         }
       ],
       "title": "\ud83d\udcca Request Volume by Model (7d) - Top 15",
@@ -255,16 +254,16 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "avg_latency"
+              "options": "avg_speed"
             },
             "properties": [
               {
                 "id": "displayName",
-                "value": "Avg Latency (ms)"
+                "value": "Speed (tokens/s)"
               },
               {
                 "id": "unit",
-                "value": "ms"
+                "value": "short"
               }
             ]
           }
@@ -299,22 +298,21 @@
         {
           "refId": "A",
           "datasource": "JSON API",
-          "url": "${API_BASE_URL}/v1/models/trending?limit=15&sort_by=avg_latency",
-          "jsonPath": "$",
-          "transformations": [
-            {
-              "id": "organize",
-              "options": {
-                "excludeByName": {},
-                "indexByName": {},
-                "renameByName": {
-                  "model_id": "Model",
-                  "model_name": "Model",
-                  "avg_latency": "Latency (ms)"
-                }
-              }
+          "url": "${API_BASE_URL}/v1/models/trending?limit=15&sort_by=requests",
+          "jsonPath": "$.data"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "model": "Model",
+              "avg_speed": "Speed (tokens/s)"
             }
-          ]
+          }
         }
       ],
       "title": "\u23f1\ufe0f Average Latency by Model (ms) - Top 15",
@@ -405,22 +403,21 @@
         {
           "refId": "A",
           "datasource": "JSON API",
-          "url": "${API_BASE_URL}/v1/models/trending?limit=15&time_range=7d",
-          "jsonPath": "$",
-          "transformations": [
-            {
-              "id": "organize",
-              "options": {
-                "excludeByName": {},
-                "indexByName": {},
-                "renameByName": {
-                  "model_id": "Model",
-                  "model_name": "Model",
-                  "request_count": "Requests"
-                }
-              }
+          "url": "${API_BASE_URL}/v1/models/trending?limit=15&time_range=7d&sort_by=requests",
+          "jsonPath": "$.data"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "model": "Model",
+              "requests": "Requests"
             }
-          ]
+          }
         }
       ],
       "title": "\ud83d\ude80 Requests per Second by Model - Top 15",
