@@ -1,7 +1,7 @@
 # 🤖 Claude Context - GatewayZ Observability Stack
 
 **Last Updated:** December 31, 2025
-**Status:** ✅ PRODUCTION READY - Six dashboards deployed
+**Status:** ✅ PRODUCTION READY - Seven dashboards deployed
 **Main Branch:** `main`
 **Latest Addition:** Four Golden Signals dashboard (Google SRE methodology)
 
@@ -11,7 +11,7 @@
 
 This project is the **GatewayZ AI Backend Observability Stack** - a production-ready monitoring solution using Docker, Grafana, Prometheus, Loki, and Tempo. It provides:
 
-- **6 Grafana Dashboards** (production-ready, includes Google SRE Four Golden Signals)
+- **7 Grafana Dashboards** (production-ready, includes Google SRE Four Golden Signals)
 - **25+ Real API Endpoints** (verified, not mock data)
 - **Comprehensive Logging** via Loki with real instrumentation
 - **Distributed Tracing** via Tempo with real endpoint testing
@@ -71,18 +71,19 @@ This project is the **GatewayZ AI Backend Observability Stack** - a production-r
 
 ---
 
-## 📊 Dashboards (6 Production-Ready)
+## 📊 Dashboards (7 Production-Ready)
 
 | Dashboard | UID | Panels | Queries | Framework | Refresh |
 |-----------|-----|--------|---------|-----------|---------|
 | Executive Overview | `executive-overview-v1` | 10 | 5 | Golden Signals | 30s |
 | **🎯 The Four Golden Signals** | `latency-analytics-v1` | 17 | 21 | **Google SRE** | 30s |
 | Backend Health & Service Status | `backend-health-v1` | 13 | 11 | USE Method | 10s |
+| Redis & Backend Services | `redis-services-v1` | 11 | 8 | Redis Focus | 10s |
 | Gateway & Provider Comparison | `gateway-comparison-v1` | 9 | 8 | Provider Hub | 60s |
 | Model Performance Analytics | `model-performance-v1` | 8 | 7 | AI/ML Focus | 60s |
 | Logs & Diagnostics | `logs-monitoring-v1` | 9 | 4 | RED Method | 10s |
 
-**All 6 dashboards have 100% real API integration, consistent color coding (Red <80%, Yellow 80-95%, Green >95%), and cross-dashboard navigation.**
+**All 7 dashboards have 100% real API integration, consistent color coding (Red <80%, Yellow 80-95%, Green >95%), and cross-dashboard navigation.**
 
 ---
 
@@ -120,7 +121,7 @@ This project is the **GatewayZ AI Backend Observability Stack** - a production-r
 ## 🌿 Git Branches
 
 ### Main Branches
-- **main** - Production-ready code with 6 dashboards
+- **main** - Production-ready code with 7 dashboards
 - **staging** - Pre-production testing
 - **docs/update-four-golden-signals** - Current documentation update branch
 
@@ -299,7 +300,7 @@ curl -X POST "https://api.gatewayz.ai/api/instrumentation/test-log" \
 
 ### Key Things to Remember
 1. **This is NOT mock data** - All 25+ endpoints are real and verified
-2. **6 production-ready dashboards** deployed with Google SRE methodology
+2. **7 production-ready dashboards** deployed with Google SRE methodology
 3. **Four Golden Signals dashboard** - NEW executive-level SRE monitoring
    - 17 panels, 21 queries (10 JSON API + 11 Prometheus)
    - Covers: Latency (P50/P95/P99), Traffic, Errors, Saturation
@@ -398,8 +399,8 @@ for f in grafana/dashboards/*.json; do echo "=== $f ==="; jq '.panels[0].targets
 ## 📈 Metrics & Stats
 
 ### Codebase Metrics
-- **Total Dashboards:** 6 (production-ready, includes Google SRE methodology)
-- **Total Panels:** 66 across 6 dashboards
+- **Total Dashboards:** 7 (production-ready, includes Google SRE methodology)
+- **Total Panels:** 79 across 7 dashboards
 - **Field Overrides:** 100% coverage on all dashboards
 - **Real API Endpoints:** 25+ (verified, not mock data)
 - **Total Queries:** 56+ across all dashboards
@@ -415,7 +416,7 @@ for f in grafana/dashboards/*.json; do echo "=== $f ==="; jq '.panels[0].targets
 
 ### Testing Coverage
 - **Endpoint Verification:** 100% (all 25+ endpoints tested)
-- **Dashboard Testing:** 6/6 dashboards verified with real data
+- **Dashboard Testing:** 7/7 dashboards verified with real data
 - **Field Override Testing:** 100% coverage (all panels)
 - **Mock Data Check:** 0% (all real backend data)
 

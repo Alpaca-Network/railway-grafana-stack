@@ -24,7 +24,7 @@ A production-ready observability solution for **GatewayZ AI Backend**, providing
 - ✅ **All panels verified** with real backend endpoints
 
 **Previous Updates:**
-- ✅ **6 Production Dashboards** organized into logical folders (Executive, Backend, Gateway, Models, Logs)
+- ✅ **7 Production Dashboards** organized into logical folders (Executive, Backend, Gateway, Models, Logs)
 - ✅ **Backend Health Dashboard:** 13 panels with Redis monitoring (6 panels) + automated health score alerts (<30%)
 - ✅ **Gateway Comparison Dashboard:** Added Provider Health Status Grid for all 17 providers
 - ✅ **Fixed Metrics:** Stable health score readings (fixed jsonPath: `$.avg_health_score`)
@@ -36,7 +36,7 @@ A production-ready observability solution for **GatewayZ AI Backend**, providing
 
 | Service | Port(s) | Purpose | Status |
 |---------|---------|---------|--------|
-| **Grafana 11.5.2** | 3000 | Visualization & dashboarding | ✅ 6 production dashboards (folder-based) |
+| **Grafana 11.5.2** | 3000 | Visualization & dashboarding | ✅ 7 production dashboards (folder-based) |
 | **Prometheus v3.2.1** | 9090 | Time-series metrics collection | ✅ 4 scrape jobs |
 | **Loki 3.4** | 3100 | Log aggregation | ✅ 30-day retention |
 | **Tempo** | 3200, 4317, 4318 | Distributed tracing | ✅ Real instrumentation endpoints |
@@ -103,13 +103,14 @@ A production-ready observability solution for **GatewayZ AI Backend**, providing
                    │   Grafana   │
                    │    :3000    │
                    │             │
-                   │ 6 Dashboards│
+                   │ 7 Dashboards│
                    │ 3 Datasources│
                    └─────────────┘
                    │
                    ├─ Executive Overview (10 panels, 30s refresh)
                    ├─ 🎯 Four Golden Signals (17 panels, Google SRE)
                    ├─ Backend Health & Status (13 panels, Redis + Alerts)
+                   ├─ Redis & Backend Services (11 panels, Redis focus)
                    ├─ Gateway & Provider Comparison (9 panels, Provider Grid)
                    ├─ Model Performance Analytics (8 panels, 60s refresh)
                    └─ Logs & Diagnostics (9 panels, RED Method)
@@ -135,11 +136,12 @@ All dashboards are organized into logical folders and use **REAL API endpoints**
 | **Executive Overview** | Executive | 10 | 30s | Golden Signals, KPIs, Request Volume, Error Distribution | ✅ Production Ready |
 | **🎯 The Four Golden Signals** | Executive | 17 | 30s | **Google SRE Methodology**, Latency (P50/P95/P99), Traffic, Errors, Saturation | ✅ Production Ready |
 | **Backend Health & Service Status** | Backend | 13 | 10s | Health Score Alert (<30%), Redis Monitoring (6 panels), Circuit Breakers | ✅ Production Ready |
+| **Redis & Backend Services** | Backend | 11 | 10s | Redis Operations, Latency Trends, Error Tracking, Cache Performance | ✅ Production Ready |
 | **Gateway & Provider Comparison** | Gateway | 9 | 60s | Provider Health Grid (17 providers), Multi-metric Comparison | ✅ Production Ready |
 | **Model Performance Analytics** | Models | 8 | 60s | Top Models, Cost Analysis, Latency Distribution | ✅ Production Ready |
 | **Logs & Diagnostics** | Logs | 9 | 10s | RED Method, Log Search, Filtering, Aggregation | ✅ Production Ready |
 
-**All 6 dashboards use REAL API endpoints from your monitoring backend - not mock data. See [ENDPOINT_VERIFICATION_REPORT.md](ENDPOINT_VERIFICATION_REPORT.md) for complete verification.**
+**All 7 dashboards use REAL API endpoints from your monitoring backend - not mock data. See [ENDPOINT_VERIFICATION_REPORT.md](ENDPOINT_VERIFICATION_REPORT.md) for complete verification.**
 
 ### 📊 Dashboard Features
 
