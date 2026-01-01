@@ -1,9 +1,9 @@
 # 🤖 Claude Context - GatewayZ Observability Stack
 
-**Last Updated:** December 29, 2025
-**Status:** ✅ PRODUCTION READY - Multiple refactoring branches active
+**Last Updated:** December 31, 2025
+**Status:** ✅ PRODUCTION READY - Six dashboards deployed
 **Main Branch:** `main`
-**Feature Branches:** Multiple active (see Git Branches section)
+**Latest Addition:** Four Golden Signals dashboard (Google SRE methodology)
 
 ---
 
@@ -11,7 +11,7 @@
 
 This project is the **GatewayZ AI Backend Observability Stack** - a production-ready monitoring solution using Docker, Grafana, Prometheus, Loki, and Tempo. It provides:
 
-- **5 Grafana Dashboards** (production-ready, consolidated from 16)
+- **6 Grafana Dashboards** (production-ready, includes Google SRE Four Golden Signals)
 - **25+ Real API Endpoints** (verified, not mock data)
 - **Comprehensive Logging** via Loki with real instrumentation
 - **Distributed Tracing** via Tempo with real endpoint testing
@@ -56,19 +56,33 @@ This project is the **GatewayZ AI Backend Observability Stack** - a production-r
   - `POST /api/instrumentation/test-log` - Send real logs
   - `POST /api/instrumentation/test-trace` - Send real traces
 
+### Phase 5: ✅ COMPLETED - Four Golden Signals Dashboard
+- **Branch:** `feature/latency-analytics-dashboard` (merged to main)
+- Implemented Google SRE Four Golden Signals methodology
+- **17 panels** organized across 4 signal categories with 21 total queries
+- **SIGNAL 1 - LATENCY:** P50/P95/P99 percentiles + 24h trend visualization
+- **SIGNAL 2 - TRAFFIC:** Total requests, request rate, active requests, traffic trends
+- **SIGNAL 3 - ERRORS:** Error rate gauge, total errors, 24h error trends
+- **SIGNAL 4 - SATURATION:** CPU/Memory/Redis utilization + resource saturation trends
+- **Data Sources:** 10 JSON API queries + 11 Prometheus queries
+- Fixed datasource UIDs for proper data fetching (`-- Grafana --` for JSON API)
+- All 17 panels verified with real backend endpoints
+- 30-second auto-refresh for real-time monitoring
+
 ---
 
-## 📊 Dashboards (5 Production-Ready)
+## 📊 Dashboards (6 Production-Ready)
 
-| Dashboard | UID | Panels | Real Endpoints | Framework | Refresh |
-|-----------|-----|--------|---|-----------|---------|
+| Dashboard | UID | Panels | Queries | Framework | Refresh |
+|-----------|-----|--------|---------|-----------|---------|
 | Executive Overview | `executive-overview-v1` | 10 | 5 | Golden Signals | 30s |
-| Logs & Diagnostics | `logs-monitoring-v1` | 9 | 4 | RED Method | 10s |
-| Backend Health & Service Status | `backend-health-v1` | 7 | 5 | USE Method | 10s |
-| Gateway & Provider Comparison | `gateway-comparison-v1` | 8 | 5 | Provider Hub | 60s |
+| **🎯 The Four Golden Signals** | `latency-analytics-v1` | 17 | 21 | **Google SRE** | 30s |
+| Backend Health & Service Status | `backend-health-v1` | 13 | 11 | USE Method | 10s |
+| Gateway & Provider Comparison | `gateway-comparison-v1` | 9 | 8 | Provider Hub | 60s |
 | Model Performance Analytics | `model-performance-v1` | 8 | 7 | AI/ML Focus | 60s |
+| Logs & Diagnostics | `logs-monitoring-v1` | 9 | 4 | RED Method | 10s |
 
-**All 5 dashboards have 100% real API integration, consistent color coding (Red <80%, Yellow 80-95%, Green >95%), and cross-dashboard navigation.**
+**All 6 dashboards have 100% real API integration, consistent color coding (Red <80%, Yellow 80-95%, Green >95%), and cross-dashboard navigation.**
 
 ---
 
@@ -106,36 +120,42 @@ This project is the **GatewayZ AI Backend Observability Stack** - a production-r
 ## 🌿 Git Branches
 
 ### Main Branches
-- **main** - Production-ready code
+- **main** - Production-ready code with 6 dashboards
 - **staging** - Pre-production testing
-- **feature/add-chat-compleition-monitoring** - Latest feature branch (merged dashboards)
+- **docs/update-four-golden-signals** - Current documentation update branch
 
-### Active Feature/Fix Branches
-| Branch | Purpose | Status | Commits |
-|--------|---------|--------|---------|
-| `fix/metric-volatility-dashboards` | Dashboard consolidation & metric volatility fix | ✅ Ready to Merge | 5 |
-| `fix/loki-tempo-error` | Loki/Tempo instrumentation endpoints | ✅ Ready to Merge | 1 |
+### Recently Merged Branches
+| Branch | Purpose | Status | Merged Date |
+|--------|---------|--------|-------------|
+| `feature/latency-analytics-dashboard` | Four Golden Signals dashboard | ✅ Merged to main | 2025-12-31 |
 
 ### Recent Commits
 ```
-4742065 - fix: Add Loki/Tempo instrumentation endpoints and testing script
-ac35318 - docs: Update claude.md with dashboard naming convention details
-3c10044 - refactor: Add specific field naming to all dashboard panels
-d7d3c37 - docs: Add claude.md context document for future sessions
+ca0f59c - feat: Add Four Golden Signals dashboard with comprehensive SRE monitoring
+db6711e - fix: Correct datasource UID for JSON API panels in Four Golden Signals dashboard
+60ce1a9 - refactor: Reorganize dashboard to prioritize Four Golden Signals methodology
+045d22c - feat: Add comprehensive Latency Analytics dashboard
+7806ffe - Merge pull request #72 from Alpaca-Network/refactor/redis-services-layout
 ```
 
 ---
 
 ## 📁 Key Files & Locations
 
-### Dashboards (5 Production-Ready)
+### Dashboards (6 Production-Ready)
 ```
 grafana/dashboards/
-├── executive-overview-v1.json          (Golden Signals Framework)
-├── logs-monitoring-v1.json             (RED Method Framework)
-├── backend-health-v1.json              (USE Method Framework)
-├── gateway-comparison-v1.json          (Provider Hub)
-└── model-performance-v1.json           (AI/ML Focus)
+├── executive/
+│   ├── executive-overview-v1.json      (Golden Signals Framework)
+│   └── latency-analytics-v1.json       (Google SRE Four Golden Signals - NEW)
+├── backend/
+│   └── backend-health-v1.json          (USE Method Framework)
+├── gateway/
+│   └── gateway-comparison-v1.json      (Provider Hub)
+├── models/
+│   └── model-performance-v1.json       (AI/ML Focus)
+└── logs/
+    └── logs-monitoring-v1.json         (RED Method Framework)
 ```
 
 ### Documentation (14 files)
@@ -279,19 +299,20 @@ curl -X POST "https://api.gatewayz.ai/api/instrumentation/test-log" \
 
 ### Key Things to Remember
 1. **This is NOT mock data** - All 25+ endpoints are real and verified
-2. **5 production-ready dashboards** created (consolidated from 16, with 3 monitoring frameworks)
-3. **Metric volatility issue resolved** - Fixed jsonPath queries for stable health score
-4. **Two active feature branches ready to merge:**
-   - `fix/metric-volatility-dashboards` - Dashboard consolidation & metric fix (5 commits)
-   - `fix/loki-tempo-error` - Loki/Tempo instrumentation (1 commit)
-5. **Comprehensive documentation** - 14 documentation files with detailed info
+2. **6 production-ready dashboards** deployed with Google SRE methodology
+3. **Four Golden Signals dashboard** - NEW executive-level SRE monitoring
+   - 17 panels, 21 queries (10 JSON API + 11 Prometheus)
+   - Covers: Latency (P50/P95/P99), Traffic, Errors, Saturation
+   - All panels verified with real backend endpoints
+4. **Folder-based organization** - Dashboards organized into executive/, backend/, gateway/, models/, logs/
+5. **Comprehensive documentation** - 14 documentation files, all up-to-date
 
-### Questions for Next Session
-- Should we merge both branches to main?
-- Should we deprecate `api-endpoint-tester-v2.json`?
-- Do we need to update any production deployment scripts?
-- Should we implement the remaining Phase 2-3 visualization improvements?
-- Any changes needed to the 5 original monitoring dashboards?
+### Potential Next Steps
+- Consider adding drill-down capabilities from Executive Overview to Four Golden Signals
+- Evaluate adding custom alert rules for the Four Golden Signals metrics
+- Review whether to consolidate Executive Overview and Four Golden Signals dashboards
+- Clean up old feature branches after verifying production stability
+- Consider adding more detailed provider-specific latency breakdown in SIGNAL 1
 
 ---
 
@@ -377,23 +398,24 @@ for f in grafana/dashboards/*.json; do echo "=== $f ==="; jq '.panels[0].targets
 ## 📈 Metrics & Stats
 
 ### Codebase Metrics
-- **Total Dashboards:** 5 (production-ready, consolidated from 16)
-- **Total Panels:** 42 across 5 dashboards
+- **Total Dashboards:** 6 (production-ready, includes Google SRE methodology)
+- **Total Panels:** 66 across 6 dashboards
 - **Field Overrides:** 100% coverage on all dashboards
 - **Real API Endpoints:** 25+ (verified, not mock data)
+- **Total Queries:** 56+ across all dashboards
 - **Documentation Files:** 14
-- **Lines of Documentation:** 3,000+
+- **Lines of Documentation:** 3,500+
 
 ### Dashboard Metrics
-- **Stat Cards with Working Data:** 15+ (across all dashboards)
-- **Tables:** 3 panels (Circuit Breakers, Health Grid, Alerts)
-- **Time Series Charts:** 4 panels (Trends & distributions)
-- **Gauges:** 5 panels (Health metrics)
+- **Stat Cards with Working Data:** 20+ (across all dashboards)
+- **Tables:** 4 panels (Circuit Breakers, Health Grid, Alerts, Provider Health)
+- **Time Series Charts:** 12+ panels (Trends & distributions)
+- **Gauges:** 10+ panels (Health & resource metrics)
 - **Bar/Pie/Heatmap Charts:** 10+ panels
 
 ### Testing Coverage
 - **Endpoint Verification:** 100% (all 25+ endpoints tested)
-- **Dashboard Testing:** 5/5 dashboards verified with real data
+- **Dashboard Testing:** 6/6 dashboards verified with real data
 - **Field Override Testing:** 100% coverage (all panels)
 - **Mock Data Check:** 0% (all real backend data)
 
