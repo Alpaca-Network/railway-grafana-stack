@@ -10,9 +10,11 @@ ENV LOKI_INTERNAL_URL=http://loki.railway.internal:3100
 ENV PROMETHEUS_INTERNAL_URL=http://prometheus.railway.internal:9090
 ENV TEMPO_INTERNAL_URL=http://tempo.railway.internal:3200
 
-# copy the datasources and dashboards
+# copy the datasources and dashboard provisioning config
 COPY datasources /etc/grafana/provisioning/datasources
-COPY dashboards/dashboards.yml /etc/grafana/provisioning/dashboards/dashboards.yml
+COPY provisioning/dashboards/dashboards.yml /etc/grafana/provisioning/dashboards/dashboards.yml
+
+# copy dashboard subdirectories
 COPY dashboards/backend /etc/grafana/provisioning/dashboards/backend
 COPY dashboards/executive /etc/grafana/provisioning/dashboards/executive
 COPY dashboards/gateway /etc/grafana/provisioning/dashboards/gateway
