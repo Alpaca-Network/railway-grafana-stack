@@ -21,7 +21,9 @@
       "asDropdown": true,
       "icon": "doc",
       "includeVars": true,
-      "tags": ["gatewayz"],
+      "tags": [
+        "gatewayz"
+      ],
       "targetBlank": false,
       "title": "Other Dashboards",
       "type": "dashboards"
@@ -94,6 +96,140 @@
       "fieldConfig": {
         "defaults": {
           "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E02620",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 60
+              },
+              {
+                "color": "#31863B",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 3
+      },
+      "id": 2,
+      "options": {
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "8.0.0",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "JSON API",
+          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
+          "jsonPath": "avg_health_score"
+        }
+      ],
+      "title": "🎯 Overall Health Score",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "index": 0,
+                  "text": "🔴 DISCONNECTED"
+                },
+                "1": {
+                  "color": "green",
+                  "index": 1,
+                  "text": "✅ CONNECTED"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 3
+      },
+      "id": 8,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "pluginVersion": "8.0.0",
+      "targets": [
+        {
+          "expr": "redis_up",
+          "refId": "A"
+        }
+      ],
+      "title": "💾 Redis Connection Status",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Grafana --"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
             "mode": "palette-classic"
           },
           "custom": {
@@ -145,12 +281,14 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 3
+        "y": 9
       },
       "id": 5,
       "options": {
         "legend": {
-          "calcs": ["mean"],
+          "calcs": [
+            "mean"
+          ],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -238,12 +376,14 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 11
+        "y": 17
       },
       "id": 6,
       "options": {
         "legend": {
-          "calcs": ["mean"],
+          "calcs": [
+            "mean"
+          ],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -265,133 +405,6 @@
       ],
       "title": "🔴 Error Rate Trend (24h)",
       "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "align": "auto",
-            "displayMode": "auto",
-            "inspect": false
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "severity"
-            },
-            "properties": [
-              {
-                "id": "custom.displayMode",
-                "value": "color-background"
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 19
-      },
-      "id": 7,
-      "options": {
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": ["sum"],
-          "show": false
-        },
-        "showHeader": true
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/anomalies"
-        }
-      ],
-      "title": "🚨 Active Alerts & Anomalies",
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "#E02620",
-                "value": null
-              },
-              {
-                "color": "#FF9830",
-                "value": 60
-              },
-              {
-                "color": "#31863B",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 0,
-        "y": 27
-      },
-      "id": 2,
-      "options": {
-        "orientation": "auto",
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "text": {}
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
-          "jsonPath": "avg_health_score"
-        }
-      ],
-      "title": "🎯 Overall Health Score",
-      "type": "gauge"
     },
     {
       "datasource": {
@@ -439,16 +452,18 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 18,
-        "x": 6,
-        "y": 27
+        "w": 24,
+        "x": 0,
+        "y": 25
       },
       "id": 3,
       "options": {
         "footer": {
           "countRows": false,
           "fields": "",
-          "reducer": ["sum"],
+          "reducer": [
+            "sum"
+          ],
           "show": false
         },
         "showHeader": true
@@ -461,81 +476,78 @@
           "url": "${API_BASE_URL}/api/monitoring/circuit-breakers"
         }
       ],
-      "title": "⚡ Circuit Breaker Status",
+      "title": "⚡ Circuit Breaker Status (Provider-Level Protection)",
       "type": "table"
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
+        "type": "datasource",
+        "uid": "-- Grafana --"
       },
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "color": "red",
-                  "index": 0,
-                  "text": "🔴 DISCONNECTED"
-                },
-                "1": {
-                  "color": "green",
-                  "index": 1,
-                  "text": "✅ CONNECTED"
-                }
-              },
-              "type": "value"
-            }
-          ],
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "inspect": false
+          },
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "red",
-                "value": null
-              },
-              {
                 "color": "green",
-                "value": 1
+                "value": null
               }
             ]
-          },
-          "unit": "short"
+          }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "severity"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
-        "h": 4,
-        "w": 6,
+        "h": 8,
+        "w": 24,
         "x": 0,
-        "y": 35
+        "y": 33
       },
-      "id": 8,
+      "id": 7,
       "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
+        "footer": {
+          "countRows": false,
           "fields": "",
-          "values": false
+          "reducer": [
+            "sum"
+          ],
+          "show": false
         },
-        "textMode": "value"
+        "showHeader": true
       },
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "redis_up{service=\"gatewayz-api\"}",
-          "refId": "A"
+          "refId": "A",
+          "datasource": "JSON API",
+          "url": "${API_BASE_URL}/api/monitoring/anomalies"
         }
       ],
-      "title": "💾 Redis Connection Status",
-      "type": "stat"
+      "title": "🚨 Active Alerts & Anomalies (Severity Levels: CRITICAL=Immediate Action, WARNING=Monitor Closely)",
+      "type": "table"
     },
     {
       "datasource": {
@@ -574,8 +586,8 @@
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 6,
-        "y": 35
+        "x": 0,
+        "y": 41
       },
       "id": 9,
       "options": {
@@ -587,7 +599,7 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "(redis_memory_used_bytes{service=\"gatewayz-api\"} / redis_memory_max_bytes{service=\"gatewayz-api\"}) * 100",
+          "expr": "(redis_memory_used_bytes / redis_memory_max_bytes) * 100",
           "refId": "A"
         }
       ],
@@ -631,8 +643,8 @@
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 12,
-        "y": 35
+        "x": 6,
+        "y": 41
       },
       "id": 10,
       "options": {
@@ -644,7 +656,7 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "(redis_keyspace_hits_total{service=\"gatewayz-api\"} / (redis_keyspace_hits_total{service=\"gatewayz-api\"} + redis_keyspace_misses_total{service=\"gatewayz-api\"})) * 100",
+          "expr": "(redis_keyspace_hits_total / (redis_keyspace_hits_total + redis_keyspace_misses_total)) * 100",
           "refId": "A"
         }
       ],
@@ -706,8 +718,8 @@
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 18,
-        "y": 35
+        "x": 12,
+        "y": 41
       },
       "id": 11,
       "options": {
@@ -724,12 +736,75 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "redis_connected_clients{service=\"gatewayz-api\"}",
+          "expr": "redis_connected_clients",
           "refId": "A"
         }
       ],
       "title": "🔌 Redis Connected Clients",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10000
+              },
+              {
+                "color": "orange",
+                "value": 50000
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 41
+      },
+      "id": 13,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.0.0",
+      "targets": [
+        {
+          "expr": "sum(redis_db_keys)",
+          "refId": "A"
+        }
+      ],
+      "title": "🔑 Total Redis Keys",
+      "type": "stat"
     },
     {
       "datasource": {
@@ -787,12 +862,15 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 39
+        "y": 45
       },
       "id": 12,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": [
+            "mean",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -804,17 +882,17 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "rate(redis_commands_processed_total{service=\"gatewayz-api\"}[5m])",
+          "expr": "rate(redis_commands_processed_total[5m])",
           "legendFormat": "Commands/sec",
           "refId": "A"
         },
         {
-          "expr": "rate(redis_keyspace_hits_total{service=\"gatewayz-api\"}[5m])",
+          "expr": "rate(redis_keyspace_hits_total[5m])",
           "legendFormat": "Hits/sec",
           "refId": "B"
         },
         {
-          "expr": "rate(redis_keyspace_misses_total{service=\"gatewayz-api\"}[5m])",
+          "expr": "rate(redis_keyspace_misses_total[5m])",
           "legendFormat": "Misses/sec",
           "refId": "C"
         }
@@ -826,7 +904,12 @@
   "refresh": "10s",
   "schemaVersion": 36,
   "style": "dark",
-  "tags": ["gatewayz", "backend", "health", "monitoring"],
+  "tags": [
+    "gatewayz",
+    "backend",
+    "health",
+    "monitoring"
+  ],
   "templating": {
     "list": [
       {
@@ -861,7 +944,18 @@
     "to": "now"
   },
   "timepicker": {
-    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ]
   },
   "timezone": "",
   "title": "Backend Health & Service Status",
