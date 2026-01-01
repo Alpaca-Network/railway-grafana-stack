@@ -103,7 +103,7 @@
     {
       "datasource": {
         "type": "datasource",
-        "uid": "grafana_json_api"
+        "uid": "-- Grafana --"
       },
       "fieldConfig": {
         "defaults": {
@@ -149,7 +149,7 @@
         {
           "datasource": {
             "type": "datasource",
-            "uid": "grafana_json_api"
+            "uid": "-- Grafana --"
           },
           "method": "GET",
           "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
@@ -164,7 +164,7 @@
     {
       "datasource": {
         "type": "datasource",
-        "uid": "grafana_json_api"
+        "uid": "-- Grafana --"
       },
       "fieldConfig": {
         "defaults": {
@@ -210,7 +210,7 @@
         {
           "datasource": {
             "type": "datasource",
-            "uid": "grafana_json_api"
+            "uid": "-- Grafana --"
           },
           "method": "GET",
           "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
@@ -225,7 +225,7 @@
     {
       "datasource": {
         "type": "datasource",
-        "uid": "grafana_json_api"
+        "uid": "-- Grafana --"
       },
       "fieldConfig": {
         "defaults": {
@@ -271,7 +271,7 @@
         {
           "datasource": {
             "type": "datasource",
-            "uid": "grafana_json_api"
+            "uid": "-- Grafana --"
           },
           "method": "GET",
           "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
@@ -286,7 +286,7 @@
     {
       "datasource": {
         "type": "datasource",
-        "uid": "grafana_json_api"
+        "uid": "-- Grafana --"
       },
       "fieldConfig": {
         "defaults": {
@@ -375,7 +375,7 @@
         {
           "datasource": {
             "type": "datasource",
-            "uid": "grafana_json_api"
+            "uid": "-- Grafana --"
           },
           "method": "GET",
           "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=24",
@@ -386,7 +386,7 @@
         {
           "datasource": {
             "type": "datasource",
-            "uid": "grafana_json_api"
+            "uid": "-- Grafana --"
           },
           "method": "GET",
           "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=24",
@@ -397,7 +397,7 @@
         {
           "datasource": {
             "type": "datasource",
-            "uid": "grafana_json_api"
+            "uid": "-- Grafana --"
           },
           "method": "GET",
           "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=24",
@@ -435,7 +435,7 @@
     {
       "datasource": {
         "type": "datasource",
-        "uid": "grafana_json_api"
+        "uid": "-- Grafana --"
       },
       "fieldConfig": {
         "defaults": {
@@ -481,7 +481,7 @@
         {
           "datasource": {
             "type": "datasource",
-            "uid": "grafana_json_api"
+            "uid": "-- Grafana --"
           },
           "method": "GET",
           "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
@@ -715,7 +715,7 @@
     {
       "datasource": {
         "type": "datasource",
-        "uid": "grafana_json_api"
+        "uid": "-- Grafana --"
       },
       "fieldConfig": {
         "defaults": {
@@ -759,7 +759,7 @@
         {
           "datasource": {
             "type": "datasource",
-            "uid": "grafana_json_api"
+            "uid": "-- Grafana --"
           },
           "method": "GET",
           "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
@@ -774,7 +774,7 @@
     {
       "datasource": {
         "type": "datasource",
-        "uid": "grafana_json_api"
+        "uid": "-- Grafana --"
       },
       "fieldConfig": {
         "defaults": {
@@ -820,7 +820,7 @@
         {
           "datasource": {
             "type": "datasource",
-            "uid": "grafana_json_api"
+            "uid": "-- Grafana --"
           },
           "method": "GET",
           "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
@@ -835,7 +835,7 @@
     {
       "datasource": {
         "type": "datasource",
-        "uid": "grafana_json_api"
+        "uid": "-- Grafana --"
       },
       "fieldConfig": {
         "defaults": {
@@ -912,7 +912,7 @@
         {
           "datasource": {
             "type": "datasource",
-            "uid": "grafana_json_api"
+            "uid": "-- Grafana --"
           },
           "method": "GET",
           "url": "${API_BASE_URL}/api/monitoring/error-rates?hours=24",
