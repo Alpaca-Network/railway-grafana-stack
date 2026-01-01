@@ -141,16 +141,52 @@
           "refId": "A",
           "datasource": "JSON API",
           "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
-          "jsonPath": "avg_health_score"
+          "jsonPath": "$.avg_health_score"
         }
       ],
       "title": "🎯 Overall Health Score",
-      "type": "gauge"
+      "type": "gauge",
+      "alert": {
+        "alertRuleTags": {},
+        "conditions": [
+          {
+            "evaluator": {
+              "params": [
+                30
+              ],
+              "type": "lt"
+            },
+            "operator": {
+              "type": "and"
+            },
+            "query": {
+              "params": [
+                "A",
+                "5m",
+                "now"
+              ]
+            },
+            "reducer": {
+              "params": [],
+              "type": "last"
+            },
+            "type": "query"
+          }
+        ],
+        "executionErrorState": "alerting",
+        "for": "5m",
+        "frequency": "1m",
+        "handler": 1,
+        "message": "🚨 CRITICAL: System health score has fallen below 30%! Immediate action required.",
+        "name": "Health Score Critical Alert",
+        "noDataState": "no_data",
+        "notifications": []
+      }
     },
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -552,7 +588,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -609,7 +645,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -666,7 +702,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -746,7 +782,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -809,7 +845,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
