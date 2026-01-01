@@ -216,14 +216,16 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 53
       },
       "id": 9,
       "options": {
         "footer": {
           "countRows": false,
           "fields": "",
-          "reducer": ["sum"],
+          "reducer": [
+            "sum"
+          ],
           "show": false
         },
         "showHeader": true
@@ -365,7 +367,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 21
+        "y": 43
       },
       "id": 3,
       "options": {
@@ -418,72 +420,6 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "cost"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Daily Cost (USD)"
-              },
-              {
-                "id": "unit",
-                "value": "currencyUSD"
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 12,
-        "x": 0,
-        "y": 31
-      },
-      "id": 4,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single"
-        }
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/cost-analysis?days=7"
-        }
-      ],
-      "title": "Cost vs Reliability (Bubble = Request Volume)",
-      "type": "scatter"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            }
-          },
-          "mappings": []
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
               "options": "requests"
             },
             "properties": [
@@ -502,8 +438,8 @@
       "gridPos": {
         "h": 10,
         "w": 12,
-        "x": 12,
-        "y": 31
+        "x": 0,
+        "y": 33
       },
       "id": 5,
       "options": {
@@ -571,8 +507,8 @@
       "gridPos": {
         "h": 10,
         "w": 12,
-        "x": 0,
-        "y": 41
+        "x": 12,
+        "y": 33
       },
       "id": 6,
       "options": {
@@ -672,9 +608,9 @@
       },
       "gridPos": {
         "h": 10,
-        "w": 12,
-        "x": 12,
-        "y": 41
+        "w": 24,
+        "x": 0,
+        "y": 13
       },
       "id": 7,
       "options": {
@@ -772,9 +708,9 @@
       },
       "gridPos": {
         "h": 10,
-        "w": 12,
+        "w": 24,
         "x": 0,
-        "y": 51
+        "y": 23
       },
       "id": 8,
       "options": {
