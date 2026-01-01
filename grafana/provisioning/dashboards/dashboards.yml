@@ -1,13 +1,52 @@
 apiVersion: 1
 
 providers:
-  - name: 'default'
+  - name: 'Executive'
     orgId: 1
-    folder: ''
+    folder: 'Executive'
     type: file
     disableDeletion: false
     updateIntervalSeconds: 10
     allowUiUpdates: true
     options:
-      path: /etc/grafana/provisioning/dashboards
-      foldersFromFilesStructure: false
+      path: /etc/grafana/provisioning/dashboards/executive
+
+  - name: 'Backend'
+    orgId: 1
+    folder: 'Backend'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/backend
+
+  - name: 'Models'
+    orgId: 1
+    folder: 'Models'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/models
+
+  - name: 'Logs'
+    orgId: 1
+    folder: 'Logs'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/logs
+
+  - name: 'Gateway'
+    orgId: 1
+    folder: 'Gateway'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/gateway

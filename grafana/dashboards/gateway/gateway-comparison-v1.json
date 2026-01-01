@@ -33,6 +33,15 @@
       "includeVars": true,
       "tags": [],
       "targetBlank": true,
+      "title": "📊 Executive Overview",
+      "type": "link",
+      "url": "d/executive-overview-v1"
+    },
+    {
+      "icon": "external link",
+      "includeVars": true,
+      "tags": [],
+      "targetBlank": true,
       "title": "📝 Logs & Diagnostics",
       "type": "link",
       "url": "d/logs-monitoring-v1"
@@ -54,15 +63,6 @@
       "title": "📊 Model Performance",
       "type": "link",
       "url": "d/model-performance-v1"
-    },
-    {
-      "icon": "external link",
-      "includeVars": true,
-      "tags": [],
-      "targetBlank": true,
-      "title": "🔄 Providers (17)",
-      "type": "link",
-      "url": "d/gateway-comparison-v1"
     }
   ],
   "panels": [
@@ -80,7 +80,7 @@
       },
       "id": 1,
       "options": {
-        "content": "# \ud83d\ude80 Executive Overview - Real-Time Gateway Heartbeat\n\n**5-second health snapshot for management/ops teams**. Monitor system health, active request volume, response times, and cost across all 17 providers.\n\n🔗 **Dashboards:** [Model Performance](d/model-performance-v1) | [Gateway Comparison](d/gateway-comparison-v1) | [Incident Response](d/incident-response-v1) | [Token Analytics](d/tokens-throughput-v1) | [📝 Logs & Diagnostics](d/logs-monitoring-v1) | [🏥 Backend Health](d/backend-health-v1)",
+        "content": "# 🔄 Gateway & Provider Comparison - Central Hub\n\n**SINGLE SOURCE OF TRUTH for all 17+ provider metrics**. Compare performance, reliability, cost, and efficiency across all gateways.\n\n🔗 [Executive Overview](d/executive-overview-v1) | [Logs & Diagnostics](d/logs-monitoring-v1) | [Backend Health](d/backend-health-v1) | [Model Performance](d/model-performance-v1)",
         "mode": "markdown"
       },
       "pluginVersion": "8.0.0",
@@ -129,15 +129,19 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "Health Score"
+                "value": "Provider Health"
+              },
+              {
+                "id": "unit",
+                "value": "percent"
               }
             ]
           }
         ]
       },
       "gridPos": {
-        "h": 8,
-        "w": 6,
+        "h": 10,
+        "w": 24,
         "x": 0,
         "y": 3
       },
@@ -153,12 +157,243 @@
         {
           "refId": "A",
           "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
-          "jsonPath": "avg_health_score"
+          "url": "${API_BASE_URL}/api/monitoring/health"
         }
       ],
-      "title": "Overall System Health",
-      "type": "gauge"
+      "title": "Provider Health Scorecard (17 Providers)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Grafana --"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "displayMode": "color-background",
+            "inspect": false
+          },
+          "mappings": [
+            {
+              "options": {
+                "healthy": {
+                  "color": "#31863B",
+                  "index": 0,
+                  "text": "✅ HEALTHY"
+                },
+                "degraded": {
+                  "color": "#FF9830",
+                  "index": 1,
+                  "text": "⚠️ DEGRADED"
+                },
+                "unhealthy": {
+                  "color": "#E02620",
+                  "index": 2,
+                  "text": "🔴 UNHEALTHY"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "id": 9,
+      "options": {
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "8.0.0",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "JSON API",
+          "url": "${API_BASE_URL}/api/monitoring/health"
+        }
+      ],
+      "title": "🏥 Provider Health Status Grid (17 Providers)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Grafana --"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "health_score"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Health %"
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "requests"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Requests"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "cost"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Cost (USD)"
+              },
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "error_rate"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Error %"
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "latency"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Latency (ms)"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "uptime"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Uptime %"
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      },
+      "id": 3,
+      "options": {
+        "footer": {
+          "countRows": true,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": true
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "8.0.0",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "JSON API",
+          "url": "${API_BASE_URL}/api/monitoring/health"
+        },
+        {
+          "refId": "B",
+          "datasource": "JSON API",
+          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=24"
+        }
+      ],
+      "title": "Provider Comparison Matrix (Health, Requests, Cost, Error Rate, Latency, Uptime)",
+      "type": "table"
     },
     {
       "datasource": {
@@ -183,43 +418,36 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "health_score"
+              "options": "cost"
             },
             "properties": [
               {
                 "id": "displayName",
-                "value": "Provider Health Score"
+                "value": "Daily Cost (USD)"
               },
               {
                 "id": "unit",
-                "value": "percent"
+                "value": "currencyUSD"
               }
             ]
           }
         ]
       },
       "gridPos": {
-        "h": 8,
-        "w": 24,
+        "h": 10,
+        "w": 12,
         "x": 0,
-        "y": 3
+        "y": 31
       },
-      "id": 3,
+      "id": 4,
       "options": {
-        "graphMode": "none",
-        "colorMode": "background",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "textMode": "auto",
-        "wideLayout": true,
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "reduceOptions": {
-          "values": false,
-          "fields": "",
-          "calcs": [
-            "lastNotNull"
-          ]
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
         }
       },
       "pluginVersion": "8.0.0",
@@ -227,11 +455,11 @@
         {
           "refId": "A",
           "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/health"
+          "url": "${API_BASE_URL}/api/monitoring/cost-analysis?days=7"
         }
       ],
-      "title": "\ud83c\udfe5 Provider Health Status (17 Providers)",
-      "type": "stat"
+      "title": "Cost vs Reliability (Bubble = Request Volume)",
+      "type": "scatter"
     },
     {
       "datasource": {
@@ -241,19 +469,16 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "palette-classic"
           },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
+          "custom": {
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            }
           },
-          "unit": "reqps"
+          "mappings": []
         },
         "overrides": [
           {
@@ -265,37 +490,45 @@
               {
                 "id": "displayName",
                 "value": "Total Requests"
+              },
+              {
+                "id": "unit",
+                "value": "short"
               }
             ]
           }
         ]
       },
       "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 0,
-        "y": 11
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 31
       },
-      "id": 4,
+      "id": 5,
       "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "text": {},
-        "textMode": "auto"
+        "legend": {
+          "calcs": [
+            "value"
+          ],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "pieType": "donut",
+        "tooltip": {
+          "mode": "single"
+        }
       },
       "pluginVersion": "8.0.0",
       "targets": [
         {
           "refId": "A",
           "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
-          "jsonPath": "total_requests"
+          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=24"
         }
       ],
-      "title": "Active Requests/min",
-      "type": "stat"
+      "title": "Request Distribution by Provider (7d)",
+      "type": "piechart"
     },
     {
       "datasource": {
@@ -305,7 +538,106 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            }
+          },
+          "mappings": []
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "cost"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Daily Cost (USD)"
+              },
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 41
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": [
+            "value"
+          ],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "pieType": "pie",
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "8.0.0",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "JSON API",
+          "url": "${API_BASE_URL}/api/monitoring/cost-analysis?days=7"
+        }
+      ],
+      "title": "Cost Distribution by Provider (7d)",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Grafana --"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Latency (ms)",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "points",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
@@ -314,14 +646,6 @@
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 500
-              },
-              {
-                "color": "red",
-                "value": 1000
               }
             ]
           },
@@ -347,31 +671,33 @@
         ]
       },
       "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 6,
-        "y": 11
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 41
       },
-      "id": 5,
+      "id": 7,
       "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "text": {},
-        "textMode": "auto"
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
       },
       "pluginVersion": "8.0.0",
       "targets": [
         {
           "refId": "A",
           "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
-          "jsonPath": "avg_latency_ms"
+          "url": "${API_BASE_URL}/api/monitoring/latency-trends/{provider}?hours=24"
         }
       ],
-      "title": "Avg Response Time",
-      "type": "stat"
+      "title": "Latency Distribution (Violin Plot - P50, P95, P99)",
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -381,7 +707,37 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Cost",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
@@ -415,179 +771,10 @@
         ]
       },
       "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 12,
-        "y": 11
-      },
-      "id": 6,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "text": {},
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=24",
-          "jsonPath": "total_cost"
-        }
-      ],
-      "title": "Daily Cost",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 5
-              },
-              {
-                "color": "red",
-                "value": 10
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "error_rate"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Error Rate %"
-              },
-              {
-                "id": "unit",
-                "value": "percent"
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 18,
-        "y": 11
-      },
-      "id": 7,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "text": {},
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=24",
-          "jsonPath": "error_rate"
-        }
-      ],
-      "title": "Error Rate (%)",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "Requests",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "requests"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Total Requests"
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 8,
+        "h": 10,
         "w": 12,
         "x": 0,
-        "y": 16
+        "y": 51
       },
       "id": 8,
       "options": {
@@ -598,188 +785,28 @@
           "showLegend": true
         },
         "tooltip": {
-          "mode": "single"
-        },
-        "drawStyle": "line",
-        "fillOpacity": 30,
-        "gradientMode": "opacity"
+          "mode": "multi"
+        }
       },
       "pluginVersion": "8.0.0",
       "targets": [
         {
           "refId": "A",
           "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=24"
+          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=168"
         }
       ],
-      "title": "Request Volume (24h)",
+      "title": "Cost Trend by Provider (7d)",
       "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            }
-          },
-          "mappings": []
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "error_rate"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Error Rate %"
-              },
-              {
-                "id": "unit",
-                "value": "percent"
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 16
-      },
-      "id": 9,
-      "options": {
-        "legend": {
-          "calcs": [
-            "value"
-          ],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "pieType": "pie",
-        "tooltip": {
-          "mode": "single"
-        }
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/error-rates?hours=24"
-        }
-      ],
-      "title": "Error Rate Distribution by Provider",
-      "type": "piechart"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "align": "auto",
-            "displayMode": "auto",
-            "inspect": false
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Severity"
-            },
-            "properties": [
-              {
-                "id": "custom.displayMode",
-                "value": "color-background"
-              },
-              {
-                "id": "mappings",
-                "value": [
-                  {
-                    "options": {
-                      "CRITICAL": {
-                        "color": "dark-red",
-                        "index": 0,
-                        "text": "\ud83d\udd34 CRITICAL"
-                      },
-                      "WARNING": {
-                        "color": "dark-yellow",
-                        "index": 1,
-                        "text": "\u26a0\ufe0f WARNING"
-                      }
-                    },
-                    "type": "value"
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 24
-      },
-      "id": 10,
-      "options": {
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
-        },
-        "showHeader": true
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/anomalies"
-        }
-      ],
-      "title": "Critical Anomalies & Alerts",
-      "type": "table"
     }
   ],
-  "refresh": "30s",
+  "refresh": "60s",
   "schemaVersion": 36,
   "style": "dark",
   "tags": [
     "gatewayz",
-    "executive",
-    "monitoring",
-    "realtime"
+    "providers",
+    "comparison"
   ],
   "templating": {
     "list": [
@@ -811,13 +838,11 @@
     ]
   },
   "time": {
-    "from": "now-24h",
+    "from": "now-7d",
     "to": "now"
   },
   "timepicker": {
     "refresh_intervals": [
-      "5s",
-      "10s",
       "30s",
       "1m",
       "5m",
@@ -829,8 +854,8 @@
     ]
   },
   "timezone": "",
-  "title": "Executive Overview - Real-Time Heartbeat",
-  "uid": "executive-overview-v1",
+  "title": "Gateway & Provider Comparison",
+  "uid": "gateway-comparison-v1",
   "version": 1,
   "weekStart": ""
 }
