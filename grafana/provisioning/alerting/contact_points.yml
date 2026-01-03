@@ -7,7 +7,7 @@ contactPoints:
       - uid: ops_email_uid
         type: email
         settings:
-          addresses: alerts@gatewayz.ai, ops@gatewayz.ai
+          addresses: prasadmanjesh123@gmail.com
           singleEmail: false
         disableResolveMessage: false
     provenance: Grafana
@@ -18,7 +18,7 @@ contactPoints:
       - uid: critical_email_uid
         type: email
         settings:
-          addresses: on-call@gatewayz.ai
+          addresses: prasadmanjesh123@gmail.com
           singleEmail: false
         disableResolveMessage: false
     provenance: Grafana
@@ -29,7 +29,7 @@ contactPoints:
       - uid: dev_team_uid
         type: email
         settings:
-          addresses: dev@gatewayz.ai
+          addresses: prasadmanjesh123@gmail.com
           singleEmail: false
         disableResolveMessage: false
     provenance: Grafana
