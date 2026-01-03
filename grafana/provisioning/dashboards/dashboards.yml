@@ -50,3 +50,13 @@ providers:
     allowUiUpdates: true
     options:
       path: /etc/grafana/provisioning/dashboards/gateway
+
+  - name: 'Backend Events Handler'
+    orgId: 1
+    folder: 'Backend Events Handler'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/backend-events-handler

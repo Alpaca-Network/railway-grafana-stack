@@ -20,6 +20,7 @@ COPY dashboards/executive /etc/grafana/provisioning/dashboards/executive
 COPY dashboards/gateway /etc/grafana/provisioning/dashboards/gateway
 COPY dashboards/logs /etc/grafana/provisioning/dashboards/logs
 COPY dashboards/models /etc/grafana/provisioning/dashboards/models
+COPY dashboards/backend-events-handler /etc/grafana/provisioning/dashboards/backend-events-handler
 
 # Expose Grafana port
 EXPOSE 3000
