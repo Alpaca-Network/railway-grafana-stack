@@ -14,6 +14,36 @@ notificationPolicies:
           matchType: =~
       muteTimeIntervals: []
       routes:
+        # SLO alerts: route availability burn-rate (critical) to on-call.
+        - receiver: critical-email
+          groupByStr:
+            - alertname
+            - slo
+          matchers:
+            - name: component
+              value: slo
+              matchType: '='
+            - name: severity
+              value: critical
+              matchType: '='
+          repeatInterval: 15m
+          groupInterval: 5m
+          groupWait: 0s
+          muteTimeIntervals: []
+
+        - receiver: ops-email
+          groupByStr:
+            - alertname
+            - slo
+          matchers:
+            - name: component
+              value: slo
+              matchType: '='
+          repeatInterval: 1h
+          groupInterval: 10m
+          groupWait: 5m
+          muteTimeIntervals: []
+
         # Critical alerts - immediate delivery
         - receiver: critical-email
           groupByStr:
