@@ -9,8 +9,8 @@ services:
     user: root # required for data persistence
     # NOTE (Railway hardening): do not publish Prometheus publicly.
     # If you need local access, uncomment the ports mapping.
-    # ports:
-    #   - "9090:9090"
+    ports:
+      - "9090:9090"
     volumes:
       - prometheus_data:/prometheus
     restart: unless-stopped
@@ -42,8 +42,8 @@ services:
       dockerfile: Dockerfile
     user: root # required for data persistence
     # NOTE (Railway hardening): do not publish Loki publicly.
-    # ports:
-    #   - "3100:3100"
+    ports:
+      - "3100:3100"
     volumes:
       - loki_data:/loki
     restart: unless-stopped
@@ -75,10 +75,10 @@ services:
       dockerfile: Dockerfile
     user: root # required for data persistence
     # NOTE (Railway hardening): do not publish Tempo publicly.
-    # ports:
-    #   - "3200:3200" # http server for querying
-    #   - "4317:4317" # grpc server for ingest
-    #   - "4318:4318" # http server for ingest
+    ports:
+      - "3200:3200" # http server for querying
+      - "4317:4317" # grpc server for ingest
+      - "4318:4318" # http server for ingest
     volumes:
       - tempo_data:/var/tempo
     restart: unless-stopped
@@ -107,8 +107,8 @@ services:
   redis-exporter:
     image: oliver006/redis_exporter:latest
     # NOTE (Railway hardening): do not publish exporter publicly.
-    # ports:
-    #   - "9121:9121"
+    ports:
+      - "9121:9121"
     environment:
       REDIS_ADDR: ${REDIS_ADDR:-redis-production-bb6d.up.railway.app:6379}
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
