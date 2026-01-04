@@ -47,15 +47,16 @@ limits_config:
 # Compactor configuration for log retention
 compactor:
   working_directory: /loki/compactor
-  shared_store: filesystem
+  # Loki 3.4 breaking change: `shared_store` removed.
+  # When retention is enabled, Loki requires `delete_request_store`.
+  delete_request_store: filesystem
   compaction_interval: 10m
   retention_enabled: true
   retention_delete_delay: 2h
   retention_delete_worker_count: 150
 
-table_manager:
-  retention_deletes_enabled: true  # ENABLED: Automatically delete old logs
-  retention_period: 720h  # 30 days retention
+# Loki TSDB (schema v13+) uses compactor-based retention.
+# `table_manager` retention settings are legacy and should not be used with TSDB.
 
 distributor:
   ring:
