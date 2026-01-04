@@ -1235,18 +1235,21 @@
           {
             "matcher": {"id": "byName", "options": "CPU"},
             "properties": [
+              {"id": "displayName", "value": "CPU"},
               {"id": "color", "value": {"mode": "fixed", "fixedColor": "blue"}}
             ]
           },
           {
             "matcher": {"id": "byName", "options": "Memory"},
             "properties": [
+              {"id": "displayName", "value": "Memory"},
               {"id": "color", "value": {"mode": "fixed", "fixedColor": "orange"}}
             ]
           },
           {
             "matcher": {"id": "byName", "options": "Redis Memory"},
             "properties": [
+              {"id": "displayName", "value": "Redis Memory"},
               {"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}}
             ]
           }
@@ -1303,7 +1306,7 @@
     }
   ],
   "refresh": "30s",
-  "schemaVersion": 27,
+  "schemaVersion": 40,
   "style": "dark",
   "tags": ["gatewayz", "executive", "golden-signals", "sre"],
   "templating": {

@@ -2,131 +2,121 @@ groups:
   - name: performance_alerts
     interval: 30s
     rules:
-      # Backend TTFB Alerts
-      - alert: HighBackendTTFB
-        expr: histogram_quantile(0.95, sum(rate(backend_ttfb_seconds_bucket[5m])) by (le)) > 2.0
+      # API Request Rate Alerts
+      - alert: LowAPIRequestRate
+        expr: sum(rate(fastapi_requests_total[5m])) < 10
         for: 5m
         labels:
           severity: warning
-          component: backend
+          component: api
         annotations:
-          summary: "High Backend TTFB detected"
-          description: "Backend time to first byte (p95) is {{ $value }}s, exceeding threshold of 2.0s. This indicates slow backend API response times."
+          summary: "Low API request rate detected"
+          description: "API request rate is {{ $value }} req/s, below expected threshold of 10 req/s. This may indicate service issues."
 
-      - alert: CriticalBackendTTFB
-        expr: histogram_quantile(0.95, sum(rate(backend_ttfb_seconds_bucket[5m])) by (le)) > 3.0
+      - alert: HighAPIErrorRate
+        expr: sum(rate(fastapi_requests_total{status_code=~'4..|5..'}[5m])) / sum(rate(fastapi_requests_total[5m])) > 0.1
+        for: 3m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "High API error rate detected"
+          description: "API error rate is {{ $value | humanizePercentage }}, exceeding critical threshold of 10%. Immediate investigation required."
+
+      # API Latency Alerts
+      - alert: HighAPILatency
+        expr: histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le)) > 2.0
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High API latency detected"
+          description: "API latency (p95) is {{ $value }}s, exceeding threshold of 2.0s. This indicates slow API response times."
+
+      - alert: CriticalAPILatency
+        expr: histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le)) > 3.0
         for: 2m
         labels:
           severity: critical
-          component: backend
+          component: api
         annotations:
-          summary: "Critical Backend TTFB detected"
-          description: "Backend time to first byte (p95) is {{ $value }}s, exceeding critical threshold of 3.0s. Immediate investigation required."
+          summary: "Critical API latency detected"
+          description: "API latency (p95) is {{ $value }}s, exceeding critical threshold of 3.0s. Immediate investigation required."
 
-      # Streaming Duration Alerts
-      - alert: HighStreamingDuration
-        expr: histogram_quantile(0.95, sum(rate(streaming_duration_seconds_bucket[5m])) by (le)) > 1.5
-        for: 5m
-        labels:
-          severity: warning
-          component: streaming
-        annotations:
-          summary: "High streaming duration detected"
-          description: "Streaming duration (p95) is {{ $value }}s, exceeding threshold of 1.5s. This may indicate network or model generation issues."
-
-      - alert: CriticalStreamingDuration
-        expr: histogram_quantile(0.95, sum(rate(streaming_duration_seconds_bucket[5m])) by (le)) > 2.5
-        for: 2m
-        labels:
-          severity: critical
-          component: streaming
-        annotations:
-          summary: "Critical streaming duration detected"
-          description: "Streaming duration (p95) is {{ $value }}s, exceeding critical threshold of 2.5s. Immediate investigation required."
-
-      # Frontend Processing Alerts
-      - alert: HighFrontendProcessing
-        expr: histogram_quantile(0.95, sum(rate(frontend_processing_seconds_bucket[5m])) by (le)) > 0.01
-        for: 5m
-        labels:
-          severity: warning
-          component: frontend
-        annotations:
-          summary: "High frontend processing time detected"
-          description: "Frontend processing time (p95) is {{ $value }}s, exceeding threshold of 0.01s. This is unusual as frontend overhead should be minimal."
-
-      # Stage Percentage Alerts
-      - alert: BackendResponseDominating
-        expr: avg(stage_percentage{stage="backend_response"}) > 70
-        for: 10m
-        labels:
-          severity: info
-          component: performance
-        annotations:
-          summary: "Backend response time dominating total request time"
-          description: "Backend response accounts for {{ $value }}% of total request time, indicating backend is the main bottleneck."
-
-      - alert: StreamingTimeHigh
-        expr: avg(stage_percentage{stage="stream_processing"}) > 50
-        for: 10m
-        labels:
-          severity: warning
-          component: streaming
-        annotations:
-          summary: "Streaming time accounts for high percentage of total time"
-          description: "Streaming processing accounts for {{ $value }}% of total request time. Consider optimizing network or chunk sizes."
-
-      # Provider-Specific Alerts
-      - alert: SlowProviderTTFB
-        expr: histogram_quantile(0.95, sum(rate(backend_ttfb_seconds_bucket{provider!=""}[5m])) by (le, provider)) > 2.5
-        for: 5m
-        labels:
-          severity: warning
-          component: provider
-        annotations:
-          summary: "Slow TTFB for provider {{ $labels.provider }}"
-          description: "Provider {{ $labels.provider }} has TTFB (p95) of {{ $value }}s, exceeding threshold of 2.5s."
-
-      # Model-Specific Alerts
-      - alert: SlowModelTTFB
-        expr: histogram_quantile(0.95, sum(rate(backend_ttfb_seconds_bucket{model!=""}[5m])) by (le, model)) > 3.0
+      # Model Inference Alerts
+      - alert: HighModelInferenceLatency
+        expr: histogram_quantile(0.95, sum(rate(model_inference_duration_seconds_bucket[5m])) by (le, model)) > 5.0
         for: 5m
         labels:
           severity: warning
           component: model
         annotations:
-          summary: "Slow TTFB for model {{ $labels.model }}"
-          description: "Model {{ $labels.model }} has TTFB (p95) of {{ $value }}s, exceeding threshold of 3.0s. This may indicate model cold start or capacity issues."
+          summary: "High model inference latency for {{ $labels.model }}"
+          description: "Model {{ $labels.model }} inference latency (p95) is {{ $value }}s, exceeding threshold of 5.0s."
+
+      - alert: ModelInferenceErrorSpike
+        expr: sum(rate(model_inference_requests_total{status="error"}[5m])) / sum(rate(model_inference_requests_total[5m])) > 0.15
+        for: 3m
+        labels:
+          severity: critical
+          component: model
+        annotations:
+          summary: "High model inference error rate"
+          description: "Model inference error rate is {{ $value | humanizePercentage }}, exceeding critical threshold of 15%."
+
+      # Provider-Specific Alerts
+      - alert: SlowProviderResponse
+        expr: histogram_quantile(0.95, sum(rate(model_inference_duration_seconds_bucket{provider!=""}[5m])) by (le, provider)) > 4.0
+        for: 5m
+        labels:
+          severity: warning
+          component: provider
+        annotations:
+          summary: "Slow response from provider {{ $labels.provider }}"
+          description: "Provider {{ $labels.provider }} response latency (p95) is {{ $value }}s, exceeding threshold of 4.0s."
+
+      - alert: ProviderErrorSpike
+        expr: sum(rate(model_inference_requests_total{status="error", provider!=""}[5m])) by (provider) / sum(rate(model_inference_requests_total{provider!=""}[5m])) by (provider) > 0.2
+        for: 3m
+        labels:
+          severity: critical
+          component: provider
+        annotations:
+          summary: "High error rate for provider {{ $labels.provider }}"
+          description: "Provider {{ $labels.provider }} error rate is {{ $value | humanizePercentage }}, exceeding critical threshold of 20%."
 
   - name: performance_trends
     interval: 1m
     rules:
-      # Trend Detection - Backend TTFB Degradation
-      - alert: BackendTTFBDegrading
+      # Trend Detection - API Latency Degradation
+      - alert: APILatencyDegrading
         expr: |
           (
-            histogram_quantile(0.95, sum(rate(backend_ttfb_seconds_bucket[15m])) by (le)) /
-            histogram_quantile(0.95, sum(rate(backend_ttfb_seconds_bucket[15m] offset 1h)) by (le))
+            histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[15m])) by (le)) /
+            histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[15m] offset 1h)) by (le))
           ) > 1.5
         for: 10m
         labels:
           severity: warning
-          component: backend
+          component: api
         annotations:
-          summary: "Backend TTFB degrading over time"
-          description: "Backend TTFB (p95) has increased by more than 50% compared to 1 hour ago. Current: {{ $value }}x baseline."
+          summary: "API latency degrading over time"
+          description: "API latency (p95) has increased by more than 50% compared to 1 hour ago. Current: {{ $value }}x baseline."
 
-      # Trend Detection - Streaming Duration Degradation
-      - alert: StreamingDurationDegrading
+      # Trend Detection - API Error Rate Increase
+      - alert: APIErrorRateIncreasing
         expr: |
           (
-            histogram_quantile(0.95, sum(rate(streaming_duration_seconds_bucket[15m])) by (le)) /
-            histogram_quantile(0.95, sum(rate(streaming_duration_seconds_bucket[15m] offset 1h)) by (le))
-          ) > 1.5
+            sum(rate(fastapi_requests_total{status_code=~'4..|5..'}[15m])) / sum(rate(fastapi_requests_total[15m]))
+          ) /
+          (
+            sum(rate(fastapi_requests_total{status_code=~'4..|5..'}[15m] offset 1h)) / sum(rate(fastapi_requests_total[15m] offset 1h))
+          ) > 2.0
         for: 10m
         labels:
           severity: warning
-          component: streaming
+          component: api
         annotations:
-          summary: "Streaming duration degrading over time"
-          description: "Streaming duration (p95) has increased by more than 50% compared to 1 hour ago. Current: {{ $value }}x baseline."
+          summary: "API error rate increasing over time"
+          description: "API error rate has increased by more than 100% compared to 1 hour ago. Current: {{ $value }}x baseline."

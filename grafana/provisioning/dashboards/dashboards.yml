@@ -50,3 +50,33 @@ providers:
     allowUiUpdates: true
     options:
       path: /etc/grafana/provisioning/dashboards/gateway
+
+  - name: 'Loki'
+    orgId: 1
+    folder: 'Loki'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/loki
+
+  - name: 'Prometheus'
+    orgId: 1
+    folder: 'Prometheus'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/prometheus
+
+  - name: 'Tempo'
+    orgId: 1
+    folder: 'Tempo'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/tempo

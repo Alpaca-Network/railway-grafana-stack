@@ -12,7 +12,7 @@ datasources:
     type: loki
     access: direct
     orgId: 1
-    uid: grafana_lokiq
+    uid: grafana_loki
     url: ${LOKI_INTERNAL_URL}
     user:
     database:
@@ -56,7 +56,7 @@ datasources:
     isDefault: false
     jsonData:
       tracesToLogsV2:
-        datasourceUid: 'grafana_lokiq'
+        datasourceUid: 'grafana_loki'
         spanStartTimeShift: '-1h'
         spanEndTimeShift: '1h'
         tags: ['service_name', 'compose_service']
@@ -76,7 +76,7 @@ datasources:
       search:
         hide: false
       lokiSearch:
-        datasourceUid: 'grafana_lokiq'
+        datasourceUid: 'grafana_loki'
   - name: Sentry
     type: grafana-sentry-datasource
     access: proxy

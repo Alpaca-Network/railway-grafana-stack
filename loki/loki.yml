@@ -1,14 +1,17 @@
 auth_enabled: false
 
 server:
+  http_listen_address: 0.0.0.0
   http_listen_port: 3100
+  log_level: warn
+  grpc_listen_address: 0.0.0.0
   grpc_listen_port: 9096
-  http_listen_address: "0.0.0.0"
-  grpc_listen_address: "0.0.0.0"
+  grpc_server_max_recv_msg_size: 16777216
+  grpc_server_max_send_msg_size: 16777216
 
 common:
   ring:
-    instance_addr: 0.0.0.0
+    instance_addr: 127.0.0.1
     kvstore:
       store: inmemory
   replication_factor: 1
@@ -16,13 +19,13 @@ common:
 
 schema_config:
   configs:
-    - from: 2024-01-01
-      store: tsdb
-      object_store: filesystem
-      schema: v13
-      index:
-        prefix: index_
-        period: 24h
+  - from: 2025-01-01
+    index:
+      period: 24h
+      prefix: index_
+    store: tsdb
+    object_store: filesystem
+    schema: v13
 
 storage_config:
   tsdb_shipper:
@@ -32,19 +35,27 @@ storage_config:
     directory: /loki/chunks
 
 limits_config:
-  reject_old_samples: false
-  ingestion_rate_mb: 50
-  ingestion_burst_size_mb: 100
+  reject_old_samples: true
+  reject_old_samples_max_age: 168h
+  ingestion_rate_mb: 10
+  ingestion_burst_size_mb: 20
   max_streams_per_user: 10000
-  max_global_streams_per_user: 50000
+  max_global_streams_per_user: 10000
+  # Retention: Delete logs older than 30 days to prevent infinite disk growth
+  retention_period: 720h  # 30 days
 
-ingester:
-  chunk_idle_period: 3m
-  max_chunk_age: 1h
-
+# Compactor configuration for log retention
 compactor:
   working_directory: /loki/compactor
-  compaction_interval: 30m
+  shared_store: filesystem
+  compaction_interval: 10m
+  retention_enabled: true
+  retention_delete_delay: 2h
+  retention_delete_worker_count: 150
+
+table_manager:
+  retention_deletes_enabled: true  # ENABLED: Automatically delete old logs
+  retention_period: 720h  # 30 days retention
 
 distributor:
   ring:

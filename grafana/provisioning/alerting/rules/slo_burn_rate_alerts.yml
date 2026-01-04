@@ -1,0 +1,205 @@
+apiVersion: 1
+
+# SLO Burn-rate alerts (4 golden signals)
+# These rules assume the GatewayZ backend exports:
+# - fastapi_requests_total{status_code="..."}
+# - fastapi_requests_duration_seconds_bucket
+#
+# If your metric names differ, update the expr accordingly.
+
+groups:
+  - orgId: 1
+    name: slo_burn_rate_alerts
+    folder: SLO Alerts
+    interval: 1m
+    rules:
+      # Availability (Error Budget) burn rate alerts.
+      # Target SLO example: 99.9% success over 30 days (error budget 0.1%).
+      # Burn rate = (current error rate) / (allowed error rate).
+      # Allowed error rate = 0.001.
+
+      - uid: slo_availability_burnrate_fast
+        title: SLO Availability Burn Rate (Fast)
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          summary: 'SLO burn rate is high (fast window)'
+          description: 'Fast burn-rate alert: error budget is burning >14x (5m/1h windows). Investigate immediately.'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/slo-burnrate-fast'
+        labels:
+          severity: critical
+          category: general
+          component: slo
+          slo: availability
+        data:
+          - refId: A
+            queryType: ''
+            model:
+              expr: |
+                (
+                  sum(rate(fastapi_requests_total{status_code=~"5.."}[5m]))
+                  /
+                  sum(rate(fastapi_requests_total[5m]))
+                ) / 0.001
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'burn_rate_5m'
+              refId: A
+
+          - refId: B
+            queryType: ''
+            model:
+              expr: |
+                (
+                  sum(rate(fastapi_requests_total{status_code=~"5.."}[1h]))
+                  /
+                  sum(rate(fastapi_requests_total[1h]))
+                ) / 0.001
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'burn_rate_1h'
+              refId: B
+
+          - refId: C
+            queryType: ''
+            model:
+              conditions:
+                - evaluator:
+                    params: [14]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    type: last
+                  type: query
+                - evaluator:
+                    params: [14]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    type: last
+                  type: query
+              type: classic_conditions
+
+      - uid: slo_availability_burnrate_slow
+        title: SLO Availability Burn Rate (Slow)
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 30m
+        annotations:
+          summary: 'SLO burn rate is high (slow window)'
+          description: 'Slow burn-rate alert: error budget is burning >6x (30m/6h windows). Prioritize mitigation.'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/slo-burnrate-slow'
+        labels:
+          severity: warning
+          category: general
+          component: slo
+          slo: availability
+        data:
+          - refId: A
+            queryType: ''
+            model:
+              expr: |
+                (
+                  sum(rate(fastapi_requests_total{status_code=~"5.."}[30m]))
+                  /
+                  sum(rate(fastapi_requests_total[30m]))
+                ) / 0.001
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'burn_rate_30m'
+              refId: A
+
+          - refId: B
+            queryType: ''
+            model:
+              expr: |
+                (
+                  sum(rate(fastapi_requests_total{status_code=~"5.."}[6h]))
+                  /
+                  sum(rate(fastapi_requests_total[6h]))
+                ) / 0.001
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'burn_rate_6h'
+              refId: B
+
+          - refId: C
+            queryType: ''
+            model:
+              conditions:
+                - evaluator:
+                    params: [6]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    type: last
+                  type: query
+                - evaluator:
+                    params: [6]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [B]
+                  reducer:
+                    type: last
+                  type: query
+              type: classic_conditions
+
+      # Latency SLO example (p95 <= 1.0s). Alerts on sustained breach.
+      - uid: slo_latency_p95_high
+        title: SLO Latency p95 High
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 10m
+        annotations:
+          summary: 'Latency SLO violation: p95 > 1s'
+          description: 'p95 request latency is {{ $value }}s (>1.0s). Check backend performance, DB, providers.'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/slo-latency'
+        labels:
+          severity: warning
+          category: general
+          component: slo
+          slo: latency
+        data:
+          - refId: A
+            queryType: ''
+            model:
+              expr: |
+                histogram_quantile(
+                  0.95,
+                  sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le)
+                )
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'p95'
+              refId: A
+          - refId: C
+            queryType: ''
+            model:
+              conditions:
+                - evaluator:
+                    params: [1.0]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    type: last
+                  type: query
+              type: classic_conditions
+

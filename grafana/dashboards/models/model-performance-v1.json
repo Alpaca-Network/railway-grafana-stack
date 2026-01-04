@@ -565,6 +565,10 @@
             },
             "properties": [
               {
+                "id": "displayName",
+                "value": "Error Rate %"
+              },
+              {
                 "id": "custom.displayMode",
                 "value": "color-background"
               },
