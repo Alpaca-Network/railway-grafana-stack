@@ -22,7 +22,7 @@
     {
       "datasource": {
         "type": "datasource",
-        "uid": "grafana_lokiq"
+        "uid": "grafana_loki"
       },
       "gridPos": {
         "h": 3,
@@ -32,7 +32,7 @@
       },
       "id": 1,
       "options": {
-        "content": "# 🔎 Backend Events — Loki\nReal-time log visibility for backend event handlers. Use the filters to track noisy workers, retry storms, and error spikes.",
+        "content": "# 🔎 GatewayZ Logs — Loki\nReal-time log visibility for GatewayZ backend services. Use the filters to track API requests, errors, and system events.",
         "mode": "markdown"
       },
       "pluginVersion": "11.5.2",
@@ -41,7 +41,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "grafana_lokiq"
+        "uid": "grafana_loki"
       },
       "fieldConfig": {
         "defaults": {},
@@ -66,18 +66,18 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "{compose_service=\"backend\", job=\"gatewayz\"}",
+          "expr": "{app=\"gatewayz\", env=\"production\"}",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "Backend Log Stream",
+      "title": "GatewayZ Log Stream",
       "type": "logs"
     },
     {
       "datasource": {
         "type": "loki",
-        "uid": "grafana_lokiq"
+        "uid": "grafana_loki"
       },
       "fieldConfig": {
         "defaults": {
@@ -131,7 +131,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(rate(count_over_time({compose_service=\"backend\"} |= \"ERROR\" [5m])) )",
+          "expr": "sum(rate(count_over_time({app=\"gatewayz\", level=\"ERROR\"} [5m])) )",
           "queryType": "range",
           "refId": "A"
         }
@@ -144,9 +144,10 @@
   "schemaVersion": 39,
   "style": "dark",
   "tags": [
-    "backend",
-    "events",
-    "loki"
+    "gatewayz",
+    "logs",
+    "loki",
+    "production"
   ],
   "templating": {
     "list": []
@@ -157,8 +158,8 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Backend Events - Loki",
-  "uid": "backend-events-loki-v1",
+  "title": "GatewayZ Logs - Loki",
+  "uid": "gatewayz-logs-loki-v1",
   "version": 1,
   "weekStart": ""
 }

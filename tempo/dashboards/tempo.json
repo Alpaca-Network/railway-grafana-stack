@@ -31,7 +31,7 @@
       },
       "id": 1,
       "options": {
-        "content": "# 🔁 Backend Events — Tempo\nTrace visibility for handler bottlenecks and slow spans.",
+        "content": "# 🔁 GatewayZ Traces — Tempo\nDistributed tracing visibility for API requests, model inference calls, and system bottlenecks.",
         "mode": "markdown"
       },
       "pluginVersion": "11.5.2",
@@ -69,10 +69,10 @@
           "hide": false,
           "queryType": "traceql",
           "refId": "A",
-          "query": "{service.name=\"backend-events\"}"
+          "query": "{service.name=\"gatewayz\"}"
         }
       ],
-      "title": "Recent Backend Traces",
+      "title": "Recent GatewayZ Traces",
       "type": "traces"
     },
     {
@@ -105,7 +105,7 @@
         {
           "queryType": "traceql",
           "refId": "A",
-          "query": "sum(rate({service.name=\"backend-events\"} |= \"error\" [5m])) by (span.name)"
+          "query": "sum(rate({service.name=\"gatewayz\"} |= \"error\" [5m])) by (span.name)"
         }
       ],
       "title": "Span Errors",
@@ -116,9 +116,11 @@
   "schemaVersion": 39,
   "style": "dark",
   "tags": [
-    "backend",
-    "events",
-    "tempo"
+    "gatewayz",
+    "traces",
+    "tempo",
+    "production",
+    "distributed-tracing"
   ],
   "templating": {
     "list": []
@@ -129,8 +131,8 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Backend Events - Tempo",
-  "uid": "backend-events-tempo-v1",
+  "title": "GatewayZ Traces - Tempo",
+  "uid": "gatewayz-traces-tempo-v1",
   "version": 1,
   "weekStart": ""
 }

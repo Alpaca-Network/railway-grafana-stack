@@ -51,12 +51,32 @@ providers:
     options:
       path: /etc/grafana/provisioning/dashboards/gateway
 
-  - name: 'Backend Events Handler'
+  - name: 'Loki'
     orgId: 1
-    folder: 'Backend Events Handler'
+    folder: 'Loki'
     type: file
     disableDeletion: false
     updateIntervalSeconds: 10
     allowUiUpdates: true
     options:
-      path: /etc/grafana/provisioning/dashboards/backend-events-handler
+      path: /etc/grafana/provisioning/dashboards/loki
+
+  - name: 'Prometheus'
+    orgId: 1
+    folder: 'Prometheus'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/prometheus
+
+  - name: 'Tempo'
+    orgId: 1
+    folder: 'Tempo'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/tempo

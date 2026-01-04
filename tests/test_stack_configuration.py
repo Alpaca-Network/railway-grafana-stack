@@ -166,7 +166,8 @@ class TestGrafanaConfiguration:
 
         assert dashboards_dir.exists(), "Grafana dashboards directory not found"
 
-        dashboard_files = list(dashboards_dir.glob("*.json"))
+        # Dashboards are organized into subdirectories (executive/, backend/, logs/, etc.)
+        dashboard_files = list(dashboards_dir.glob("**/*.json"))
         assert len(dashboard_files) > 0, "No dashboard files found"
 
     def test_grafana_provisioning_config_exists(self, repo_root):

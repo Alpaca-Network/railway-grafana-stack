@@ -30,7 +30,7 @@
       },
       "id": 1,
       "options": {
-        "content": "# 📈 Backend Events — Prometheus\nMetrics view for queue throughput, latency, and error ratios across event handlers.",
+        "content": "# 📈 GatewayZ Metrics — Prometheus\nReal-time metrics for API requests, model inference, latency, and system performance.",
         "mode": "markdown"
       },
       "pluginVersion": "11.5.2",
@@ -91,7 +91,7 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(event_handler_errors_total[5m])) / sum(rate(event_handler_calls_total[5m]))",
+          "expr": "sum(rate(fastapi_requests_total{status_code=~'5..'}[5m])) / sum(rate(fastapi_requests_total[5m]))",
           "legendFormat": "Error Ratio",
           "refId": "A"
         }
@@ -123,17 +123,17 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(event_handler_latency_seconds_sum[5m])) / sum(rate(event_handler_latency_seconds_count[5m]))",
-          "legendFormat": "p50 latency",
+          "expr": "sum(rate(fastapi_requests_duration_seconds_sum[5m])) / sum(rate(fastapi_requests_duration_seconds_count[5m]))",
+          "legendFormat": "p50 API Latency",
           "refId": "A"
         },
         {
-          "expr": "histogram_quantile(0.95, sum(rate(event_handler_latency_seconds_bucket[5m])) by (le))",
-          "legendFormat": "p95 latency",
+          "expr": "histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95 API Latency",
           "refId": "B"
         }
       ],
-      "title": "Latency",
+      "title": "API Latency",
       "type": "timeseries"
     },
     {
@@ -160,17 +160,17 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(event_handler_calls_total{status=\"success\"}[5m]))",
-          "legendFormat": "Success",
+          "expr": "sum(rate(fastapi_requests_total{status_code=~'2..'}[5m]))",
+          "legendFormat": "Success (2xx)",
           "refId": "A"
         },
         {
-          "expr": "sum(rate(event_handler_calls_total{status=\"failed\"}[5m]))",
-          "legendFormat": "Failed",
+          "expr": "sum(rate(fastapi_requests_total{status_code=~'4..|5..'}[5m]))",
+          "legendFormat": "Errors (4xx/5xx)",
           "refId": "B"
         }
       ],
-      "title": "Throughput",
+      "title": "API Request Rate",
       "type": "timeseries"
     }
   ],
@@ -178,9 +178,11 @@
   "schemaVersion": 39,
   "style": "dark",
   "tags": [
-    "backend",
-    "events",
-    "prometheus"
+    "gatewayz",
+    "metrics",
+    "prometheus",
+    "production",
+    "api"
   ],
   "templating": {
     "list": []
@@ -191,8 +193,8 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Backend Events - Prometheus",
-  "uid": "backend-events-prometheus-v1",
+  "title": "GatewayZ Metrics - Prometheus",
+  "uid": "gatewayz-metrics-prometheus-v1",
   "version": 1,
   "weekStart": ""
 }

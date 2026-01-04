@@ -642,6 +642,10 @@
             },
             "properties": [
               {
+                "id": "displayName",
+                "value": "Severity"
+              },
+              {
                 "id": "custom.displayMode",
                 "value": "color-background"
               },

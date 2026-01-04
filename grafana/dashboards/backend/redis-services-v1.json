@@ -53,7 +53,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -126,7 +126,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -309,7 +309,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -365,6 +365,10 @@
               "options": "Commands/sec"
             },
             "properties": [
+            {
+              "id": "displayName",
+              "value": "Commands/sec"
+            },
               {
                 "id": "color",
                 "value": {
@@ -380,6 +384,10 @@
               "options": "Hits/sec"
             },
             "properties": [
+            {
+              "id": "displayName",
+              "value": "Hits/sec"
+            },
               {
                 "id": "color",
                 "value": {
@@ -395,6 +403,10 @@
               "options": "Misses/sec"
             },
             "properties": [
+            {
+              "id": "displayName",
+              "value": "Misses/sec"
+            },
               {
                 "id": "color",
                 "value": {
@@ -448,7 +460,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -495,7 +507,7 @@
               }
             ]
           },
-          "unit": "decmbytes"
+          "unit": "mbytes"
         },
         "overrides": []
       },
