@@ -123,7 +123,7 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(fastapi_requests_duration_seconds_sum[5m])) / sum(rate(fastapi_requests_duration_seconds_count[5m]))",
+          "expr": "histogram_quantile(0.5, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le))",
           "legendFormat": "p50 API Latency",
           "refId": "A"
         },

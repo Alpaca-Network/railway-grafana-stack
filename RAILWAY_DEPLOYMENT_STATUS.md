@@ -109,7 +109,8 @@ Your `prometheus/prom.yml` is configured for Railway:
   metrics_path: '/metrics'
   static_configs:
     - targets: ['gatewayz-staging.up.railway.app']
-  bearer_token: 'gw_live_wTfpLJ5VB28qMXpOAhr7Uw'
+  # Treat as a secret: set STAGING_API_TOKEN in Railway/GitHub Secrets
+  bearer_token: '${STAGING_API_TOKEN}'
 ```
 
 **Dashboard queries now match these job names** using `job=~"gatewayz.*"` ✅

@@ -69,7 +69,7 @@
           "hide": false,
           "queryType": "traceql",
           "refId": "A",
-          "query": "{service.name=\"gatewayz\"}"
+          "query": "{resource.service.name=\"gatewayz\"}"
         }
       ],
       "title": "Recent GatewayZ Traces",
@@ -105,7 +105,7 @@
         {
           "queryType": "traceql",
           "refId": "A",
-          "query": "{service.name=\"gatewayz\", status=\"error\"}"
+          "query": "{resource.service.name=\"gatewayz\" && status=error}"
         }
       ],
       "title": "Span Errors",
