@@ -7,8 +7,10 @@ services:
       context: ./prometheus
       dockerfile: Dockerfile
     user: root # required for data persistence
-    ports:
-      - "9090:9090"
+    # NOTE (Railway hardening): do not publish Prometheus publicly.
+    # If you need local access, uncomment the ports mapping.
+    # ports:
+    #   - "9090:9090"
     volumes:
       - prometheus_data:/prometheus
 
@@ -17,8 +19,9 @@ services:
       context: ./loki
       dockerfile: Dockerfile
     user: root # required for data persistence
-    ports:
-      - "3100:3100"
+    # NOTE (Railway hardening): do not publish Loki publicly.
+    # ports:
+    #   - "3100:3100"
     volumes:
       - loki_data:/loki
 
@@ -27,17 +30,19 @@ services:
       context: ./tempo
       dockerfile: Dockerfile
     user: root # required for data persistence
-    ports:
-      - "3200:3200" # http server for querying
-      - "4317:4317" # grpc server for ingest
-      - "4318:4318" # http server for ingest
+    # NOTE (Railway hardening): do not publish Tempo publicly.
+    # ports:
+    #   - "3200:3200" # http server for querying
+    #   - "4317:4317" # grpc server for ingest
+    #   - "4318:4318" # http server for ingest
     volumes:
       - tempo_data:/var/tempo
 
   redis-exporter:
     image: oliver006/redis_exporter:latest
-    ports:
-      - "9121:9121"
+    # NOTE (Railway hardening): do not publish exporter publicly.
+    # ports:
+    #   - "9121:9121"
     environment:
       REDIS_ADDR: ${REDIS_ADDR:-redis-production-bb6d.up.railway.app:6379}
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
@@ -59,8 +64,9 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=yourpassword123
+      # Keep same login, but pull from environment so secrets are not hardcoded.
+      - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD:-yourpassword123}
       - GF_DEFAULT_INSTANCE_NAME=Grafana
       - GF_INSTALL_PLUGINS=grafana-simple-json-datasource,grafana-piechart-panel,grafana-worldmap-panel,grafana-clock-panel,grafana-sentry-datasource
       # Datasource internal URLs
