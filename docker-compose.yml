@@ -18,7 +18,8 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
-    read_only: true
+    # Prometheus writes to /prometheus; do NOT use read-only root filesystem here.
+    read_only: false
     tmpfs:
       - /tmp
     healthcheck:
@@ -50,7 +51,8 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
-    read_only: true
+    # Loki writes to /loki; do NOT use read-only root filesystem here.
+    read_only: false
     tmpfs:
       - /tmp
     healthcheck:
@@ -84,7 +86,8 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
-    read_only: true
+    # Tempo writes to /var/tempo; do NOT use read-only root filesystem here.
+    read_only: false
     tmpfs:
       - /tmp
     healthcheck:

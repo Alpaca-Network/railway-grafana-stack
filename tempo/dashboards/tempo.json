@@ -105,7 +105,7 @@
         {
           "queryType": "traceql",
           "refId": "A",
-          "query": "sum(rate({service.name=\"gatewayz\"} |= \"error\" [5m])) by (span.name)"
+          "query": "{service.name=\"gatewayz\", status=\"error\"}"
         }
       ],
       "title": "Span Errors",
