@@ -118,7 +118,7 @@ class TestPanelConfiguration:
         valid_types = {
             "text", "gauge", "stat", "timeseries", "table", "piechart",
             "barchart", "heatmap", "scatter", "logs", "graph", "canvas",
-            "alertlist", "dashlist", "nodeGraph"
+            "alertlist", "dashlist", "nodeGraph", "traces"
         }
 
         for dashboard_name, dashboard in dashboards.items():
@@ -143,7 +143,7 @@ class TestDatasourceConfiguration:
 
     def test_valid_datasource_uids(self, dashboards):
         """Verify all datasource UIDs are valid"""
-        valid_uids = {"grafana_prometheus", "grafana_lokiq", "-- Grafana --", "grafana", None}
+        valid_uids = {"grafana_prometheus", "grafana_loki", "grafana_tempo", "-- Grafana --", "grafana", None}
 
         for dashboard_name, dashboard in dashboards.items():
             for panel in dashboard.get("panels", []):
@@ -157,7 +157,8 @@ class TestDatasourceConfiguration:
         """Verify datasource types match their UIDs"""
         type_mapping = {
             "grafana_prometheus": "prometheus",
-            "grafana_lokiq": "loki",
+            "grafana_loki": "loki",
+            "grafana_tempo": "tempo",
             "-- Grafana --": "datasource",
         }
 

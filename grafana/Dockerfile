@@ -11,20 +11,22 @@ ENV PROMETHEUS_INTERNAL_URL=http://prometheus.railway.internal:9090
 ENV TEMPO_INTERNAL_URL=http://tempo.railway.internal:3200
 
 # copy the datasources and dashboard provisioning config
-COPY grafana/datasources /etc/grafana/provisioning/datasources
-COPY grafana/provisioning/dashboards/dashboards.yml /etc/grafana/provisioning/dashboards/dashboards.yml
+COPY datasources /etc/grafana/provisioning/datasources
+COPY provisioning/dashboards/dashboards.yml /etc/grafana/provisioning/dashboards/dashboards.yml
 
 # copy dashboard subdirectories
-COPY grafana/dashboards/backend /etc/grafana/provisioning/dashboards/backend
-COPY grafana/dashboards/executive /etc/grafana/provisioning/dashboards/executive
-COPY grafana/dashboards/gateway /etc/grafana/provisioning/dashboards/gateway
-COPY grafana/dashboards/logs /etc/grafana/provisioning/dashboards/logs
-COPY grafana/dashboards/models /etc/grafana/provisioning/dashboards/models
+COPY dashboards/backend /etc/grafana/provisioning/dashboards/backend
+COPY dashboards/executive /etc/grafana/provisioning/dashboards/executive
+COPY dashboards/gateway /etc/grafana/provisioning/dashboards/gateway
+COPY dashboards/logs /etc/grafana/provisioning/dashboards/logs
+COPY dashboards/models /etc/grafana/provisioning/dashboards/models
 
 # copy service-specific dashboards from new architecture
-COPY loki/dashboards /etc/grafana/provisioning/dashboards/loki
-COPY prometheus/dashboards /etc/grafana/provisioning/dashboards/prometheus
-COPY tempo/dashboards /etc/grafana/provisioning/dashboards/tempo
+# NOTE: This Dockerfile is built with context `./grafana` in Railway.
+# Therefore, service dashboards must be available inside this build context.
+COPY dashboards/loki /etc/grafana/provisioning/dashboards/loki
+COPY dashboards/prometheus /etc/grafana/provisioning/dashboards/prometheus
+COPY dashboards/tempo /etc/grafana/provisioning/dashboards/tempo
 
 # Expose Grafana port
 EXPOSE 3000
