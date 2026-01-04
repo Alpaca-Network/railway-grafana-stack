@@ -7,10 +7,11 @@ This guide helps you find the right documentation for your needs.
 ```
 railway-grafana-stack/
 ├── README.md                           # Main project overview & quick start
-├── QUICK_START.md                      # Local development setup
-├── CHANGES_SUMMARY.md                  # Recent infrastructure changes
 │
 ├── docs/
+│   ├── docs-index.md                   # Main documentation index (start here after README)
+│   ├── archive/                        # Archived root-level docs moved here
+│
 │   ├── REDIS_MONITORING_GUIDE.md       # Redis monitoring options
 │   │
 │   ├── backend/                        # Backend Integration
@@ -34,7 +35,7 @@ railway-grafana-stack/
 │   │   └── SENTRY_SETUP.md             # Error tracking
 │   │
 │   └── archive/                        # Deprecated Documentation
-│       └── (13 archived files - kept for reference)
+│       └── root-md/                    # Former root *.md files (kept for reference)
 ```
 
 ---

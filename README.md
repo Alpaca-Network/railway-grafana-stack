@@ -50,23 +50,13 @@ A production-ready observability solution for **GatewayZ AI Backend**, providing
 
 ### 🎯 Quick Reference (Start Here!)
 
-| Document | Purpose |
-|----------|---------|
-| [QUICK_START.md](QUICK_START.md) | **Local development with Docker Compose** |
-| [RAILWAY_DEPLOYMENT_GUIDE.md](RAILWAY_DEPLOYMENT_GUIDE.md) | **Deploy to Railway (production/staging)** |
-| [IMMEDIATE_ACTION_REQUIRED.md](IMMEDIATE_ACTION_REQUIRED.md) | **5-minute fixes for common issues** |
-| [MONITORING_GUIDE.md](MONITORING_GUIDE.md) | **API endpoints for GatewayZ monitoring backend** |
-| [ENDPOINT_VERIFICATION_REPORT.md](ENDPOINT_VERIFICATION_REPORT.md) | **Verification that all 22 endpoints are REAL (not mock)** |
-| [LOKI_TEMPO_INSTRUMENTATION.md](LOKI_TEMPO_INSTRUMENTATION.md) | **Real instrumentation endpoints for Loki logs & Tempo traces** |
+All documentation is under [`docs/`](docs/) (no extra root-level markdown files).
+
+- Start here: [docs/docs-index.md](docs/docs-index.md)
 
 ### 🔧 Troubleshooting & Diagnostics
 
-| Document | Use When |
-|----------|----------|
-| [DIAGNOSE_CONNECTIVITY.md](DIAGNOSE_CONNECTIVITY.md) | Datasources not connecting or showing "No data" |
-| [STAGING_METRICS_TROUBLESHOOTING.md](STAGING_METRICS_TROUBLESHOOTING.md) | Staging environment not collecting metrics |
-| [RAILWAY_DATASOURCE_FIX_SUMMARY.md](RAILWAY_DATASOURCE_FIX_SUMMARY.md) | Understanding Railway network configuration |
-| [docs/troubleshooting/](docs/troubleshooting/) | Additional service-specific fixes |
+See: [docs/troubleshooting/](docs/troubleshooting/)
 
 ### 📈 Backend Integration & Metrics
 
@@ -141,7 +131,9 @@ All dashboards are organized into logical folders and use **REAL API endpoints**
 | **Model Performance Analytics** | Models | 8 | 60s | Top Models, Cost Analysis, Latency Distribution | ✅ Production Ready |
 | **Logs & Diagnostics** | Logs | 9 | 10s | RED Method, Log Search, Filtering, Aggregation | ✅ Production Ready |
 
-**All 7 dashboards use REAL API endpoints from your monitoring backend - not mock data. See [ENDPOINT_VERIFICATION_REPORT.md](ENDPOINT_VERIFICATION_REPORT.md) for complete verification.**
+**All 7 dashboards use REAL API endpoints from your monitoring backend - not mock data. See [docs/archive/root-md/ENDPOINT_VERIFICATION_REPORT.md](docs/archive/root-md/ENDPOINT_VERIFICATION_REPORT.md) for complete verification.**
+
+> Note: the detailed verification report and historical summaries were moved to `docs/archive/root-md/`.
 
 ### 📊 Dashboard Features
 
@@ -206,7 +198,7 @@ All 25+ endpoints backing these dashboards are verified as **REAL** (not mock da
 ./scripts/test_loki_instrumentation.sh "YOUR_API_KEY" https://api.gatewayz.ai
 
 # Read detailed verification report
-cat ENDPOINT_VERIFICATION_REPORT.md
+cat docs/archive/root-md/ENDPOINT_VERIFICATION_REPORT.md
 ```
 
 **Core Monitoring Endpoints (12):**
@@ -273,8 +265,8 @@ The stack includes automated testing for:
 
 | Document | Purpose |
 |----------|---------|
-| [CI_CD_TESTING_REPORT.md](CI_CD_TESTING_REPORT.md) | **Complete testing breakdown** - What's tested, results, endpoints |
-| [QA_REVIEW_REPORT.md](QA_REVIEW_REPORT.md) | **Quality Assurance sign-off** - 3 expert reviews, production approval |
+| [docs/archive/root-md/CI_CD_TESTING_REPORT.md](docs/archive/root-md/CI_CD_TESTING_REPORT.md) | **Complete testing breakdown** - What's tested, results, endpoints |
+| [docs/archive/root-md/QA_REVIEW_REPORT.md](docs/archive/root-md/QA_REVIEW_REPORT.md) | **Quality Assurance sign-off** - 3 expert reviews, production approval |
 | `.env.example` | **Configuration template** - API keys and test settings |
 
 ### Quick Testing Commands
@@ -306,7 +298,7 @@ pytest tests/test_api_endpoints.py -v -m endpoint
 - ✅ 12 core monitoring endpoints operational
 - ✅ 5 instrumentation endpoints operational
 - ✅ No synthetic or hardcoded data detected
-- 📋 See [ENDPOINT_VERIFICATION_REPORT.md](ENDPOINT_VERIFICATION_REPORT.md) for full details
+- 📋 See [docs/archive/root-md/ENDPOINT_VERIFICATION_REPORT.md](docs/archive/root-md/ENDPOINT_VERIFICATION_REPORT.md) for full details
 
 **Dashboard Validation:**
 - ✅ 5/5 production dashboards valid (folder-based organization)
@@ -363,7 +355,7 @@ Value: gw_live_xxxxxxxxxxxxx
 
 **Overall Verdict:** ✅ **APPROVED FOR PRODUCTION DEPLOYMENT**
 
-See [QA_REVIEW_REPORT.md](QA_REVIEW_REPORT.md) for complete expert assessments.
+See [docs/archive/root-md/QA_REVIEW_REPORT.md](docs/archive/root-md/QA_REVIEW_REPORT.md) for complete expert assessments.
 
 ### Key Assurances
 
@@ -394,7 +386,7 @@ curl http://localhost:3100/ready  # Loki health
 curl http://localhost:3200/ready  # Tempo health
 ```
 
-**See [QUICK_START.md](QUICK_START.md) for detailed local setup.**
+**See [docs/archive/root-md/QUICK_START.md](docs/archive/root-md/QUICK_START.md) for detailed local setup.**
 
 ### Option 2: Deploy to Railway
 
@@ -734,9 +726,8 @@ railway-grafana-stack/
 │   └── troubleshooting/         # Service-specific fix guides
 ├── docker-compose.yml           # Local development (all services)
 ├── .github/workflows/           # CI/CD pipelines (test on push)
-├── QUICK_START.md               # Local setup guide
-├── RAILWAY_DEPLOYMENT_GUIDE.md  # Production deployment
-├── DIAGNOSE_CONNECTIVITY.md     # Troubleshooting datasources
+├── docs/docs-index.md           # Documentation index
+├── docs/archive/root-md/        # Former root docs (kept for reference)
 └── README.md                    # This file
 ```
 
@@ -806,12 +797,12 @@ git push origin main
 
 ### Documentation Issues
 - Check [docs/troubleshooting/](docs/troubleshooting/) directory
-- See [IMMEDIATE_ACTION_REQUIRED.md](IMMEDIATE_ACTION_REQUIRED.md) for quick fixes
+- See [docs/archive/root-md/IMMEDIATE_ACTION_REQUIRED.md](docs/archive/root-md/IMMEDIATE_ACTION_REQUIRED.md) for quick fixes
 - Search existing issues in repository
 
 ### Backend Integration Help
 - See [docs/backend/BACKEND_METRICS_REQUIREMENTS.md](docs/backend/BACKEND_METRICS_REQUIREMENTS.md)
-- Review [RAILWAY_DEPLOYMENT_GUIDE.md](RAILWAY_DEPLOYMENT_GUIDE.md) for deployment specifics
+- Review [docs/archive/root-md/RAILWAY_DEPLOYMENT_GUIDE.md](docs/archive/root-md/RAILWAY_DEPLOYMENT_GUIDE.md) for deployment specifics
 
 ---
 
