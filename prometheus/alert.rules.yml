@@ -120,3 +120,46 @@ groups:
         annotations:
           summary: "API error rate increasing over time"
           description: "API error rate has increased by more than 100% compared to 1 hour ago. Current: {{ $value }}x baseline."
+
+  - name: model_health_alerts
+    interval: 1m
+    rules:
+      # Model Health Score Alert - Critical when below 20%
+      - alert: LowModelHealthScore
+        expr: |
+          (
+            (
+              sum(rate(model_inference_requests_total{status="success"}[10m])) 
+              / 
+              sum(rate(model_inference_requests_total[10m]))
+            ) * 100
+          ) < 20
+        for: 5m
+        labels:
+          severity: critical
+          component: model
+          email: "manjeshprasad21@gmail.com"
+        annotations:
+          summary: "Overall model health score critically low"
+          description: "Overall model health score is {{ $value | humanize }}%, below critical threshold of 20%. Success rate indicates major service degradation. Immediate investigation required."
+          dashboard: "http://localhost:3000/d/model-performance-v1/model-performance-analytics"
+          
+      # Individual Provider Health Score
+      - alert: LowProviderHealthScore
+        expr: |
+          (
+            (
+              sum(rate(model_inference_requests_total{status="success"}[10m])) by (provider)
+              / 
+              sum(rate(model_inference_requests_total[10m])) by (provider)
+            ) * 100
+          ) < 20
+        for: 5m
+        labels:
+          severity: critical
+          component: provider
+          email: "manjeshprasad21@gmail.com"
+        annotations:
+          summary: "Provider {{ $labels.provider }} health score critically low"
+          description: "Provider {{ $labels.provider }} health score is {{ $value | humanize }}%, below critical threshold of 20%. This provider is experiencing major issues."
+          dashboard: "http://localhost:3000/d/gateway-comparison-v1/gateway-comparison"
