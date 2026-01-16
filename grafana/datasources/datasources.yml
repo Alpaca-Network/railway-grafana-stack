@@ -93,3 +93,15 @@ datasources:
       authTokenName: Authorization
     secureJsonData:
       authToken: ${SENTRY_AUTH_TOKEN:-}
+  - name: JSON API
+    type: grafana-simple-json-datasource
+    access: proxy
+    orgId: 1
+    uid: grafana_json_api
+    url: ${API_BASE_URL:-https://api.gatewayz.ai}/prometheus/datasource
+    user:
+    database:
+    basicAuth:
+    basicAuthUser:
+    withCredentials:
+    isDefault: false
