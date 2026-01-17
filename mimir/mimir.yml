@@ -33,9 +33,9 @@ ingester:
     replication_factor: 1
 
 # Querier configuration (handles queries)
+# Note: query_frontend_address is not needed in single-process mode
 querier:
-  # Query frontend parallelizes queries for faster responses
-  query_frontend_address: localhost:9095
+  max_concurrent: 20
 
 # Storage configuration (local filesystem for development, use S3/GCS for production)
 blocks_storage:
@@ -88,12 +88,7 @@ ruler:
 activity_tracker:
   filepath: /data/mimir/activity.log
 
-# Frontend configuration
-frontend:
-  # Enable query scheduling
-  scheduler_address: ""
-  # Response caching
-  results_cache:
-    backend: memcached
-    memcached:
-      addresses: dns+mimir:11211
+# Frontend configuration (disabled for single-process mode)
+# frontend:
+#   results_cache:
+#     backend: ""

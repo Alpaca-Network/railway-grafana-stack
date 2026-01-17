@@ -1,0 +1,87 @@
+# Grafana Mimir Configuration for Railway
+# Optimized for single-instance deployment on Railway
+
+# Run all components in a single process (monolithic mode)
+target: all
+
+# Disable multi-tenancy for simplicity
+multitenancy_enabled: false
+
+# Server configuration
+server:
+  http_listen_port: 9009
+  grpc_listen_port: 9095
+  log_level: info
+  # Listen on all interfaces for Railway
+  http_listen_address: 0.0.0.0
+  grpc_listen_address: 0.0.0.0
+
+# Distributor configuration (receives writes from Prometheus)
+distributor:
+  ring:
+    kvstore:
+      store: memberlist
+
+# Ingester configuration (stores time series in memory)
+ingester:
+  ring:
+    kvstore:
+      store: memberlist
+    replication_factor: 1
+    # Heartbeat for Railway networking
+    heartbeat_period: 15s
+    heartbeat_timeout: 1m
+
+# Querier configuration - simplified for monolithic mode
+querier:
+  max_concurrent: 20
+
+# Storage configuration (local filesystem)
+blocks_storage:
+  backend: filesystem
+  filesystem:
+    dir: /data/mimir/blocks
+  tsdb:
+    dir: /data/mimir/tsdb
+  bucket_store:
+    sync_dir: /data/mimir/bucket-sync
+
+# Compactor configuration
+compactor:
+  data_dir: /data/mimir/compactor
+  sharding_ring:
+    kvstore:
+      store: memberlist
+
+# Store gateway configuration
+store_gateway:
+  sharding_ring:
+    replication_factor: 1
+    kvstore:
+      store: memberlist
+
+# Limits configuration (Railway-optimized)
+limits:
+  max_global_series_per_user: 500000
+  max_global_series_per_metric: 50000
+  ingestion_rate: 50000
+  ingestion_burst_size: 100000
+  max_query_lookback: 30d
+  max_query_parallelism: 16  # Reduced for single instance
+  compactor_blocks_retention_period: 30d
+
+# Memberlist configuration (single instance)
+memberlist:
+  bind_port: 7946
+  # For single instance, don't need to join other members
+  join_members: []
+
+# Ruler configuration (optional, for alerts)
+ruler:
+  enable_api: true
+  # Only set if you have Alertmanager deployed
+  # alertmanager_url: http://alertmanager.railway.internal:9093
+
+# Activity tracker
+activity_tracker:
+  filepath: /data/mimir/activity.log
