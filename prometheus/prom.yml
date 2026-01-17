@@ -63,3 +63,37 @@ scrape_configs:
       - targets: ['health-service-exporter:8002']
     scrape_interval: 30s
     scrape_timeout: 10s
+
+  # GatewayZ Prometheus Data Metrics (Provider health, circuit breakers, etc.)
+  # This scrapes /prometheus/data/metrics for Grafana alerting
+  - job_name: 'gatewayz_data_metrics_production'
+    scheme: https
+    metrics_path: '/prometheus/data/metrics'
+    static_configs:
+      - targets: ['api.gatewayz.ai']
+    scrape_interval: 30s
+    scrape_timeout: 15s
+    metric_relabel_configs:
+      - source_labels: []
+        target_label: env
+        replacement: production
+      - source_labels: []
+        target_label: source
+        replacement: prometheus_data
+
+  # Staging environment data metrics
+  - job_name: 'gatewayz_data_metrics_staging'
+    scheme: https
+    metrics_path: '/prometheus/data/metrics'
+    static_configs:
+      - targets: ['gatewayz-staging.up.railway.app']
+    scrape_interval: 30s
+    scrape_timeout: 15s
+    bearer_token: 'gw_live_wTfpLJ5VB28qMXpOAhr7Uw'
+    metric_relabel_configs:
+      - source_labels: []
+        target_label: env
+        replacement: staging
+      - source_labels: []
+        target_label: source
+        replacement: prometheus_data
