@@ -1,0 +1,27 @@
+apiVersion: 1
+
+datasources:
+  # Mimir - Long-term metrics storage
+  # Use this datasource for:
+  # - Historical queries (longer than Prometheus retention)
+  # - Consistent query results across page refreshes
+  # - Aggregated metrics from multiple Prometheus instances
+  - name: Mimir
+    uid: grafana_mimir
+    type: prometheus
+    access: proxy
+    url: ${MIMIR_INTERNAL_URL:-http://mimir:9009}/prometheus
+    isDefault: false
+    editable: true
+    jsonData:
+      httpMethod: POST
+      manageAlerts: false
+      prometheusType: Mimir
+      prometheusVersion: 2.11.0
+      # Query timeout
+      timeout: 60
+      # Enable exemplars for trace correlation
+      exemplarTraceIdDestinations:
+        - name: traceId
+          datasourceUid: grafana_tempo
+    version: 1

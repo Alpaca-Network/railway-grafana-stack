@@ -1,6 +1,64 @@
 version: '3.8'
 
+# ============================================================================
+# GatewayZ Monitoring Stack with Mimir for Horizontal Scaling
+# ============================================================================
+#
+# REQUIRED ENVIRONMENT VARIABLES (set in .env file):
+# - STAGING_BEARER_TOKEN: Bearer token for staging API authentication
+# - GF_SECURITY_ADMIN_PASSWORD: Grafana admin password (CHANGE FROM DEFAULT!)
+# - ALERT_EMAIL: Email for alert notifications
+# - SMTP_PASSWORD: SMTP password for sending alerts
+# - REDIS_PASSWORD: Redis password (if required)
+#
+# Optional:
+# - API_BASE_URL: Backend API URL (default: https://api.gatewayz.ai)
+# - PROMETHEUS_INTERNAL_URL, LOKI_INTERNAL_URL, TEMPO_INTERNAL_URL
+#
+# ============================================================================
+
 services:
+
+  # --------------------------------------------------------------------------
+  # Mimir - Horizontally Scalable Long-term Metrics Storage
+  # --------------------------------------------------------------------------
+  # Provides:
+  # - Long-term storage for Prometheus metrics
+  # - Consistent query results (no more stale metrics on refresh)
+  # - Horizontal scaling for high availability
+  # - Query federation
+  mimir:
+    build:
+      context: ./mimir
+      dockerfile: Dockerfile
+    user: root
+    ports:
+      - "9009:9009"   # HTTP API (for Grafana queries)
+      - "9095:9095"   # gRPC (for Prometheus remote write)
+    volumes:
+      - mimir_data:/data/mimir
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: false
+    tmpfs:
+      - /tmp
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9009/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1024M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 
   prometheus:
     build:
@@ -13,6 +71,16 @@ services:
       - "9090:9090"
     volumes:
       - prometheus_data:/prometheus
+    environment:
+      - STAGING_BEARER_TOKEN=${STAGING_BEARER_TOKEN:-}
+    # Write bearer token to file before starting Prometheus
+    command:
+      - /bin/sh
+      - -c
+      - |
+        mkdir -p /etc/prometheus/secrets
+        echo -n "$$STAGING_BEARER_TOKEN" > /etc/prometheus/secrets/staging_bearer_token
+        exec /bin/prometheus --config.file=/etc/prometheus/prom.yml --storage.tsdb.path=/prometheus
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
@@ -29,6 +97,7 @@ services:
       retries: 5
     depends_on:
       - alertmanager
+      - mimir
     deploy:
       resources:
         limits:
@@ -241,6 +310,7 @@ services:
       - PROMETHEUS_INTERNAL_URL=${PROMETHEUS_INTERNAL_URL:-http://prometheus:9090}
       - LOKI_INTERNAL_URL=${LOKI_INTERNAL_URL:-http://loki:3100}
       - TEMPO_INTERNAL_URL=${TEMPO_INTERNAL_URL:-http://tempo:3200}
+      - MIMIR_INTERNAL_URL=${MIMIR_INTERNAL_URL:-http://mimir:9009}
       - API_BASE_URL=${API_BASE_URL:-https://api.gatewayz.ai}
       # Email/SMTP Configuration for Alerts
       - GF_SMTP_ENABLED=true
@@ -263,9 +333,10 @@ services:
           cpus: '0.25'
           memory: 256M
 
-volumes: 
+volumes:
   prometheus_data:
   alertmanager_data:
   loki_data:
   grafana_data:
   tempo_data:
+  mimir_data:

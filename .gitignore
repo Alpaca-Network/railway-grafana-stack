@@ -18,3 +18,7 @@ env.bak/
 venv.bak/
 
 grafana/.DS_Store
+# Environment files (contains secrets - NEVER commit!)
+.env
+.env.local
+.env.*.local
