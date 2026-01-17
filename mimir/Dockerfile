@@ -6,9 +6,9 @@ COPY mimir.yml /etc/mimir/mimir.yml
 # Create data directories
 USER root
 RUN mkdir -p /data/mimir/blocks /data/mimir/tsdb /data/mimir/bucket-sync /data/mimir/compactor && \
-    chown -R mimir:mimir /data/mimir
+    chown -R 10001:10001 /data/mimir
 
-USER mimir
+USER 10001
 
 # Expose ports
 # 9009 - HTTP API
