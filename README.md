@@ -11,9 +11,30 @@ A production-ready observability solution for **GatewayZ AI Backend**, providing
 
 ---
 
-## ✨ What's New (2025-12-31)
+## ✨ What's New
 
-**🎯 NEW: Four Golden Signals Dashboard (Google SRE Methodology)**
+### 🚀 Latest (January 2026) - Mimir Integration
+
+**Branch**: `feat/feat-mimir-took`
+
+**🎯 NEW: Grafana Mimir for Horizontal Scaling & Long-term Storage**
+- ✅ **Horizontally scalable** metrics storage with Grafana Mimir
+- ✅ **Long-term retention** (30+ days, configurable)
+- ✅ **Consistent queries** - no more stale metrics on dashboard refresh
+- ✅ **High availability** ready with built-in replication
+- ✅ **Remote write** from Prometheus to Mimir (dual storage)
+- ✅ **Query federation** across multiple Prometheus instances
+- 📖 **Complete guide:** [MIMIR_INTEGRATION_SUMMARY.md](MIMIR_INTEGRATION_SUMMARY.md)
+
+**Additional Security & Monitoring Enhancements:**
+- ✅ **Prometheus/Alertmanager fixes** - SMTP env var substitution, zero-traffic alert handling
+- ✅ **Enhanced alert rules** - NaN division handling, comprehensive error detection
+- ✅ **Health score alerts** - Email notifications when system health < 20%
+- 📖 **Defects fixed:** See [docs/monitoring/](docs/monitoring/) directory
+
+### Previous Updates (December 2025)
+
+**🎯 Four Golden Signals Dashboard (Google SRE Methodology)**
 - ✅ **17 panels** implementing Google's SRE best practices across 4 signal categories
 - ✅ **SIGNAL 1 - LATENCY:** P50/P95/P99 percentiles with 24-hour trend visualization
 - ✅ **SIGNAL 2 - TRAFFIC:** Request volume, rate, active requests, traffic trends
@@ -23,7 +44,7 @@ A production-ready observability solution for **GatewayZ AI Backend**, providing
 - ✅ **30-second auto-refresh** for real-time executive monitoring
 - ✅ **All panels verified** with real backend endpoints
 
-**Previous Updates:**
+**Dashboard Improvements:**
 - ✅ **7 Production Dashboards** organized into logical folders (Executive, Backend, Gateway, Models, Logs)
 - ✅ **Backend Health Dashboard:** 13 panels with Redis monitoring (6 panels) + automated health score alerts (<30%)
 - ✅ **Gateway Comparison Dashboard:** Added Provider Health Status Grid for all 17 providers
@@ -37,10 +58,12 @@ A production-ready observability solution for **GatewayZ AI Backend**, providing
 | Service | Port(s) | Purpose | Status |
 |---------|---------|---------|--------|
 | **Grafana 11.5.2** | 3000 | Visualization & dashboarding | ✅ 7 production dashboards (folder-based) |
-| **Prometheus v3.2.1** | 9090 | Time-series metrics collection | ✅ 4 scrape jobs |
+| **Prometheus v3.2.1** | 9090 | Time-series metrics collection | ✅ 6 scrape jobs + remote write to Mimir |
+| **Mimir 2.11.0** | 9009, 9095 | **NEW** Long-term metrics storage | ✅ Horizontal scaling + 30-day retention |
 | **Loki 3.4** | 3100 | Log aggregation | ✅ 30-day retention |
 | **Tempo** | 3200, 4317, 4318 | Distributed tracing | ✅ Real instrumentation endpoints |
 | **Redis Exporter** | 9121 | Redis metrics export | ✅ Integrated with Backend dashboard |
+| **Alertmanager** | 9093 | Alert routing & notifications | ✅ Email alerts configured |
 
 **All services are pre-configured, interconnected, and production-ready.**
 
@@ -69,6 +92,8 @@ See: [docs/troubleshooting/](docs/troubleshooting/)
 
 ## 🏗️ Architecture
 
+### With Mimir Integration (New!)
+
 ```
 ┌──────────────────────────────────────────────────────────────────┐
 │                    GatewayZ Backend API                           │
@@ -83,18 +108,29 @@ See: [docs/troubleshooting/](docs/troubleshooting/)
     │ Prometheus  │ │   Loki    │ │   Tempo     │
     │   :9090     │ │  :3100    │ │:3200/:4317/ │
     │             │ │           │ │    :4318    │
-    │ 3 Jobs      │ │30d Retain │ │Metrics Gen  │
+    │ 6 Jobs      │ │30d Retain │ │Metrics Gen  │
     │ 15-30s      │ │Compaction │ │Span Metrics │
     └──────┬──────┘ └─────┬─────┘ └──────┬──────┘
            │              │              │
-           └──────────────┼──────────────┘
+           │ Remote Write │              │
+           ↓              │              │
+    ┌──────────────┐     │              │
+    │    Mimir     │     │              │
+    │   :9009      │←────┘              │
+    │              │                    │
+    │ Long-term    │                    │
+    │ Storage      │                    │
+    │ 30d Retention│                    │
+    └──────┬───────┘                    │
+           │                            │
+           └────────────────────────────┘
                           │
                    ┌──────▼──────┐
                    │   Grafana   │
                    │    :3000    │
                    │             │
                    │ 7 Dashboards│
-                   │ 3 Datasources│
+                   │ 4 Datasources│ (Prometheus, Mimir, Loki, Tempo)
                    └─────────────┘
                    │
                    ├─ Executive Overview (10 panels, 30s refresh)
