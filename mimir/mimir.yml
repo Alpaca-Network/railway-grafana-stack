@@ -79,10 +79,12 @@ memberlist:
   join_members:
     - mimir:7946
 
-# Ruler configuration (for recording rules and alerts)
-ruler:
-  enable_api: true
-  alertmanager_url: http://alertmanager:9093
+# Ruler configuration (disabled for now to avoid directory requirements)
+# Enable this only if you need recording rules or alerting
+# ruler:
+#   enable_api: true
+#   rule_path: /data/mimir/rules
+#   alertmanager_url: http://alertmanager:9093
 
 # Activity tracker (helps with debugging stale metrics)
 activity_tracker:
