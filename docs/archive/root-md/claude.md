@@ -69,6 +69,19 @@ This project is the **GatewayZ AI Backend Observability Stack** - a production-r
 - All 17 panels verified with real backend endpoints
 - 30-second auto-refresh for real-time monitoring
 
+### Phase 6: ✅ COMPLETED - Percentile Metrics Accuracy Fix
+- **Commit:** `102ca5bf` - Fix percentile metric calculations (January 19, 2026)
+- **Problem:** P50 > P95 anomaly in Four Golden Signals dashboard SIGNAL 1
+- **Root Cause:** Naive array indexing `int((p/100.0) * n)` instead of linear interpolation
+- **Solution:** Implemented statistically correct percentile calculation with interpolation
+- **Changes:**
+  - ✅ Updated `RealtimeStatsResponse` model to include p50/p95/p99 fields
+  - ✅ Added system-wide percentile aggregation in `/api/monitoring/stats/realtime`
+  - ✅ Fixed percentile calculation in `redis_metrics.py` (linear interpolation)
+  - ✅ Enhanced Prometheus histogram buckets: added 0.75s, 1.5s, 10s
+- **Impact:** Guarantees P50 ≤ P95 ≤ P99 mathematically (eliminates impossible anomaly)
+- **Documentation:** See `PERCENTILE_METRICS_FIX.md` for full details
+
 ---
 
 ## 📊 Dashboards (7 Production-Ready)
