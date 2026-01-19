@@ -60,6 +60,16 @@ services:
           cpus: '0.25'
           memory: 256M
 
+  # Init container to write bearer token to file for Prometheus
+  prometheus-init:
+    image: busybox:latest
+    volumes:
+      - prometheus_secrets:/etc/prometheus/secrets
+    environment:
+      - STAGING_BEARER_TOKEN=${STAGING_BEARER_TOKEN:-}
+    command: ["sh", "-c", "echo -n \"$STAGING_BEARER_TOKEN\" > /etc/prometheus/secrets/staging_bearer_token && chmod 644 /etc/prometheus/secrets/staging_bearer_token"]
+    restart: "no"
+
   prometheus:
     build:
       context: ./prometheus
@@ -71,16 +81,7 @@ services:
       - "9090:9090"
     volumes:
       - prometheus_data:/prometheus
-    environment:
-      - STAGING_BEARER_TOKEN=${STAGING_BEARER_TOKEN:-}
-    # Write bearer token to file before starting Prometheus
-    command:
-      - /bin/sh
-      - -c
-      - |
-        mkdir -p /etc/prometheus/secrets
-        echo -n "$$STAGING_BEARER_TOKEN" > /etc/prometheus/secrets/staging_bearer_token
-        exec /bin/prometheus --config.file=/etc/prometheus/prom.yml --storage.tsdb.path=/prometheus
+      - prometheus_secrets:/etc/prometheus/secrets
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
@@ -96,8 +97,12 @@ services:
       timeout: 5s
       retries: 5
     depends_on:
-      - alertmanager
-      - mimir
+      prometheus-init:
+        condition: service_completed_successfully
+      alertmanager:
+        condition: service_started
+      mimir:
+        condition: service_started
     deploy:
       resources:
         limits:
@@ -177,6 +182,14 @@ services:
           cpus: '0.10'
           memory: 128M
 
+  # Init container to set up Tempo volume permissions
+  tempo-init:
+    image: busybox:latest
+    volumes:
+      - tempo_data:/var/tempo
+    command: ["sh", "-c", "mkdir -p /var/tempo/traces /var/tempo/wal /var/tempo/generator/wal && chmod -R 0777 /var/tempo"]
+    restart: "no"
+
   tempo:
     build:
       context: ./tempo
@@ -190,6 +203,9 @@ services:
     volumes:
       - tempo_data:/var/tempo
     restart: unless-stopped
+    depends_on:
+      tempo-init:
+        condition: service_completed_successfully
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -253,10 +269,10 @@ services:
       context: ./json-api-proxy
       dockerfile: Dockerfile
     ports:
-      - "5000:5000"
+      - "5050:5050"  # Changed from 5000 to avoid macOS AirPlay conflict
     environment:
       API_BASE_URL: ${API_BASE_URL:-https://api.gatewayz.ai}
-      PORT: 5000
+      PORT: 5050
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
@@ -266,7 +282,7 @@ services:
     tmpfs:
       - /tmp
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:5000/"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:5050/"]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -335,6 +351,7 @@ services:
 
 volumes:
   prometheus_data:
+  prometheus_secrets:
   alertmanager_data:
   loki_data:
   grafana_data:
