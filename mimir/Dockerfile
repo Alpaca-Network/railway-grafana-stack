@@ -4,8 +4,8 @@ FROM grafana/mimir:2.11.0
 COPY mimir.yml /etc/mimir/mimir.yml
 COPY mimir-railway.yml /etc/mimir/mimir-railway.yml
 
-# Create all required data directories
-# Note: Mimir base image uses UID/GID 10001:10001, not named user
+# Create all required data directories with open permissions
+# Run as root for Railway volume compatibility (like prometheus, loki)
 USER root
 RUN mkdir -p \
     /data/mimir/blocks \
@@ -13,11 +13,9 @@ RUN mkdir -p \
     /data/mimir/bucket-sync \
     /data/mimir/compactor \
     /data/mimir/rules \
-    && chown -R 10001:10001 /data/mimir \
-    && chmod -R 755 /data/mimir
+    && chmod -R 0777 /data/mimir
 
-# Switch back to mimir user (UID 10001)
-USER 10001
+# Stay as root for volume mount compatibility
 
 # Set working directory
 WORKDIR /data/mimir
