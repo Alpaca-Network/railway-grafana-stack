@@ -30,12 +30,13 @@ scrape_configs:
   # MERGED: Combined gatewayz_api and fastapi_backend (were duplicates)
   # Production GatewayZ Backend API
   - job_name: 'gatewayz_production'
-    scheme: https
+    scheme: http
     metrics_path: '/metrics'
     static_configs:
-      - targets: ['api.gatewayz.ai']
+      - targets: ['FASTAPI_TARGET']
     scrape_interval: 15s
     scrape_timeout: 10s
+    bearer_token_file: '/etc/prometheus/secrets/production_bearer_token'
     metric_relabel_configs:
       - source_labels: []
         target_label: env
@@ -86,12 +87,13 @@ scrape_configs:
   # GatewayZ Prometheus Data Metrics (Provider health, circuit breakers, etc.)
   # This scrapes /prometheus/data/metrics for Grafana alerting
   - job_name: 'gatewayz_data_metrics_production'
-    scheme: https
+    scheme: http
     metrics_path: '/prometheus/data/metrics'
     static_configs:
-      - targets: ['api.gatewayz.ai']
+      - targets: ['FASTAPI_TARGET']
     scrape_interval: 30s
     scrape_timeout: 15s
+    bearer_token_file: '/etc/prometheus/secrets/production_bearer_token'
     metric_relabel_configs:
       - source_labels: []
         target_label: env
