@@ -44,9 +44,9 @@
       "includeVars": true,
       "tags": [],
       "targetBlank": true,
-      "title": "Backend Health",
+      "title": "Backend Services",
       "type": "link",
-      "url": "d/backend-health-v1"
+      "url": "d/backend-services-v1"
     }
   ],
   "liveNow": true,
@@ -69,7 +69,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "# GatewayZ Logs - Loki\nReal-time log visibility for GatewayZ backend services. Use the filters above to track API requests, errors, and system events. **Logs stored in Loki | Metrics from Prometheus/Mimir**",
+        "content": "# GatewayZ Logs - Loki\nReal-time log visibility for GatewayZ backend services. Use the filters above to track API requests, errors, and system events.",
         "mode": "markdown"
       },
       "pluginVersion": "11.5.2",
@@ -83,444 +83,9 @@
         "x": 0,
         "y": 2
       },
-      "id": 2,
-      "panels": [],
-      "title": "Overview Metrics (Prometheus/Mimir)",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_mimir"
-      },
-      "description": "Total HTTP requests in the selected time range",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 0,
-        "y": 3
-      },
-      "id": 3,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["sum"],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_mimir"
-          },
-          "editorMode": "code",
-          "expr": "sum(increase(http_requests_total{env=~\"$environment\"}[$__range]))",
-          "legendFormat": "Total Requests",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Total Requests",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_mimir"
-      },
-      "description": "Current request rate per second",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 100
-              },
-              {
-                "color": "orange",
-                "value": 500
-              }
-            ]
-          },
-          "unit": "reqps"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 4,
-        "y": 3
-      },
-      "id": 4,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_mimir"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(http_requests_total{env=~\"$environment\"}[5m]))",
-          "legendFormat": "Request Rate",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Request Rate",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_mimir"
-      },
-      "description": "Percentage of requests resulting in errors (4xx/5xx)",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 1
-              },
-              {
-                "color": "orange",
-                "value": 5
-              },
-              {
-                "color": "red",
-                "value": 10
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 8,
-        "y": 3
-      },
-      "id": 5,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_mimir"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(http_requests_total{env=~\"$environment\", status_code=~\"4..|5..\"}[5m])) / sum(rate(http_requests_total{env=~\"$environment\"}[5m])) * 100",
-          "legendFormat": "Error Rate",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Error Rate %",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_mimir"
-      },
-      "description": "Average response latency (P50)",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 200
-              },
-              {
-                "color": "orange",
-                "value": 500
-              },
-              {
-                "color": "red",
-                "value": 1000
-              }
-            ]
-          },
-          "unit": "ms"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 12,
-        "y": 3
-      },
-      "id": 6,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_mimir"
-          },
-          "editorMode": "code",
-          "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{env=~\"$environment\"}[5m])) by (le)) * 1000",
-          "legendFormat": "P50 Latency",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Avg Latency (P50)",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_mimir"
-      },
-      "description": "95th percentile response latency",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 500
-              },
-              {
-                "color": "orange",
-                "value": 1000
-              },
-              {
-                "color": "red",
-                "value": 2000
-              }
-            ]
-          },
-          "unit": "ms"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 16,
-        "y": 3
-      },
-      "id": 7,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_mimir"
-          },
-          "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{env=~\"$environment\"}[5m])) by (le)) * 1000",
-          "legendFormat": "P95 Latency",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "P95 Latency",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_mimir"
-      },
-      "description": "Number of active services reporting metrics",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 20,
-        "y": 3
-      },
-      "id": 8,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_mimir"
-          },
-          "editorMode": "code",
-          "expr": "count(count by (job) (up{env=~\"$environment\"}))",
-          "legendFormat": "Active Services",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Active Services",
-      "type": "stat"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 7
-      },
       "id": 9,
       "panels": [],
-      "title": "Log Volume & Distribution (Loki)",
+      "title": "Log Volume & Distribution",
       "type": "row"
     },
     {
@@ -646,7 +211,7 @@
         "h": 6,
         "w": 16,
         "x": 0,
-        "y": 8
+        "y": 3
       },
       "id": 10,
       "options": {
@@ -765,7 +330,7 @@
         "h": 6,
         "w": 8,
         "x": 16,
-        "y": 8
+        "y": 3
       },
       "id": 11,
       "options": {
@@ -810,11 +375,11 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 9
       },
       "id": 12,
       "panels": [],
-      "title": "Live Log Stream (Loki)",
+      "title": "Live Log Stream",
       "type": "row"
     },
     {
@@ -827,7 +392,7 @@
         "h": 14,
         "w": 24,
         "x": 0,
-        "y": 15
+        "y": 10
       },
       "id": 13,
       "options": {
@@ -864,7 +429,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 29
+        "y": 24
       },
       "id": 14,
       "panels": [
@@ -878,7 +443,7 @@
             "h": 12,
             "w": 24,
             "x": 0,
-            "y": 30
+            "y": 25
           },
           "id": 15,
           "options": {
@@ -972,7 +537,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 42
+            "y": 37
           },
           "id": 16,
           "options": {
@@ -1014,7 +579,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 30
+        "y": 25
       },
       "id": 17,
       "panels": [
@@ -1028,7 +593,7 @@
             "h": 12,
             "w": 24,
             "x": 0,
-            "y": 31
+            "y": 26
           },
           "id": 18,
           "options": {
@@ -1109,7 +674,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 43
+            "y": 38
           },
           "id": 19,
           "options": {
@@ -1237,7 +802,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 43
+            "y": 38
           },
           "id": 20,
           "options": {
@@ -1286,7 +851,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 31
+        "y": 26
       },
       "id": 21,
       "panels": [
@@ -1300,7 +865,7 @@
             "h": 12,
             "w": 24,
             "x": 0,
-            "y": 32
+            "y": 27
           },
           "id": 22,
           "options": {
@@ -1341,7 +906,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 44
+            "y": 39
           },
           "id": 23,
           "options": {
@@ -1382,7 +947,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 44
+            "y": 39
           },
           "id": 24,
           "options": {
@@ -1423,7 +988,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 32
+        "y": 27
       },
       "id": 25,
       "panels": [
@@ -1437,7 +1002,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 33
+            "y": 28
           },
           "id": 26,
           "options": {
@@ -1478,7 +1043,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 33
+            "y": 28
           },
           "id": 27,
           "options": {
@@ -1676,6 +1241,6 @@
   "timezone": "browser",
   "title": "GatewayZ Logs - Loki",
   "uid": "gatewayz-logs-loki-v1",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }

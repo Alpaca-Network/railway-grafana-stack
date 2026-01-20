@@ -163,3 +163,132 @@ groups:
           summary: "Provider {{ $labels.provider }} health score critically low"
           description: "Provider {{ $labels.provider }} health score is {{ $value | humanize }}%, below critical threshold of 20%. This provider is experiencing major issues."
           dashboard: "http://localhost:3000/d/gateway-comparison-v1/gateway-comparison"
+
+  - name: redis_alerts
+    interval: 30s
+    rules:
+      # Redis Connection Status
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: redis
+        annotations:
+          summary: "Redis is down"
+          description: "Redis instance is not responding. Cache functionality is unavailable. Immediate investigation required."
+          dashboard: "http://localhost:3000/d/backend-services-v1/backend-services"
+
+      # Redis Memory Usage
+      - alert: RedisHighMemoryUsage
+        expr: (redis_memory_used_bytes / redis_memory_max_bytes) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: redis
+        annotations:
+          summary: "Redis memory usage high"
+          description: "Redis memory usage is {{ $value | humanize }}%, exceeding 80% threshold. Consider clearing cache or increasing memory allocation."
+          dashboard: "http://localhost:3000/d/backend-services-v1/backend-services"
+
+      - alert: RedisCriticalMemoryUsage
+        expr: (redis_memory_used_bytes / redis_memory_max_bytes) * 100 > 90
+        for: 2m
+        labels:
+          severity: critical
+          component: redis
+        annotations:
+          summary: "Redis memory usage critical"
+          description: "Redis memory usage is {{ $value | humanize }}%, exceeding 90% threshold. Immediate action required to prevent cache eviction."
+          dashboard: "http://localhost:3000/d/backend-services-v1/backend-services"
+
+      # Redis Cache Hit Rate
+      - alert: LowCacheHitRate
+        expr: (redis_keyspace_hits_total / (redis_keyspace_hits_total + redis_keyspace_misses_total)) * 100 < 50
+        for: 10m
+        labels:
+          severity: warning
+          component: redis
+        annotations:
+          summary: "Low Redis cache hit rate"
+          description: "Redis cache hit rate is {{ $value | humanize }}%, below 50% threshold. This may indicate cache invalidation issues or cold cache."
+          dashboard: "http://localhost:3000/d/backend-services-v1/backend-services"
+
+      # Redis Connected Clients
+      - alert: RedisHighConnectionCount
+        expr: redis_connected_clients > 100
+        for: 5m
+        labels:
+          severity: warning
+          component: redis
+        annotations:
+          summary: "High Redis connection count"
+          description: "Redis has {{ $value }} connected clients, exceeding 100 threshold. This may indicate connection leaks."
+          dashboard: "http://localhost:3000/d/backend-services-v1/backend-services"
+
+      # Redis Slow Operations
+      - alert: RedisSlowCommands
+        expr: rate(redis_commands_processed_total[5m]) < 10
+        for: 5m
+        labels:
+          severity: warning
+          component: redis
+        annotations:
+          summary: "Redis command processing slow"
+          description: "Redis is processing {{ $value | humanize }} commands/sec, below normal threshold. This may indicate performance issues."
+          dashboard: "http://localhost:3000/d/backend-services-v1/backend-services"
+
+  - name: infrastructure_alerts
+    interval: 1m
+    rules:
+      # Prometheus Target Down
+      - alert: PrometheusTargetDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: infrastructure
+        annotations:
+          summary: "Prometheus target down: {{ $labels.job }}"
+          description: "Prometheus cannot scrape {{ $labels.job }} target. Metrics collection is interrupted."
+
+      # High Request Rate Spike
+      - alert: TrafficSpike
+        expr: sum(rate(http_requests_total[5m])) > (sum(rate(http_requests_total[5m] offset 1h)) * 2)
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "Traffic spike detected"
+          description: "Current request rate is more than 2x the rate from 1 hour ago. This may indicate a traffic surge or potential attack."
+          dashboard: "http://localhost:3000/d/executive-overview-v1/executive-overview"
+
+      # SLO Breach - Availability
+      - alert: SLOAvailabilityBreach
+        expr: |
+          (
+            sum(rate(http_requests_total{status_code=~"2.."}[1h]))
+            /
+            sum(rate(http_requests_total[1h]))
+          ) * 100 < 99.5
+        for: 10m
+        labels:
+          severity: critical
+          component: slo
+        annotations:
+          summary: "SLO Availability breach"
+          description: "Availability SLO is at {{ $value | humanize }}%, below 99.5% target. Error budget is being consumed."
+          dashboard: "http://localhost:3000/d/executive-overview-v1/executive-overview"
+
+      # SLO Breach - Latency
+      - alert: SLOLatencyBreach
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[1h])) by (le)) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+          component: slo
+        annotations:
+          summary: "SLO Latency breach"
+          description: "P95 latency is {{ $value }}s, exceeding 500ms target. Response times are degraded."
+          dashboard: "http://localhost:3000/d/executive-overview-v1/executive-overview"

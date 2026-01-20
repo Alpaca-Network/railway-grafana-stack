@@ -18,8 +18,6 @@ COPY provisioning/dashboards/dashboards.yml /etc/grafana/provisioning/dashboards
 COPY dashboards/backend /etc/grafana/provisioning/dashboards/backend
 COPY dashboards/executive /etc/grafana/provisioning/dashboards/executive
 COPY dashboards/gateway /etc/grafana/provisioning/dashboards/gateway
-COPY dashboards/logs /etc/grafana/provisioning/dashboards/logs
-COPY dashboards/models /etc/grafana/provisioning/dashboards/models
 
 # copy service-specific dashboards from new architecture
 # NOTE: This Dockerfile is built with context `./grafana` in Railway.

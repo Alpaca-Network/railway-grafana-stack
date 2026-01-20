@@ -1,0 +1,248 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: redis_alerts
+    folder: Redis Alerts
+    interval: 30s
+    rules:
+      # Alert: Redis Down
+      - uid: redis_down
+        title: Redis Down
+        condition: C
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          description: 'Redis instance is not responding. Cache functionality is unavailable. Immediate investigation required.'
+          summary: 'Redis is down'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/redis-down'
+          dashboard: 'http://localhost:3000/d/backend-services-v1/backend-services'
+        labels:
+          severity: critical
+          category: infrastructure
+          component: redis
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: 'redis_up == 0'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Redis Status'
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              refId: C
+              type: classic_conditions
+
+      # Alert: Redis High Memory Usage
+      - uid: redis_high_memory
+        title: Redis High Memory Usage
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Redis memory usage is {{ $value }}%, exceeding 80% threshold. Consider clearing cache or increasing memory allocation.'
+          summary: 'Redis memory usage high'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/redis-memory'
+          dashboard: 'http://localhost:3000/d/backend-services-v1/backend-services'
+        labels:
+          severity: warning
+          category: infrastructure
+          component: redis
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: '(redis_memory_used_bytes / redis_memory_max_bytes) * 100 > 80'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Memory Usage %'
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              refId: C
+              type: classic_conditions
+
+      # Alert: Redis Critical Memory Usage
+      - uid: redis_critical_memory
+        title: Redis Critical Memory Usage
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 2m
+        annotations:
+          description: 'Redis memory usage is {{ $value }}%, exceeding 90% threshold. Immediate action required to prevent cache eviction.'
+          summary: 'Redis memory usage critical'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/redis-memory-critical'
+          dashboard: 'http://localhost:3000/d/backend-services-v1/backend-services'
+        labels:
+          severity: critical
+          category: infrastructure
+          component: redis
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: '(redis_memory_used_bytes / redis_memory_max_bytes) * 100 > 90'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Memory Usage %'
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              refId: C
+              type: classic_conditions
+
+      # Alert: Low Cache Hit Rate
+      - uid: redis_low_hit_rate
+        title: Low Cache Hit Rate
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 10m
+        annotations:
+          description: 'Redis cache hit rate is {{ $value }}%, below 50% threshold. This may indicate cache invalidation issues or cold cache.'
+          summary: 'Low Redis cache hit rate'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/redis-hit-rate'
+          dashboard: 'http://localhost:3000/d/backend-services-v1/backend-services'
+        labels:
+          severity: warning
+          category: performance
+          component: redis
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: '(redis_keyspace_hits_total / (redis_keyspace_hits_total + redis_keyspace_misses_total)) * 100 < 50'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Cache Hit Rate %'
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              refId: C
+              type: classic_conditions
+
+      # Alert: High Redis Connection Count
+      - uid: redis_high_connections
+        title: High Redis Connection Count
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Redis has {{ $value }} connected clients, exceeding 100 threshold. This may indicate connection leaks.'
+          summary: 'High Redis connection count'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/redis-connections'
+          dashboard: 'http://localhost:3000/d/backend-services-v1/backend-services'
+        labels:
+          severity: warning
+          category: infrastructure
+          component: redis
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: 'redis_connected_clients > 100'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Connected Clients'
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              refId: C
+              type: classic_conditions
+    provenance: Grafana

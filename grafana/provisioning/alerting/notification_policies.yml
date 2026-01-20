@@ -72,6 +72,36 @@ notificationPolicies:
           groupWait: 5m
           muteTimeIntervals: []
 
+        # Redis alerts - high priority cache issues
+        - receiver: critical-email
+          groupByStr:
+            - alertname
+            - component
+          matchers:
+            - name: component
+              value: redis
+              matchType: '='
+            - name: severity
+              value: critical
+              matchType: '='
+          repeatInterval: 15m
+          groupInterval: 2m
+          groupWait: 0s
+          muteTimeIntervals: []
+
+        - receiver: ops-email
+          groupByStr:
+            - alertname
+            - component
+          matchers:
+            - name: component
+              value: redis
+              matchType: '='
+          repeatInterval: 30m
+          groupInterval: 5m
+          groupWait: 2m
+          muteTimeIntervals: []
+
         # Backend alerts - group for 5 minutes
         - receiver: ops-email
           groupByStr:
@@ -84,6 +114,23 @@ notificationPolicies:
           repeatInterval: 30m
           groupInterval: 5m
           groupWait: 5m
+          muteTimeIntervals: []
+
+        # Infrastructure alerts - Prometheus targets
+        - receiver: critical-email
+          groupByStr:
+            - alertname
+            - job
+          matchers:
+            - name: component
+              value: infrastructure
+              matchType: '='
+            - name: severity
+              value: critical
+              matchType: '='
+          repeatInterval: 15m
+          groupInterval: 2m
+          groupWait: 0s
           muteTimeIntervals: []
 
         # General alerts - group for 10 minutes
