@@ -3,7 +3,10 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": "-- Grafana --",
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -12,9 +15,10 @@
       }
     ]
   },
+  "description": "Deep dive into Redis cache performance and API metrics - detailed time-series analysis",
   "editable": true,
-  "gnetId": null,
-  "graphTooltip": 0,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
   "id": null,
   "links": [
     {
@@ -25,113 +29,108 @@
       "targetBlank": false,
       "title": "Other Dashboards",
       "type": "dashboards"
+    },
+    {
+      "icon": "external link",
+      "includeVars": true,
+      "tags": [],
+      "targetBlank": true,
+      "title": "Backend Health",
+      "type": "link",
+      "url": "d/backend-health-v1"
+    },
+    {
+      "icon": "external link",
+      "includeVars": true,
+      "tags": [],
+      "targetBlank": true,
+      "title": "Executive Overview",
+      "type": "link",
+      "url": "d/executive-overview-v1"
     }
   ],
+  "liveNow": false,
   "panels": [
     {
-      "datasource": null,
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Grafana --"
       },
       "gridPos": {
-        "h": 3,
+        "h": 2,
         "w": 24,
         "x": 0,
         "y": 0
       },
       "id": 1,
       "options": {
-        "content": "# 💾 Redis & Backend Services\n\n**Real-time Redis cache monitoring and backend API performance tracking** - Monitor cache efficiency, memory usage, API request rates, latency, and error rates.\n\n🔗 [Executive Overview](d/executive-overview-v1) | [Backend Health](d/backend-health-v1) | [Model Performance](d/model-performance-v1)",
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "# Redis & API Performance\nDetailed time-series analysis of Redis cache efficiency and API response metrics. For quick health status, see [Backend Health Overview](d/backend-health-v1).",
         "mode": "markdown"
       },
-      "pluginVersion": "8.0.0",
-      "targets": [],
-      "title": "Header",
+      "pluginVersion": "11.5.2",
       "type": "text"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "color": "red",
-                  "index": 0,
-                  "text": "🔴 DOWN"
-                },
-                "1": {
-                  "color": "green",
-                  "index": 1,
-                  "text": "✅ UP"
-                }
-              },
-              "type": "value"
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
+      "collapsed": false,
       "gridPos": {
-        "h": 4,
-        "w": 6,
+        "h": 1,
+        "w": 24,
         "x": 0,
-        "y": 3
+        "y": 2
       },
-      "id": 2,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value"
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "expr": "redis_up{service=\"gatewayz-api\"}",
-          "refId": "A"
-        }
-      ],
-      "title": "💾 Redis Status",
-      "type": "stat"
+      "id": 20,
+      "panels": [],
+      "title": "Redis Cache Performance",
+      "type": "row"
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "grafana_prometheus"
       },
+      "description": "Redis cache hit/miss ratio over time - Higher is better",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Hit Rate %",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "line"
+            }
           },
           "mappings": [],
           "max": 100,
@@ -158,178 +157,69 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 6,
+        "h": 8,
+        "w": 12,
+        "x": 0,
         "y": 3
       },
-      "id": 3,
+      "id": 2,
       "options": {
-        "orientation": "auto",
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "text": {}
+        "legend": {
+          "calcs": ["mean", "min", "max", "last"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
       },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.5.2",
       "targets": [
         {
-          "expr": "(redis_keyspace_hits_total{service=\"gatewayz-api\"} / (redis_keyspace_hits_total{service=\"gatewayz-api\"} + redis_keyspace_misses_total{service=\"gatewayz-api\"})) * 100",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "editorMode": "code",
+          "expr": "(rate(redis_keyspace_hits_total[5m]) / (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]))) * 100",
+          "legendFormat": "Cache Hit Rate",
+          "range": true,
           "refId": "A"
         }
       ],
-      "title": "🎯 Cache Hit Rate",
-      "type": "gauge"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 100
-              },
-              {
-                "color": "yellow",
-                "value": 1000
-              },
-              {
-                "color": "orange",
-                "value": 5000
-              }
-            ]
-          },
-          "unit": "ops"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 12,
-        "y": 3
-      },
-      "id": 4,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value_and_name"
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
-          "jsonPath": "total_requests"
-        }
-      ],
-      "title": "📊 Total Requests (1h)",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 95
-              },
-              {
-                "color": "green",
-                "value": 99
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 18,
-        "y": 3
-      },
-      "id": 5,
-      "options": {
-        "orientation": "auto",
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "text": {}
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
-          "jsonPath": "success_rate"
-        }
-      ],
-      "title": "✅ API Success Rate",
-      "type": "gauge"
+      "title": "Cache Hit Rate Trend",
+      "type": "timeseries"
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "grafana_prometheus"
       },
+      "description": "Redis commands processed per second - Commands, Hits, Misses breakdown",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "Operations/sec",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 20,
             "gradientMode": "opacity",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
@@ -365,10 +255,6 @@
               "options": "Commands/sec"
             },
             "properties": [
-            {
-              "id": "displayName",
-              "value": "Commands/sec"
-            },
               {
                 "id": "color",
                 "value": {
@@ -384,10 +270,6 @@
               "options": "Hits/sec"
             },
             "properties": [
-            {
-              "id": "displayName",
-              "value": "Hits/sec"
-            },
               {
                 "id": "color",
                 "value": {
@@ -403,10 +285,6 @@
               "options": "Misses/sec"
             },
             "properties": [
-            {
-              "id": "displayName",
-              "value": "Misses/sec"
-            },
               {
                 "id": "color",
                 "value": {
@@ -421,10 +299,10 @@
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 0,
-        "y": 7
+        "x": 12,
+        "y": 3
       },
-      "id": 6,
+      "id": 3,
       "options": {
         "legend": {
           "calcs": ["mean", "max", "last"],
@@ -433,54 +311,90 @@
           "showLegend": true
         },
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         }
       },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.5.2",
       "targets": [
         {
-          "expr": "rate(redis_commands_processed_total{service=\"gatewayz-api\"}[5m])",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "editorMode": "code",
+          "expr": "rate(redis_commands_processed_total[5m])",
           "legendFormat": "Commands/sec",
+          "range": true,
           "refId": "A"
         },
         {
-          "expr": "rate(redis_keyspace_hits_total{service=\"gatewayz-api\"}[5m])",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "editorMode": "code",
+          "expr": "rate(redis_keyspace_hits_total[5m])",
           "legendFormat": "Hits/sec",
+          "range": true,
           "refId": "B"
         },
         {
-          "expr": "rate(redis_keyspace_misses_total{service=\"gatewayz-api\"}[5m])",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "editorMode": "code",
+          "expr": "rate(redis_keyspace_misses_total[5m])",
           "legendFormat": "Misses/sec",
+          "range": true,
           "refId": "C"
         }
       ],
-      "title": "📈 Redis Operations Rate",
+      "title": "Redis Operations Rate",
       "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 11
+      },
+      "id": 21,
+      "panels": [],
+      "title": "Redis Resources",
+      "type": "row"
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "grafana_prometheus"
       },
+      "description": "Redis memory consumption - Used vs Maximum allocated",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "Memory (MB)",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 20,
             "gradientMode": "opacity",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
@@ -509,15 +423,53 @@
           },
           "unit": "mbytes"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Used Memory"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Max Memory"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [10, 10],
+                  "fill": "dash"
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 12,
-        "x": 12,
-        "y": 7
+        "x": 0,
+        "y": 12
       },
-      "id": 7,
+      "id": 4,
       "options": {
         "legend": {
           "calcs": ["mean", "max", "last"],
@@ -526,49 +478,183 @@
           "showLegend": true
         },
         "tooltip": {
-          "mode": "single"
+          "mode": "multi",
+          "sort": "desc"
         }
       },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.5.2",
       "targets": [
         {
-          "expr": "redis_memory_used_bytes{service=\"gatewayz-api\"} / 1024 / 1024",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "editorMode": "code",
+          "expr": "redis_memory_used_bytes / 1024 / 1024",
           "legendFormat": "Used Memory",
+          "range": true,
           "refId": "A"
         },
         {
-          "expr": "redis_memory_max_bytes{service=\"gatewayz-api\"} / 1024 / 1024",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "editorMode": "code",
+          "expr": "redis_memory_max_bytes / 1024 / 1024",
           "legendFormat": "Max Memory",
+          "range": true,
           "refId": "B"
         }
       ],
-      "title": "💾 Redis Memory Usage",
+      "title": "Redis Memory Usage",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
+      },
+      "description": "Number of active client connections to Redis",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "purple",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Connections",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 12
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max", "last"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "editorMode": "code",
+          "expr": "redis_connected_clients",
+          "legendFormat": "Connected Clients",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Redis Connected Clients",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 19
+      },
+      "id": 22,
+      "panels": [],
+      "title": "API Performance",
+      "type": "row"
     },
     {
       "datasource": {
         "type": "datasource",
         "uid": "-- Grafana --"
       },
+      "description": "API request throughput over time",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "fixedColor": "blue",
+            "mode": "fixed"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "Requests/sec",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 20,
             "gradientMode": "opacity",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
@@ -595,29 +681,30 @@
               }
             ]
           },
-          "unit": "ops"
+          "unit": "reqps"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 24,
         "x": 0,
-        "y": 15
+        "y": 20
       },
-      "id": 8,
+      "id": 6,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": ["mean", "max", "last"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
-          "mode": "multi"
+          "mode": "single",
+          "sort": "none"
         }
       },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.5.2",
       "targets": [
         {
           "refId": "A",
@@ -625,7 +712,7 @@
           "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=24"
         }
       ],
-      "title": "📊 API Request Rate (24h)",
+      "title": "API Request Rate (24h)",
       "type": "timeseries"
     },
     {
@@ -633,25 +720,29 @@
         "type": "datasource",
         "uid": "-- Grafana --"
       },
+      "description": "API response latency distribution - P50, P95, P99 percentiles",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "Latency (ms)",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 20,
             "gradientMode": "opacity",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
@@ -678,7 +769,7 @@
               },
               {
                 "color": "yellow",
-                "value": 100
+                "value": 200
               },
               {
                 "color": "red",
@@ -691,24 +782,25 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 27
       },
-      "id": 9,
+      "id": 7,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": ["mean", "max", "last"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         }
       },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.5.2",
       "targets": [
         {
           "refId": "A",
@@ -716,105 +808,13 @@
           "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=24"
         }
       ],
-      "title": "⏱️ API Latency Trend (24h)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "Error Rate %",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 20,
-            "gradientMode": "opacity",
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            },
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "line"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 1
-              },
-              {
-                "color": "red",
-                "value": 5
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 31
-      },
-      "id": 11,
-      "options": {
-        "legend": {
-          "calcs": ["mean", "max"],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/error-rates?hours=24"
-        }
-      ],
-      "title": "🔴 Error Rate Trend (24h)",
+      "title": "API Latency Trend (24h)",
       "type": "timeseries"
     }
   ],
   "refresh": "10s",
-  "schemaVersion": 36,
-  "style": "dark",
-  "tags": ["gatewayz", "redis", "backend", "services"],
+  "schemaVersion": 39,
+  "tags": ["gatewayz", "redis", "api", "performance"],
   "templating": {
     "list": [
       {
@@ -823,37 +823,35 @@
           "text": "https://api.gatewayz.ai",
           "value": "https://api.gatewayz.ai"
         },
-        "datasource": null,
-        "definition": "",
-        "description": null,
-        "error": null,
-        "errorOnNew": false,
+        "description": "Base URL for the GatewayZ API",
         "hide": 0,
         "includeAll": false,
         "label": "API Base URL",
         "multi": false,
         "name": "API_BASE_URL",
-        "options": [],
+        "options": [
+          {
+            "selected": true,
+            "text": "https://api.gatewayz.ai",
+            "value": "https://api.gatewayz.ai"
+          }
+        ],
         "query": "https://api.gatewayz.ai",
-        "refresh": 1,
-        "regex": "",
         "skipUrlSync": false,
-        "sort": 0,
-        "type": "custom",
-        "value": "https://api.gatewayz.ai"
+        "type": "custom"
       }
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {
-    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h"]
   },
-  "timezone": "",
-  "title": "Redis & Backend Services",
+  "timezone": "browser",
+  "title": "Redis & API Performance",
   "uid": "redis-services-v1",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }

@@ -3,7 +3,10 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": "-- Grafana --",
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -12,18 +15,17 @@
       }
     ]
   },
+  "description": "System health overview - health score, circuit breakers, alerts, and service status",
   "editable": true,
-  "gnetId": null,
-  "graphTooltip": 0,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
   "id": null,
   "links": [
     {
       "asDropdown": true,
       "icon": "doc",
       "includeVars": true,
-      "tags": [
-        "gatewayz"
-      ],
+      "tags": ["gatewayz"],
       "targetBlank": false,
       "title": "Other Dashboards",
       "type": "dashboards"
@@ -33,7 +35,7 @@
       "includeVars": true,
       "tags": [],
       "targetBlank": true,
-      "title": "📊 Executive Overview",
+      "title": "Executive Overview",
       "type": "link",
       "url": "d/executive-overview-v1"
     },
@@ -42,57 +44,74 @@
       "includeVars": true,
       "tags": [],
       "targetBlank": true,
-      "title": "📝 Logs & Diagnostics",
+      "title": "Redis & API Performance",
       "type": "link",
-      "url": "d/logs-monitoring-v1"
+      "url": "d/redis-services-v1"
     },
     {
       "icon": "external link",
       "includeVars": true,
       "tags": [],
       "targetBlank": true,
-      "title": "📊 Model Performance",
+      "title": "Logs (Loki)",
       "type": "link",
-      "url": "d/model-performance-v1"
+      "url": "d/gatewayz-logs-loki-v1"
     },
     {
       "icon": "external link",
       "includeVars": true,
       "tags": [],
       "targetBlank": true,
-      "title": "🔄 Providers (17)",
+      "title": "Providers",
       "type": "link",
       "url": "d/gateway-comparison-v1"
     }
   ],
+  "liveNow": false,
   "panels": [
     {
-      "datasource": null,
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Grafana --"
       },
       "gridPos": {
-        "h": 3,
+        "h": 2,
         "w": 24,
         "x": 0,
         "y": 0
       },
       "id": 1,
       "options": {
-        "content": "# 🏥 Backend Health & Service Status\n\n**Real-time system health monitoring** - Track provider health, circuit breakers, errors, and Redis performance across all services.\n\n🔗 [Executive Overview](d/executive-overview-v1) | [Logs & Diagnostics](d/logs-monitoring-v1) | [Model Performance](d/model-performance-v1) | [Providers](d/gateway-comparison-v1)",
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "# Backend Health Overview\nQuick system health status - Is everything running smoothly? For detailed Redis and API metrics, see [Redis & API Performance](d/redis-services-v1).",
         "mode": "markdown"
       },
-      "pluginVersion": "8.0.0",
-      "targets": [],
-      "title": "Header",
+      "pluginVersion": "11.5.2",
       "type": "text"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 2
+      },
+      "id": 20,
+      "panels": [],
+      "title": "System Status",
+      "type": "row"
     },
     {
       "datasource": {
         "type": "datasource",
         "uid": "-- Grafana --"
       },
+      "description": "Overall system health score (0-100%). Red < 60%, Yellow 60-80%, Green > 80%",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -124,18 +143,25 @@
       },
       "gridPos": {
         "h": 6,
-        "w": 12,
+        "w": 8,
         "x": 0,
         "y": 3
       },
       "id": 2,
       "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
         "orientation": "auto",
-        "showThresholdLabels": false,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": true,
         "showThresholdMarkers": true,
-        "text": {}
+        "sizing": "auto"
       },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.5.2",
       "targets": [
         {
           "refId": "A",
@@ -144,50 +170,15 @@
           "jsonPath": "$.avg_health_score"
         }
       ],
-      "title": "🎯 Overall Health Score",
-      "type": "gauge",
-      "alert": {
-        "alertRuleTags": {},
-        "conditions": [
-          {
-            "evaluator": {
-              "params": [
-                30
-              ],
-              "type": "lt"
-            },
-            "operator": {
-              "type": "and"
-            },
-            "query": {
-              "params": [
-                "A",
-                "5m",
-                "now"
-              ]
-            },
-            "reducer": {
-              "params": [],
-              "type": "last"
-            },
-            "type": "query"
-          }
-        ],
-        "executionErrorState": "alerting",
-        "for": "5m",
-        "frequency": "1m",
-        "handler": 1,
-        "message": "🚨 CRITICAL: System health score has fallen below 30%! Immediate action required.",
-        "name": "Health Score Critical Alert",
-        "noDataState": "no_data",
-        "notifications": []
-      }
+      "title": "Health Score",
+      "type": "gauge"
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "grafana_prometheus"
       },
+      "description": "Redis database connection status",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -199,12 +190,12 @@
                 "0": {
                   "color": "red",
                   "index": 0,
-                  "text": "🔴 DISCONNECTED"
+                  "text": "DISCONNECTED"
                 },
                 "1": {
                   "color": "green",
                   "index": 1,
-                  "text": "✅ CONNECTED"
+                  "text": "CONNECTED"
                 }
               },
               "type": "value"
@@ -228,9 +219,9 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
-        "w": 12,
-        "x": 12,
+        "h": 3,
+        "w": 4,
+        "x": 8,
         "y": 3
       },
       "id": 8,
@@ -240,22 +231,29 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
-        "textMode": "value"
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
       },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.5.2",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "editorMode": "code",
           "expr": "redis_up",
+          "legendFormat": "__auto",
+          "range": true,
           "refId": "A"
         }
       ],
-      "title": "💾 Redis Connection Status",
+      "title": "Redis",
       "type": "stat"
     },
     {
@@ -263,337 +261,7 @@
         "type": "datasource",
         "uid": "-- Grafana --"
       },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "Health Score %",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 9
-      },
-      "id": 5,
-      "options": {
-        "legend": {
-          "calcs": [
-            "mean"
-          ],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "single"
-        },
-        "drawStyle": "line",
-        "fillOpacity": 30,
-        "gradientMode": "opacity"
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=24"
-        }
-      ],
-      "title": "📈 Health Score Trend (24h)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "Error Rate %",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 1
-              },
-              {
-                "color": "red",
-                "value": 5
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 17
-      },
-      "id": 6,
-      "options": {
-        "legend": {
-          "calcs": [
-            "mean"
-          ],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "single"
-        },
-        "drawStyle": "line",
-        "fillOpacity": 30,
-        "gradientMode": "opacity"
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=24"
-        }
-      ],
-      "title": "🔴 Error Rate Trend (24h)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "align": "auto",
-            "displayMode": "color-background",
-            "inspect": false
-          },
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "color": "#31863B",
-                  "index": 0,
-                  "text": "✅ CLOSED"
-                },
-                "1": {
-                  "color": "#E02620",
-                  "index": 1,
-                  "text": "🔴 OPEN"
-                }
-              },
-              "type": "value"
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 25
-      },
-      "id": 3,
-      "options": {
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
-        },
-        "showHeader": true
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/circuit-breakers"
-        }
-      ],
-      "title": "⚡ Circuit Breaker Status (Provider-Level Protection)",
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "align": "auto",
-            "displayMode": "auto",
-            "inspect": false
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "severity"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Severity"
-              },
-              {
-                "id": "custom.displayMode",
-                "value": "color-background"
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 33
-      },
-      "id": 7,
-      "options": {
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
-        },
-        "showHeader": true
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/anomalies"
-        }
-      ],
-      "title": "🚨 Active Alerts & Anomalies (Severity Levels: CRITICAL=Immediate Action, WARNING=Monitor Closely)",
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
+      "description": "API success rate (100% - error rate)",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -606,16 +274,16 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "red",
                 "value": null
               },
               {
                 "color": "yellow",
-                "value": 70
+                "value": 95
               },
               {
-                "color": "red",
-                "value": 90
+                "color": "green",
+                "value": 99
               }
             ]
           },
@@ -624,33 +292,168 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 0,
-        "y": 41
+        "h": 3,
+        "w": 4,
+        "x": 12,
+        "y": 3
       },
-      "id": 9,
+      "id": 21,
       "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
         "orientation": "auto",
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "text": {}
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
       },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.5.2",
       "targets": [
         {
-          "expr": "(redis_memory_used_bytes / redis_memory_max_bytes) * 100",
-          "refId": "A"
+          "refId": "A",
+          "datasource": "JSON API",
+          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
+          "jsonPath": "success_rate"
         }
       ],
-      "title": "💾 Redis Memory Usage",
-      "type": "gauge"
+      "title": "API Success",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Grafana --"
+      },
+      "description": "Total API requests in the last hour",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 4,
+        "x": 16,
+        "y": 3
+      },
+      "id": 22,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "JSON API",
+          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
+          "jsonPath": "total_requests"
+        }
+      ],
+      "title": "Requests (1h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Grafana --"
+      },
+      "description": "Average API latency in milliseconds",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 200
+              },
+              {
+                "color": "red",
+                "value": 500
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 4,
+        "x": 20,
+        "y": 3
+      },
+      "id": 23,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "JSON API",
+          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
+          "jsonPath": "avg_latency_ms"
+        }
+      ],
+      "title": "Avg Latency",
+      "type": "stat"
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "grafana_prometheus"
       },
+      "description": "Redis cache hit rate percentage",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -681,113 +484,122 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 6,
-        "y": 41
+        "h": 3,
+        "w": 4,
+        "x": 8,
+        "y": 6
       },
-      "id": 10,
+      "id": 24,
       "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
         "orientation": "auto",
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "text": {}
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
       },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.5.2",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "editorMode": "code",
           "expr": "(redis_keyspace_hits_total / (redis_keyspace_hits_total + redis_keyspace_misses_total)) * 100",
+          "legendFormat": "__auto",
+          "range": true,
           "refId": "A"
         }
       ],
-      "title": "🎯 Redis Cache Hit Rate",
-      "type": "gauge"
+      "title": "Cache Hit %",
+      "type": "stat"
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "grafana_prometheus"
       },
+      "description": "Redis memory usage percentage",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "Connections",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
+            "mode": "thresholds"
           },
           "mappings": [],
+          "max": 100,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
               }
             ]
           },
-          "unit": "short"
+          "unit": "percent"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 6,
+        "h": 3,
+        "w": 4,
         "x": 12,
-        "y": 41
+        "y": 6
       },
-      "id": 11,
+      "id": 25,
       "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
         },
-        "tooltip": {
-          "mode": "single"
-        }
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
       },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.5.2",
       "targets": [
         {
-          "expr": "redis_connected_clients",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "editorMode": "code",
+          "expr": "(redis_memory_used_bytes / redis_memory_max_bytes) * 100",
+          "legendFormat": "__auto",
+          "range": true,
           "refId": "A"
         }
       ],
-      "title": "🔌 Redis Connected Clients",
-      "type": "timeseries"
+      "title": "Redis Mem %",
+      "type": "stat"
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "grafana_prometheus"
       },
+      "description": "Number of connected Redis clients",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -803,11 +615,11 @@
               },
               {
                 "color": "yellow",
-                "value": 10000
+                "value": 50
               },
               {
-                "color": "orange",
-                "value": 50000
+                "color": "red",
+                "value": 100
               }
             ]
           },
@@ -816,34 +628,41 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 18,
-        "y": 41
+        "h": 3,
+        "w": 4,
+        "x": 16,
+        "y": 6
       },
-      "id": 13,
+      "id": 26,
       "options": {
-        "colorMode": "value",
-        "graphMode": "area",
+        "colorMode": "background",
+        "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
       },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.5.2",
       "targets": [
         {
-          "expr": "sum(redis_db_keys)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "editorMode": "code",
+          "expr": "redis_connected_clients",
+          "legendFormat": "__auto",
+          "range": true,
           "refId": "A"
         }
       ],
-      "title": "🔑 Total Redis Keys",
+      "title": "Clients",
       "type": "stat"
     },
     {
@@ -851,38 +670,401 @@
         "type": "prometheus",
         "uid": "grafana_prometheus"
       },
+      "description": "Total number of keys stored in Redis",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50000
+              },
+              {
+                "color": "orange",
+                "value": 100000
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 4,
+        "x": 20,
+        "y": 6
+      },
+      "id": 27,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(redis_db_keys)",
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Keys",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 9
+      },
+      "id": 30,
+      "panels": [],
+      "title": "Health Trends",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Grafana --"
+      },
+      "description": "System health score over the past 24 hours",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
           },
           "custom": {
-            "axisLabel": "Ops/sec",
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Health Score %",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
             "hideFrom": {
+              "legend": false,
               "tooltip": false,
-              "viz": false,
-              "legend": false
+              "viz": false
             },
-            "lineInterpolation": "linear",
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
             "spanNulls": false,
             "stacking": {
               "group": "A",
               "mode": "none"
             },
             "thresholdsStyle": {
-              "mode": "off"
+              "mode": "line"
             }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 60
+              },
+              {
+                "color": "green",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 10
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "min", "max"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "JSON API",
+          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=24"
+        }
+      ],
+      "title": "Health Score Trend (24h)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Grafana --"
+      },
+      "description": "Error rate percentage over the past 24 hours. Target: < 1%",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "red",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Error Rate %",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 10
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "JSON API",
+          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=24"
+        }
+      ],
+      "title": "Error Rate Trend (24h)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 17
+      },
+      "id": 31,
+      "panels": [],
+      "title": "Protection & Alerts",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Grafana --"
+      },
+      "description": "Circuit breaker status for each AI provider. OPEN = provider temporarily blocked due to failures",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "#31863B",
+                  "index": 0,
+                  "text": "CLOSED"
+                },
+                "1": {
+                  "color": "#E02620",
+                  "index": 1,
+                  "text": "OPEN"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "status"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "basic",
+                  "type": "color-background"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "id": 3,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "JSON API",
+          "url": "${API_BASE_URL}/api/monitoring/circuit-breakers"
+        }
+      ],
+      "title": "Circuit Breaker Status",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Grafana --"
+      },
+      "description": "Active alerts and anomalies detected by the system. CRITICAL = Immediate action required",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
           },
           "mappings": [],
           "thresholds": {
@@ -893,63 +1075,83 @@
                 "value": null
               }
             ]
-          },
-          "unit": "ops"
+          }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "severity"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "basic",
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "CRITICAL": {
+                        "color": "dark-red",
+                        "index": 0,
+                        "text": "CRITICAL"
+                      },
+                      "WARNING": {
+                        "color": "dark-yellow",
+                        "index": 1,
+                        "text": "WARNING"
+                      },
+                      "INFO": {
+                        "color": "blue",
+                        "index": 2,
+                        "text": "INFO"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 45
+        "w": 12,
+        "x": 12,
+        "y": 18
       },
-      "id": 12,
+      "id": 7,
       "options": {
-        "legend": {
-          "calcs": [
-            "mean",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
         },
-        "tooltip": {
-          "mode": "multi"
-        }
+        "showHeader": true
       },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.5.2",
       "targets": [
         {
-          "expr": "rate(redis_commands_processed_total[5m])",
-          "legendFormat": "Commands/sec",
-          "refId": "A"
-        },
-        {
-          "expr": "rate(redis_keyspace_hits_total[5m])",
-          "legendFormat": "Hits/sec",
-          "refId": "B"
-        },
-        {
-          "expr": "rate(redis_keyspace_misses_total[5m])",
-          "legendFormat": "Misses/sec",
-          "refId": "C"
+          "refId": "A",
+          "datasource": "JSON API",
+          "url": "${API_BASE_URL}/api/monitoring/anomalies"
         }
       ],
-      "title": "📊 Redis Operations Rate",
-      "type": "timeseries"
+      "title": "Active Alerts & Anomalies",
+      "type": "table"
     }
   ],
   "refresh": "10s",
-  "schemaVersion": 36,
-  "style": "dark",
-  "tags": [
-    "gatewayz",
-    "backend",
-    "health",
-    "monitoring"
-  ],
+  "schemaVersion": 39,
+  "tags": ["gatewayz", "backend", "health", "monitoring"],
   "templating": {
     "list": [
       {
@@ -958,24 +1160,22 @@
           "text": "https://api.gatewayz.ai",
           "value": "https://api.gatewayz.ai"
         },
-        "datasource": null,
-        "definition": "",
-        "description": null,
-        "error": null,
-        "errorOnNew": false,
+        "description": "Base URL for the GatewayZ API",
         "hide": 0,
         "includeAll": false,
         "label": "API Base URL",
         "multi": false,
         "name": "API_BASE_URL",
-        "options": [],
+        "options": [
+          {
+            "selected": true,
+            "text": "https://api.gatewayz.ai",
+            "value": "https://api.gatewayz.ai"
+          }
+        ],
         "query": "https://api.gatewayz.ai",
-        "refresh": 1,
-        "regex": "",
         "skipUrlSync": false,
-        "sort": 0,
-        "type": "custom",
-        "value": "https://api.gatewayz.ai"
+        "type": "custom"
       }
     ]
   },
@@ -984,22 +1184,11 @@
     "to": "now"
   },
   "timepicker": {
-    "refresh_intervals": [
-      "5s",
-      "10s",
-      "30s",
-      "1m",
-      "5m",
-      "15m",
-      "30m",
-      "1h",
-      "2h",
-      "1d"
-    ]
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h"]
   },
-  "timezone": "",
-  "title": "Backend Health & Service Status",
+  "timezone": "browser",
+  "title": "Backend Health Overview",
   "uid": "backend-health-v1",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }
