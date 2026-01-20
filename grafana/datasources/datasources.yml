@@ -105,3 +105,30 @@ datasources:
     basicAuthUser:
     withCredentials:
     isDefault: false
+
+  # Mimir - Long-term metrics storage (Prometheus-compatible)
+  # Use this datasource for:
+  # - Historical queries (longer than Prometheus retention)
+  # - Consistent query results across page refreshes
+  # - Aggregated metrics from multiple Prometheus instances
+  - name: Mimir
+    type: prometheus
+    access: proxy
+    orgId: 1
+    uid: grafana_mimir
+    url: ${MIMIR_INTERNAL_URL:-http://mimir:9009}/prometheus
+    user:
+    database:
+    basicAuth:
+    basicAuthUser:
+    withCredentials:
+    isDefault: false
+    jsonData:
+      httpMethod: POST
+      manageAlerts: false
+      prometheusType: Mimir
+      prometheusVersion: 2.11.0
+      timeout: 60
+      exemplarTraceIdDestinations:
+        - datasourceUid: grafana_tempo
+          name: traceId
