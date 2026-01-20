@@ -12,6 +12,7 @@
       }
     ]
   },
+  "description": "Google SRE Four Golden Signals - Latency, Traffic, Errors, Saturation using Prometheus metrics",
   "editable": true,
   "gnetId": null,
   "graphTooltip": 1,
@@ -33,7 +34,7 @@
       "targetBlank": true,
       "title": "📊 Executive Overview",
       "type": "link",
-      "url": "d/executive-overview-v1"
+      "url": "/d/executive-overview-v1"
     },
     {
       "icon": "external link",
@@ -42,7 +43,7 @@
       "targetBlank": true,
       "title": "🏥 Backend Health",
       "type": "link",
-      "url": "d/backend-health-v1"
+      "url": "/d/backend-health-v1"
     },
     {
       "icon": "external link",
@@ -51,7 +52,25 @@
       "targetBlank": true,
       "title": "📈 Model Performance",
       "type": "link",
-      "url": "d/model-performance-v1"
+      "url": "/d/model-performance-v1"
+    },
+    {
+      "icon": "external link",
+      "includeVars": true,
+      "tags": [],
+      "targetBlank": true,
+      "title": "📊 Prometheus Metrics",
+      "type": "link",
+      "url": "/d/gatewayz-metrics-prometheus-v1"
+    },
+    {
+      "icon": "external link",
+      "includeVars": true,
+      "tags": [],
+      "targetBlank": true,
+      "title": "🔍 Tempo Traces",
+      "type": "link",
+      "url": "/d/gatewayz-traces-tempo-v1"
     }
   ],
   "panels": [
@@ -62,48 +81,34 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 24,
         "x": 0,
         "y": 0
       },
       "id": 1,
       "options": {
-        "content": "# 🎯 The Four Golden Signals - System Performance & Reliability\n\n**Google SRE Methodology:** Monitor these four key signals for each service to ensure reliability and performance.\n\n**1. LATENCY** - Time taken to serve a request (p50/p95/p99 latencies)  \n**2. TRAFFIC** - How much demand is placed on your system (requests/sec, throughput)  \n**3. ERRORS** - Rate of requests that are failing (error rate %, error count)  \n**4. SATURATION** - How \"full\" your service is (CPU, memory, connections, queue depth)\n\n🔗 **Quick Links:** [Executive Overview](d/executive-overview-v1) | [Backend Health](d/backend-health-v1) | [Model Performance](d/model-performance-v1) | [Gateway Comparison](d/gateway-comparison-v1)",
+        "content": "# 🎯 The Four Golden Signals - System Performance & Reliability\n\n**Google SRE Methodology:** Monitor these four key signals for each service to ensure reliability and performance. All metrics sourced from **Prometheus**.\n\n| Signal | Description |\n|--------|-------------|\n| **LATENCY** | Time taken to serve a request (p50/p95/p99) |\n| **TRAFFIC** | Demand on your system (requests/sec) |\n| **ERRORS** | Rate of failing requests |\n| **SATURATION** | Resource utilization (CPU, memory) |\n\n🔗 [Prometheus Metrics](/d/gatewayz-metrics-prometheus-v1) | [Tempo Traces](/d/gatewayz-traces-tempo-v1) | [Backend Health](/d/backend-health-v1)",
         "mode": "markdown"
       },
-      "pluginVersion": "8.0.0",
-      "targets": [],
-      "title": "Header",
-      "type": "text"
-    },
-    {
-      "datasource": null,
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 2,
-        "w": 24,
-        "x": 0,
-        "y": 4
-      },
-      "id": 100,
-      "options": {
-        "content": "## 📊 SIGNAL 1: LATENCY\n**Time taken to serve a request** - Track p50 (median), p95 (most users), and p99 (worst case) latencies to understand response time distribution.",
-        "mode": "markdown"
-      },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.0.0",
       "targets": [],
       "title": "",
       "type": "text",
       "transparent": true
     },
     {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 3 },
+      "id": 100,
+      "panels": [],
+      "title": "📊 SIGNAL 1: LATENCY - Response Time Distribution",
+      "type": "row"
+    },
+    {
       "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -115,20 +120,20 @@
             "mode": "absolute",
             "steps": [
               {"color": "green", "value": null},
-              {"color": "yellow", "value": 100},
-              {"color": "orange", "value": 250},
-              {"color": "red", "value": 500}
+              {"color": "yellow", "value": 0.1},
+              {"color": "orange", "value": 0.25},
+              {"color": "red", "value": 0.5}
             ]
           },
-          "unit": "ms"
+          "unit": "s"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 5,
         "w": 8,
         "x": 0,
-        "y": 6
+        "y": 4
       },
       "id": 2,
       "options": {
@@ -141,30 +146,27 @@
           "calcs": ["lastNotNull"],
           "fields": ""
         },
-        "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": {
-            "type": "datasource",
-            "uid": "-- Grafana --"
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
           },
-          "method": "GET",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
-          "headers": "Authorization: Bearer ${API_KEY}",
-          "jsonPath": "$.p50_latency",
+          "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "P50",
           "refId": "A"
         }
       ],
-      "title": "P50 Latency (Median User Experience)",
+      "title": "P50 Latency (Median)",
       "type": "stat"
     },
     {
       "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -176,20 +178,20 @@
             "mode": "absolute",
             "steps": [
               {"color": "green", "value": null},
-              {"color": "yellow", "value": 200},
-              {"color": "orange", "value": 500},
-              {"color": "red", "value": 1000}
+              {"color": "yellow", "value": 0.2},
+              {"color": "orange", "value": 0.5},
+              {"color": "red", "value": 1}
             ]
           },
-          "unit": "ms"
+          "unit": "s"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 5,
         "w": 8,
         "x": 8,
-        "y": 6
+        "y": 4
       },
       "id": 3,
       "options": {
@@ -202,20 +204,17 @@
           "calcs": ["lastNotNull"],
           "fields": ""
         },
-        "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": {
-            "type": "datasource",
-            "uid": "-- Grafana --"
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
           },
-          "method": "GET",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
-          "headers": "Authorization: Bearer ${API_KEY}",
-          "jsonPath": "$.p95_latency",
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "P95",
           "refId": "A"
         }
       ],
@@ -224,8 +223,8 @@
     },
     {
       "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -237,20 +236,20 @@
             "mode": "absolute",
             "steps": [
               {"color": "green", "value": null},
-              {"color": "yellow", "value": 500},
-              {"color": "orange", "value": 1000},
-              {"color": "red", "value": 2000}
+              {"color": "yellow", "value": 0.5},
+              {"color": "orange", "value": 1},
+              {"color": "red", "value": 2}
             ]
           },
-          "unit": "ms"
+          "unit": "s"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 5,
         "w": 8,
         "x": 16,
-        "y": 6
+        "y": 4
       },
       "id": 4,
       "options": {
@@ -263,30 +262,27 @@
           "calcs": ["lastNotNull"],
           "fields": ""
         },
-        "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": {
-            "type": "datasource",
-            "uid": "-- Grafana --"
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
           },
-          "method": "GET",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
-          "headers": "Authorization: Bearer ${API_KEY}",
-          "jsonPath": "$.p99_latency",
+          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "P99",
           "refId": "A"
         }
       ],
-      "title": "P99 Latency (Tail Latency - Worst Case)",
+      "title": "P99 Latency (Tail)",
       "type": "stat"
     },
     {
       "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -294,24 +290,27 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisLabel": "Response Time",
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Latency (seconds)",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 20,
-            "gradientMode": "none",
+            "fillOpacity": 15,
+            "gradientMode": "opacity",
             "hideFrom": {
               "tooltip": false,
               "viz": false,
               "legend": false
             },
+            "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -328,114 +327,92 @@
               {"color": "green", "value": null}
             ]
           },
-          "unit": "ms"
+          "unit": "s"
         },
         "overrides": [
           {
-            "matcher": {"id": "byName", "options": "p50_latency"},
+            "matcher": {"id": "byName", "options": "P50"},
             "properties": [
-              {"id": "displayName", "value": "P50 (Median)"},
               {"id": "color", "value": {"mode": "fixed", "fixedColor": "green"}}
             ]
           },
           {
-            "matcher": {"id": "byName", "options": "p95_latency"},
+            "matcher": {"id": "byName", "options": "P95"},
             "properties": [
-              {"id": "displayName", "value": "P95"},
               {"id": "color", "value": {"mode": "fixed", "fixedColor": "orange"}}
             ]
           },
           {
-            "matcher": {"id": "byName", "options": "p99_latency"},
+            "matcher": {"id": "byName", "options": "P99"},
             "properties": [
-              {"id": "displayName", "value": "P99 (Tail)"},
               {"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}}
             ]
           }
         ]
       },
       "gridPos": {
-        "h": 9,
+        "h": 8,
         "w": 24,
         "x": 0,
-        "y": 12
+        "y": 9
       },
       "id": 5,
       "options": {
         "legend": {
           "calcs": ["mean", "max", "min"],
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "datasource",
-            "uid": "-- Grafana --"
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
           },
-          "method": "GET",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=24",
-          "headers": "Authorization: Bearer ${API_KEY}",
-          "jsonPath": "$.p50_latency",
+          "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "P50",
           "refId": "A"
         },
         {
           "datasource": {
-            "type": "datasource",
-            "uid": "-- Grafana --"
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
           },
-          "method": "GET",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=24",
-          "headers": "Authorization: Bearer ${API_KEY}",
-          "jsonPath": "$.p95_latency",
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "P95",
           "refId": "B"
         },
         {
           "datasource": {
-            "type": "datasource",
-            "uid": "-- Grafana --"
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
           },
-          "method": "GET",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=24",
-          "headers": "Authorization: Bearer ${API_KEY}",
-          "jsonPath": "$.p99_latency",
+          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "P99",
           "refId": "C"
         }
       ],
-      "title": "Latency Percentiles Trend (24h)",
+      "title": "Latency Percentiles Over Time (P50 < P95 < P99)",
       "type": "timeseries"
     },
     {
-      "datasource": null,
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 2,
-        "w": 24,
-        "x": 0,
-        "y": 21
-      },
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 17 },
       "id": 101,
-      "options": {
-        "content": "## 🚦 SIGNAL 2: TRAFFIC\n**How much demand is placed on your system** - Monitor request rate, throughput, and concurrent users to understand system load.",
-        "mode": "markdown"
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [],
-      "title": "",
-      "type": "text",
-      "transparent": true
+      "panels": [],
+      "title": "🚦 SIGNAL 2: TRAFFIC - System Demand",
+      "type": "row"
     },
     {
       "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -447,20 +424,20 @@
             "mode": "absolute",
             "steps": [
               {"color": "blue", "value": null},
-              {"color": "green", "value": 100},
-              {"color": "yellow", "value": 1000},
-              {"color": "orange", "value": 5000}
+              {"color": "green", "value": 1},
+              {"color": "yellow", "value": 50},
+              {"color": "red", "value": 200}
             ]
           },
-          "unit": "short"
+          "unit": "reqps"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 5,
         "w": 8,
         "x": 0,
-        "y": 23
+        "y": 18
       },
       "id": 6,
       "options": {
@@ -473,24 +450,21 @@
           "calcs": ["lastNotNull"],
           "fields": ""
         },
-        "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": {
-            "type": "datasource",
-            "uid": "-- Grafana --"
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
           },
-          "method": "GET",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
-          "headers": "Authorization: Bearer ${API_KEY}",
-          "jsonPath": "$.total_requests",
+          "expr": "sum(rate(fastapi_requests_total[5m]))",
+          "legendFormat": "Total Request Rate",
           "refId": "A"
         }
       ],
-      "title": "Total Requests (1h)",
+      "title": "Request Rate (req/s)",
       "type": "stat"
     },
     {
@@ -508,20 +482,20 @@
             "mode": "absolute",
             "steps": [
               {"color": "green", "value": null},
-              {"color": "yellow", "value": 50},
-              {"color": "orange", "value": 100},
-              {"color": "red", "value": 200}
+              {"color": "yellow", "value": 10},
+              {"color": "orange", "value": 50},
+              {"color": "red", "value": 100}
             ]
           },
-          "unit": "reqps"
+          "unit": "short"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 5,
         "w": 8,
         "x": 8,
-        "y": 23
+        "y": 18
       },
       "id": 7,
       "options": {
@@ -534,75 +508,17 @@
           "calcs": ["lastNotNull"],
           "fields": ""
         },
-        "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "rate(http_requests_total{job=\"gatewayz-api\"}[5m])",
-          "refId": "A"
-        }
-      ],
-      "title": "Request Rate (req/sec)",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {"color": "green", "value": null},
-              {"color": "yellow", "value": 100},
-              {"color": "orange", "value": 500},
-              {"color": "red", "value": 1000}
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 8,
-        "x": 16,
-        "y": 23
-      },
-      "id": 8,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "values": false,
-          "calcs": ["lastNotNull"],
-          "fields": ""
-        },
-        "text": {},
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "sum(http_requests_in_flight{job=\"gatewayz-api\"})",
+          "expr": "sum(fastapi_requests_in_progress) or vector(0)",
+          "legendFormat": "In Progress",
           "refId": "A"
         }
       ],
@@ -617,9 +533,66 @@
       "fieldConfig": {
         "defaults": {
           "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null}
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 18
+      },
+      "id": 8,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"],
+          "fields": ""
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "sum(increase(fastapi_requests_total[1h]))",
+          "legendFormat": "Total (1h)",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Requests (1h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "Requests/sec",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -631,13 +604,14 @@
               "viz": false,
               "legend": false
             },
+            "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -656,23 +630,44 @@
           },
           "unit": "reqps"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "2xx Success"},
+            "properties": [
+              {"id": "color", "value": {"mode": "fixed", "fixedColor": "green"}}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "4xx Client Error"},
+            "properties": [
+              {"id": "color", "value": {"mode": "fixed", "fixedColor": "yellow"}}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "5xx Server Error"},
+            "properties": [
+              {"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}}
+            ]
+          }
+        ]
       },
       "gridPos": {
-        "h": 9,
+        "h": 8,
         "w": 24,
         "x": 0,
-        "y": 29
+        "y": 23
       },
       "id": 9,
       "options": {
         "legend": {
-          "calcs": ["mean", "max", "min"],
+          "calcs": ["mean", "max", "sum"],
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         }
       },
       "targets": [
@@ -681,41 +676,44 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "rate(http_requests_total{job=\"gatewayz-api\"}[5m])",
-          "refId": "A",
-          "legendFormat": "{{method}} {{route}}"
+          "expr": "sum(rate(fastapi_requests_total{status_code=~\"2..\"}[5m]))",
+          "legendFormat": "2xx Success",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "sum(rate(fastapi_requests_total{status_code=~\"4..\"}[5m]))",
+          "legendFormat": "4xx Client Error",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "sum(rate(fastapi_requests_total{status_code=~\"5..\"}[5m]))",
+          "legendFormat": "5xx Server Error",
+          "refId": "C"
         }
       ],
-      "title": "Traffic Trend - Request Rate Over Time",
+      "title": "Traffic Trend - Request Rate by Status Code",
       "type": "timeseries"
     },
     {
-      "datasource": null,
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 2,
-        "w": 24,
-        "x": 0,
-        "y": 38
-      },
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 31 },
       "id": 102,
-      "options": {
-        "content": "## ⚠️ SIGNAL 3: ERRORS\n**Rate of requests that are failing** - Track error rate percentage and error count to identify reliability issues.",
-        "mode": "markdown"
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [],
-      "title": "",
-      "type": "text",
-      "transparent": true
+      "panels": [],
+      "title": "⚠️ SIGNAL 3: ERRORS - Failure Rate",
+      "type": "row"
     },
     {
       "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -723,16 +721,18 @@
             "mode": "thresholds"
           },
           "mappings": [],
+          "max": 0.2,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {"color": "green", "value": null},
-              {"color": "yellow", "value": 1},
-              {"color": "orange", "value": 5},
-              {"color": "red", "value": 10}
+              {"color": "yellow", "value": 0.01},
+              {"color": "orange", "value": 0.05},
+              {"color": "red", "value": 0.1}
             ]
           },
-          "unit": "percent"
+          "unit": "percentunit"
         },
         "overrides": []
       },
@@ -740,7 +740,7 @@
         "h": 6,
         "w": 12,
         "x": 0,
-        "y": 40
+        "y": 32
       },
       "id": 10,
       "options": {
@@ -751,30 +751,27 @@
           "fields": ""
         },
         "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "text": {}
+        "showThresholdMarkers": true
       },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": {
-            "type": "datasource",
-            "uid": "-- Grafana --"
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
           },
-          "method": "GET",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
-          "headers": "Authorization: Bearer ${API_KEY}",
-          "jsonPath": "$.error_rate",
+          "expr": "sum(rate(fastapi_requests_total{status_code=~\"5..\"}[5m])) / sum(rate(fastapi_requests_total[5m])) or vector(0)",
+          "legendFormat": "Error Rate",
           "refId": "A"
         }
       ],
-      "title": "Error Rate % (Last 1h)",
+      "title": "Error Rate % (5xx / Total)",
       "type": "gauge"
     },
     {
       "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -799,7 +796,7 @@
         "h": 6,
         "w": 12,
         "x": 12,
-        "y": 40
+        "y": 32
       },
       "id": 11,
       "options": {
@@ -812,30 +809,27 @@
           "calcs": ["lastNotNull"],
           "fields": ""
         },
-        "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": {
-            "type": "datasource",
-            "uid": "-- Grafana --"
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
           },
-          "method": "GET",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=1",
-          "headers": "Authorization: Bearer ${API_KEY}",
-          "jsonPath": "$.total_errors",
+          "expr": "sum(increase(fastapi_requests_total{status_code=~\"5..\"}[1h]))",
+          "legendFormat": "Total Errors (1h)",
           "refId": "A"
         }
       ],
-      "title": "Total Errors (1h)",
+      "title": "Total 5xx Errors (1h)",
       "type": "stat"
     },
     {
       "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -843,7 +837,9 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisLabel": "Error Rate %",
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Error Rate",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
@@ -854,13 +850,14 @@
               "viz": false,
               "legend": false
             },
+            "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -875,77 +872,61 @@
             "mode": "absolute",
             "steps": [
               {"color": "green", "value": null},
-              {"color": "yellow", "value": 1},
-              {"color": "red", "value": 5}
+              {"color": "yellow", "value": 0.01},
+              {"color": "red", "value": 0.05}
             ]
           },
-          "unit": "percent"
+          "unit": "percentunit"
         },
         "overrides": [
           {
-            "matcher": {"id": "byName", "options": "error_rate"},
+            "matcher": {"id": "byName", "options": "Error Rate %"},
             "properties": [
-              {"id": "displayName", "value": "Error Rate %"},
               {"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}}
             ]
           }
         ]
       },
       "gridPos": {
-        "h": 9,
+        "h": 8,
         "w": 24,
         "x": 0,
-        "y": 46
+        "y": 38
       },
       "id": 12,
       "options": {
         "legend": {
           "calcs": ["mean", "max", "min"],
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "datasource",
-            "uid": "-- Grafana --"
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
           },
-          "method": "GET",
-          "url": "${API_BASE_URL}/api/monitoring/error-rates?hours=24",
-          "headers": "Authorization: Bearer ${API_KEY}",
-          "jsonPath": "$[*].error_rate",
+          "expr": "sum(rate(fastapi_requests_total{status_code=~\"5..\"}[5m])) / sum(rate(fastapi_requests_total[5m])) or vector(0)",
+          "legendFormat": "Error Rate %",
           "refId": "A"
         }
       ],
-      "title": "Error Rate Trend (24h)",
+      "title": "Error Rate Trend Over Time",
       "type": "timeseries"
     },
     {
-      "datasource": null,
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 2,
-        "w": 24,
-        "x": 0,
-        "y": 55
-      },
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 46 },
       "id": 103,
-      "options": {
-        "content": "## 📈 SIGNAL 4: SATURATION\n**How \"full\" your service is** - Monitor CPU, memory, connection pools, and queue depth to detect resource constraints before they impact performance.",
-        "mode": "markdown"
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [],
-      "title": "",
-      "type": "text",
-      "transparent": true
+      "panels": [],
+      "title": "📈 SIGNAL 4: SATURATION - Resource Utilization",
+      "type": "row"
     },
     {
       "datasource": {
@@ -974,10 +955,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 5,
         "w": 6,
         "x": 0,
-        "y": 57
+        "y": 47
       },
       "id": 13,
       "options": {
@@ -988,17 +969,17 @@
           "fields": ""
         },
         "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "text": {}
+        "showThresholdMarkers": true
       },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+          "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100) or vector(0)",
+          "legendFormat": "CPU",
           "refId": "A"
         }
       ],
@@ -1032,10 +1013,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 5,
         "w": 6,
         "x": 6,
-        "y": 57
+        "y": 47
       },
       "id": 14,
       "options": {
@@ -1046,17 +1027,17 @@
           "fields": ""
         },
         "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "text": {}
+        "showThresholdMarkers": true
       },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+          "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 or vector(0)",
+          "legendFormat": "Memory",
           "refId": "A"
         }
       ],
@@ -1090,10 +1071,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 5,
         "w": 6,
         "x": 12,
-        "y": 57
+        "y": 47
       },
       "id": 15,
       "options": {
@@ -1104,21 +1085,21 @@
           "fields": ""
         },
         "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "text": {}
+        "showThresholdMarkers": true
       },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "(redis_memory_used_bytes / redis_memory_max_bytes) * 100",
+          "expr": "(redis_memory_used_bytes / redis_memory_max_bytes) * 100 or vector(0)",
+          "legendFormat": "Redis Memory",
           "refId": "A"
         }
       ],
-      "title": "Redis Memory Saturation %",
+      "title": "Redis Memory %",
       "type": "gauge"
     },
     {
@@ -1146,10 +1127,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 5,
         "w": 6,
         "x": 18,
-        "y": 57
+        "y": 47
       },
       "id": 16,
       "options": {
@@ -1162,21 +1143,21 @@
           "calcs": ["lastNotNull"],
           "fields": ""
         },
-        "text": {},
         "textMode": "auto"
       },
-      "pluginVersion": "8.0.0",
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "redis_connected_clients",
+          "expr": "redis_connected_clients or vector(0)",
+          "legendFormat": "Connections",
           "refId": "A"
         }
       ],
-      "title": "Redis Connection Pool Usage",
+      "title": "Redis Connections",
       "type": "stat"
     },
     {
@@ -1190,6 +1171,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "Utilization %",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1201,13 +1184,14 @@
               "viz": false,
               "legend": false
             },
+            "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -1235,41 +1219,40 @@
           {
             "matcher": {"id": "byName", "options": "CPU"},
             "properties": [
-              {"id": "displayName", "value": "CPU"},
               {"id": "color", "value": {"mode": "fixed", "fixedColor": "blue"}}
             ]
           },
           {
             "matcher": {"id": "byName", "options": "Memory"},
             "properties": [
-              {"id": "displayName", "value": "Memory"},
               {"id": "color", "value": {"mode": "fixed", "fixedColor": "orange"}}
             ]
           },
           {
             "matcher": {"id": "byName", "options": "Redis Memory"},
             "properties": [
-              {"id": "displayName", "value": "Redis Memory"},
               {"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}}
             ]
           }
         ]
       },
       "gridPos": {
-        "h": 9,
+        "h": 8,
         "w": 24,
         "x": 0,
-        "y": 63
+        "y": 52
       },
       "id": 17,
       "options": {
         "legend": {
           "calcs": ["mean", "max", "min"],
           "displayMode": "table",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
-          "mode": "multi"
+          "mode": "multi",
+          "sort": "desc"
         }
       },
       "targets": [
@@ -1278,83 +1261,42 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
-          "refId": "A",
-          "legendFormat": "CPU"
+          "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100) or vector(0)",
+          "legendFormat": "CPU",
+          "refId": "A"
         },
         {
           "datasource": {
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
-          "refId": "B",
-          "legendFormat": "Memory"
+          "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 or vector(0)",
+          "legendFormat": "Memory",
+          "refId": "B"
         },
         {
           "datasource": {
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "(redis_memory_used_bytes / redis_memory_max_bytes) * 100",
-          "refId": "C",
-          "legendFormat": "Redis Memory"
+          "expr": "(redis_memory_used_bytes / redis_memory_max_bytes) * 100 or vector(0)",
+          "legendFormat": "Redis Memory",
+          "refId": "C"
         }
       ],
-      "title": "Resource Saturation Trend (24h) - System Capacity",
+      "title": "Resource Saturation Trend - System Capacity",
       "type": "timeseries"
     }
   ],
   "refresh": "30s",
-  "schemaVersion": 40,
+  "schemaVersion": 39,
   "style": "dark",
-  "tags": ["gatewayz", "executive", "golden-signals", "sre"],
+  "tags": ["gatewayz", "executive", "golden-signals", "sre", "prometheus"],
   "templating": {
-    "list": [
-      {
-        "current": {
-          "selected": false,
-          "text": "https://api.gatewayz.ai",
-          "value": "https://api.gatewayz.ai"
-        },
-        "hide": 0,
-        "label": "API Base URL",
-        "name": "API_BASE_URL",
-        "options": [
-          {
-            "selected": true,
-            "text": "https://api.gatewayz.ai",
-            "value": "https://api.gatewayz.ai"
-          }
-        ],
-        "query": "https://api.gatewayz.ai",
-        "skipUrlSync": false,
-        "type": "textbox"
-      },
-      {
-        "current": {
-          "selected": false,
-          "text": "",
-          "value": ""
-        },
-        "hide": 2,
-        "label": "API Key",
-        "name": "API_KEY",
-        "options": [
-          {
-            "selected": true,
-            "text": "",
-            "value": ""
-          }
-        ],
-        "query": "",
-        "skipUrlSync": false,
-        "type": "textbox"
-      }
-    ]
+    "list": []
   },
   "time": {
-    "from": "now-24h",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {
@@ -1368,8 +1310,8 @@
       "1h"
     ]
   },
-  "timezone": "",
+  "timezone": "browser",
   "title": "🎯 The Four Golden Signals",
   "uid": "latency-analytics-v1",
-  "version": 1
+  "version": 2
 }
