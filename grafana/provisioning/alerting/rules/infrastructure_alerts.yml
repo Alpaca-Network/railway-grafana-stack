@@ -1,0 +1,339 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: infrastructure_alerts
+    folder: Infrastructure Alerts
+    interval: 1m
+    rules:
+      # Alert: Prometheus Scrape Failures
+      - uid: prometheus_scrape_failure
+        title: Prometheus Scrape Failures
+        condition: C
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Prometheus is failing to scrape {{ $labels.job }}. Metrics may be stale.'
+          summary: 'Prometheus scrape failing for {{ $labels.job }}'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/scrape-failure'
+        labels:
+          severity: warning
+          category: infrastructure
+          component: prometheus
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: 'up == 0'
+              hide: false
+              intervalFactor: 1
+              legendFormat: '{{ job }}'
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              refId: C
+              type: classic_conditions
+
+      # Alert: High Memory Usage (Container)
+      - uid: high_memory_usage
+        title: High Memory Usage
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Container {{ $labels.container }} memory usage is {{ $value }}%. OOM risk.'
+          summary: 'High memory usage in {{ $labels.container }}'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/high-memory'
+        labels:
+          severity: warning
+          category: infrastructure
+          component: resources
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: |
+                (container_memory_usage_bytes / container_spec_memory_limit_bytes) * 100 > 85
+              hide: false
+              intervalFactor: 1
+              legendFormat: '{{ container }}'
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              refId: C
+              type: classic_conditions
+
+      # Alert: High CPU Usage
+      - uid: high_cpu_usage
+        title: High CPU Usage
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 10m
+        annotations:
+          description: 'Container {{ $labels.container }} CPU usage is {{ $value }}%. Performance may degrade.'
+          summary: 'High CPU usage in {{ $labels.container }}'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/high-cpu'
+        labels:
+          severity: warning
+          category: infrastructure
+          component: resources
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: |
+                rate(container_cpu_usage_seconds_total[5m]) * 100 > 80
+              hide: false
+              intervalFactor: 1
+              legendFormat: '{{ container }}'
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              refId: C
+              type: classic_conditions
+
+      # Alert: Mimir Remote Write Failures
+      - uid: mimir_write_failures
+        title: Mimir Remote Write Failures
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Remote write to Mimir is failing. Long-term metrics storage may be affected.'
+          summary: 'Mimir remote write failures detected'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/mimir-write-failure'
+        labels:
+          severity: warning
+          category: infrastructure
+          component: mimir
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: 'rate(prometheus_remote_storage_failed_samples_total[5m]) > 0'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Write Failures'
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              refId: C
+              type: classic_conditions
+
+      # Alert: Loki Ingestion Failures
+      - uid: loki_ingestion_failures
+        title: Loki Log Ingestion Failures
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Loki is failing to ingest logs. Log data may be lost.'
+          summary: 'Loki ingestion failures detected'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/loki-ingestion-failure'
+        labels:
+          severity: warning
+          category: infrastructure
+          component: loki
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: 'rate(loki_distributor_bytes_received_total[5m]) == 0'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Loki Ingestion'
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 1
+                    type: lt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              refId: C
+              type: classic_conditions
+
+      # Alert: FastAPI Backend Down
+      - uid: fastapi_backend_down
+        title: FastAPI Backend Down
+        condition: C
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          description: 'FastAPI backend is not responding to health checks. Service is DOWN.'
+          summary: 'FastAPI backend is down'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/backend-down'
+        labels:
+          severity: critical
+          category: infrastructure
+          component: fastapi
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: 'up{job="fastapi"} == 0'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'FastAPI Status'
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              refId: C
+              type: classic_conditions
+
+      # Alert: Stale Metrics (No Data)
+      - uid: stale_metrics
+        title: Stale Metrics Detected
+        condition: C
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 10m
+        annotations:
+          description: 'No new metrics received from FastAPI backend for 10 minutes. Scraping may be broken.'
+          summary: 'Metrics are stale'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/stale-metrics'
+        labels:
+          severity: warning
+          category: infrastructure
+          component: monitoring
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: 'absent(fastapi_requests_total)'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Metrics Missing'
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              refId: C
+              type: classic_conditions
+    provenance: Grafana

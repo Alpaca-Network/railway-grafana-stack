@@ -3,7 +3,10 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": "-- Grafana --",
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -13,781 +16,765 @@
     ]
   },
   "editable": true,
-  "gnetId": null,
-  "graphTooltip": 0,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
   "id": null,
   "links": [
     {
       "asDropdown": true,
       "icon": "doc",
       "includeVars": true,
-      "tags": [
-        "gatewayz"
-      ],
+      "tags": ["gatewayz"],
       "targetBlank": false,
       "title": "All Dashboards",
       "type": "dashboards"
-    },
-    {
-      "icon": "external link",
-      "includeVars": true,
-      "tags": [],
-      "targetBlank": true,
-      "title": "📊 Executive Overview",
-      "type": "link",
-      "url": "d/executive-overview-v1"
-    },
-    {
-      "icon": "external link",
-      "includeVars": true,
-      "tags": [],
-      "targetBlank": true,
-      "title": "📝 Logs & Diagnostics",
-      "type": "link",
-      "url": "d/logs-monitoring-v1"
-    },
-    {
-      "icon": "external link",
-      "includeVars": true,
-      "tags": [],
-      "targetBlank": true,
-      "title": "🏥 Backend Health",
-      "type": "link",
-      "url": "d/backend-health-v1"
-    },
-    {
-      "icon": "external link",
-      "includeVars": true,
-      "tags": [],
-      "targetBlank": true,
-      "title": "📊 Model Performance",
-      "type": "link",
-      "url": "d/model-performance-v1"
     }
   ],
   "panels": [
     {
-      "datasource": null,
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 24,
-        "x": 0,
-        "y": 0
-      },
-      "id": 1,
+      "gridPos": { "h": 2, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
       "options": {
-        "content": "# 🔄 Gateway & Provider Comparison - Central Hub\n\n**SINGLE SOURCE OF TRUTH for all 17+ provider metrics**. Compare performance, reliability, cost, and efficiency across all gateways.\n\n🔗 [Executive Overview](d/executive-overview-v1) | [Logs & Diagnostics](d/logs-monitoring-v1) | [Backend Health](d/backend-health-v1) | [Model Performance](d/model-performance-v1)",
+        "content": "# 🔄 Gateway & Provider Comparison\n**Real-time metrics from Prometheus/Mimir** | Compare performance, reliability, and cost across all providers",
         "mode": "markdown"
       },
-      "pluginVersion": "8.0.0",
-      "targets": [],
-      "title": "Header",
+      "title": "",
+      "transparent": true,
       "type": "text"
     },
     {
       "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
+        "type": "prometheus",
+        "uid": "grafana_mimir"
       },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
+          "color": { "mode": "thresholds" },
           "mappings": [],
-          "max": 100,
-          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "#E02620",
-                "value": null
-              },
-              {
-                "color": "#FF9830",
-                "value": 60
-              },
-              {
-                "color": "#31863B",
-                "value": 80
-              }
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 90 },
+              { "color": "green", "value": 99 }
             ]
           },
-          "unit": "short"
+          "unit": "percent"
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "health_score"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Provider Health"
-              },
-              {
-                "id": "unit",
-                "value": "percent"
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
-      "gridPos": {
-        "h": 10,
-        "w": 24,
-        "x": 0,
-        "y": 3
-      },
-      "id": 2,
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 2 },
+      "id": 1,
       "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
         "orientation": "auto",
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "text": {}
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
       },
-      "pluginVersion": "8.0.0",
       "targets": [
         {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/health"
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "100 - (sum(rate(fastapi_requests_total{status_code=~\"5..\"}[5m])) / sum(rate(fastapi_requests_total[5m])) * 100)",
+          "legendFormat": "Availability",
+          "refId": "A"
         }
       ],
-      "title": "Provider Health Scorecard (17 Providers)",
+      "title": "Gateway Availability",
       "type": "stat"
     },
     {
       "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
+        "type": "prometheus",
+        "uid": "grafana_mimir"
       },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "align": "auto",
-            "displayMode": "color-background",
-            "inspect": false
-          },
-          "mappings": [
-            {
-              "options": {
-                "healthy": {
-                  "color": "#31863B",
-                  "index": 0,
-                  "text": "✅ HEALTHY"
-                },
-                "degraded": {
-                  "color": "#FF9830",
-                  "index": 1,
-                  "text": "⚠️ DEGRADED"
-                },
-                "unhealthy": {
-                  "color": "#E02620",
-                  "index": 2,
-                  "text": "🔴 UNHEALTHY"
-                }
-              },
-              "type": "value"
-            }
-          ],
+          "color": { "mode": "thresholds" },
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 100 },
+              { "color": "red", "value": 500 }
             ]
-          }
+          },
+          "unit": "reqps"
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 53
-      },
-      "id": 9,
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 2 },
+      "id": 2,
       "options": {
-        "footer": {
-          "countRows": false,
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
           "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
+          "values": false
         },
-        "showHeader": true
+        "textMode": "auto"
       },
-      "pluginVersion": "8.0.0",
       "targets": [
         {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/health"
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "sum(rate(fastapi_requests_total[5m]))",
+          "legendFormat": "Requests/sec",
+          "refId": "A"
         }
       ],
-      "title": "🏥 Provider Health Status Grid (17 Providers)",
-      "type": "table"
+      "title": "Request Rate",
+      "type": "stat"
     },
     {
       "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
+        "type": "prometheus",
+        "uid": "grafana_mimir"
       },
       "fieldConfig": {
         "defaults": {
-          "custom": {
-            "align": "auto",
-            "displayMode": "auto",
-            "inspect": false
-          },
+          "color": { "mode": "thresholds" },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 1 },
+              { "color": "red", "value": 5 }
             ]
-          }
+          },
+          "unit": "percent"
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "health_score"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Health %"
-              },
-              {
-                "id": "unit",
-                "value": "percent"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "requests"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Requests"
-              },
-              {
-                "id": "unit",
-                "value": "short"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "cost"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Cost (USD)"
-              },
-              {
-                "id": "unit",
-                "value": "currencyUSD"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "error_rate"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Error %"
-              },
-              {
-                "id": "unit",
-                "value": "percent"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "latency"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Latency (ms)"
-              },
-              {
-                "id": "unit",
-                "value": "short"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "uptime"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Uptime %"
-              },
-              {
-                "id": "unit",
-                "value": "percent"
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
-      "gridPos": {
-        "h": 10,
-        "w": 24,
-        "x": 0,
-        "y": 43
-      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 2 },
       "id": 3,
       "options": {
-        "footer": {
-          "countRows": true,
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
           "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": true
+          "values": false
         },
-        "showHeader": true
+        "textMode": "auto"
       },
-      "pluginVersion": "8.0.0",
       "targets": [
         {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/health"
-        },
-        {
-          "refId": "B",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=24"
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "sum(rate(fastapi_requests_total{status_code=~\"5..\"}[5m])) / sum(rate(fastapi_requests_total[5m])) * 100",
+          "legendFormat": "Error Rate",
+          "refId": "A"
         }
       ],
-      "title": "Provider Comparison Matrix (Health, Requests, Cost, Error Rate, Latency, Uptime)",
-      "type": "table"
+      "title": "Error Rate",
+      "type": "stat"
     },
     {
       "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
+        "type": "prometheus",
+        "uid": "grafana_mimir"
       },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            }
-          },
-          "mappings": []
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "requests"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Total Requests"
-              },
-              {
-                "id": "unit",
-                "value": "short"
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 12,
-        "x": 0,
-        "y": 33
-      },
-      "id": 5,
-      "options": {
-        "legend": {
-          "calcs": [
-            "value"
-          ],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "pieType": "donut",
-        "tooltip": {
-          "mode": "single"
-        }
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=24"
-        }
-      ],
-      "title": "Request Distribution by Provider (7d)",
-      "type": "piechart"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            }
-          },
-          "mappings": []
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "cost"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Daily Cost (USD)"
-              },
-              {
-                "id": "unit",
-                "value": "currencyUSD"
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 12,
-        "x": 12,
-        "y": 33
-      },
-      "id": 6,
-      "options": {
-        "legend": {
-          "calcs": [
-            "value"
-          ],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "pieType": "pie",
-        "tooltip": {
-          "mode": "single"
-        }
-      },
-      "pluginVersion": "8.0.0",
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/cost-analysis?days=7"
-        }
-      ],
-      "title": "Cost Distribution by Provider (7d)",
-      "type": "piechart"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "Latency (ms)",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "points",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "always",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
+          "color": { "mode": "thresholds" },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 500 },
+              { "color": "red", "value": 1000 }
             ]
           },
           "unit": "ms"
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "latency"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Latency (ms)"
-              },
-              {
-                "id": "unit",
-                "value": "short"
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
-      "gridPos": {
-        "h": 10,
-        "w": 24,
-        "x": 0,
-        "y": 13
-      },
-      "id": 7,
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 2 },
+      "id": 4,
       "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
         },
-        "tooltip": {
-          "mode": "multi"
-        }
+        "textMode": "auto"
       },
-      "pluginVersion": "8.0.0",
       "targets": [
         {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/latency-trends/{provider}?hours=24"
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le)) * 1000",
+          "legendFormat": "P95 Latency",
+          "refId": "A"
         }
       ],
-      "title": "Latency Distribution (Violin Plot - P50, P95, P99)",
-      "type": "timeseries"
+      "title": "P95 Latency",
+      "type": "stat"
     },
     {
       "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
+        "type": "prometheus",
+        "uid": "grafana_mimir"
       },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
+          "color": { "mode": "palette-classic" },
           "custom": {
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "Cost",
+            "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
             "fillOpacity": 20,
             "gradientMode": "none",
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            },
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": true,
-            "stacking": {
-              "group": "A",
-              "mode": "normal"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
           },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "id": 5,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "sum(rate(fastapi_requests_total[5m])) by (provider)",
+          "legendFormat": "{{provider}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Request Rate by Provider",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_mimir"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "id": 6,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "sum(rate(fastapi_requests_total{status_code=~\"5..\"}[5m])) by (provider) / sum(rate(fastapi_requests_total[5m])) by (provider) * 100",
+          "legendFormat": "{{provider}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Error Rate by Provider",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_mimir"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 14 },
+      "id": 7,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "histogram_quantile(0.50, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le, provider)) * 1000",
+          "legendFormat": "{{provider}} P50",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le, provider)) * 1000",
+          "legendFormat": "{{provider}} P95",
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "histogram_quantile(0.99, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le, provider)) * 1000",
+          "legendFormat": "{{provider}} P99",
+          "refId": "C"
+        }
+      ],
+      "title": "Latency Distribution by Provider (P50, P95, P99)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_mimir"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
             "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 80 },
+              { "color": "green", "value": 95 }
             ]
           },
-          "unit": "currencyUSD"
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 22 },
+      "id": 8,
+      "options": {
+        "displayMode": "lcd",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "valueMode": "color"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "100 - (sum(rate(fastapi_requests_total{status_code=~\"5..\"}[5m])) by (provider) / sum(rate(fastapi_requests_total[5m])) by (provider) * 100)",
+          "legendFormat": "{{provider}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Provider Health Score (Success Rate %)",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_mimir"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "hideFrom": { "legend": false, "tooltip": false, "viz": false } },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 28 },
+      "id": 9,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "values": ["value", "percent"] },
+        "pieType": "donut",
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "sum(increase(fastapi_requests_total[24h])) by (provider)",
+          "legendFormat": "{{provider}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Request Distribution by Provider (24h)",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_mimir"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "hideFrom": { "legend": false, "tooltip": false, "viz": false } },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 28 },
+      "id": 10,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "values": ["value", "percent"] },
+        "pieType": "donut",
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "sum(increase(fastapi_requests_total{status_code=~\"5..\"}[24h])) by (provider)",
+          "legendFormat": "{{provider}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Error Distribution by Provider (24h)",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_mimir"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
         },
         "overrides": [
           {
-            "matcher": {
-              "id": "byName",
-              "options": "cost"
-            },
+            "matcher": { "id": "byName", "options": "Success Rate" },
             "properties": [
+              { "id": "unit", "value": "percent" },
               {
-                "id": "displayName",
-                "value": "Daily Cost (USD)"
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "red", "value": null },
+                    { "color": "orange", "value": 90 },
+                    { "color": "green", "value": 99 }
+                  ]
+                }
               },
+              { "id": "custom.cellOptions", "value": { "mode": "gradient", "type": "gauge" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "P95 Latency" },
+            "properties": [
+              { "id": "unit", "value": "ms" },
               {
-                "id": "unit",
-                "value": "currencyUSD"
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "green", "value": null },
+                    { "color": "orange", "value": 500 },
+                    { "color": "red", "value": 1000 }
+                  ]
+                }
+              },
+              { "id": "custom.cellOptions", "value": { "mode": "gradient", "type": "gauge" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Requests" },
+            "properties": [{ "id": "unit", "value": "short" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Errors" },
+            "properties": [
+              { "id": "unit", "value": "short" },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "green", "value": null },
+                    { "color": "orange", "value": 10 },
+                    { "color": "red", "value": 100 }
+                  ]
+                }
               }
             ]
           }
         ]
       },
-      "gridPos": {
-        "h": 10,
-        "w": 24,
-        "x": 0,
-        "y": 23
-      },
-      "id": 8,
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 36 },
+      "id": 11,
       "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
+        "cellHeight": "sm",
+        "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
+        "showHeader": true,
+        "sortBy": [{ "desc": true, "displayName": "Requests" }]
       },
-      "pluginVersion": "8.0.0",
       "targets": [
         {
-          "refId": "A",
-          "datasource": "JSON API",
-          "url": "${API_BASE_URL}/api/monitoring/stats/realtime?hours=168"
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "sum(increase(fastapi_requests_total[24h])) by (provider)",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "Requests"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "sum(increase(fastapi_requests_total{status_code=~\"5..\"}[24h])) by (provider)",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "Errors"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "100 - (sum(rate(fastapi_requests_total{status_code=~\"5..\"}[24h])) by (provider) / sum(rate(fastapi_requests_total[24h])) by (provider) * 100)",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "SuccessRate"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[24h])) by (le, provider)) * 1000",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "Latency"
         }
       ],
-      "title": "Cost Trend by Provider (7d)",
+      "title": "Provider Comparison Matrix (24h)",
+      "transformations": [
+        {
+          "id": "seriesToColumns",
+          "options": { "byField": "provider" }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true, "Time 1": true, "Time 2": true, "Time 3": true, "Time 4": true },
+            "indexByName": {},
+            "renameByName": {
+              "Value #Requests": "Requests",
+              "Value #Errors": "Errors",
+              "Value #SuccessRate": "Success Rate",
+              "Value #Latency": "P95 Latency",
+              "provider": "Provider"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_mimir"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 46 },
+      "id": 12,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "sum(rate(fastapi_rate_limit_exceeded_total[5m])) by (provider)",
+          "legendFormat": "{{provider}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Rate Limit Triggers by Provider",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_mimir"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 46 },
+      "id": 13,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "sum(rate(fastapi_requests_total{status_code=\"429\"}[5m])) by (provider)",
+          "legendFormat": "{{provider}} - 429",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "sum(rate(fastapi_requests_total{status_code=\"503\"}[5m])) by (provider)",
+          "legendFormat": "{{provider}} - 503",
+          "refId": "B"
+        }
+      ],
+      "title": "Rate Limit (429) & Service Unavailable (503) by Provider",
       "type": "timeseries"
     }
   ],
-  "refresh": "60s",
-  "schemaVersion": 36,
+  "refresh": "30s",
+  "schemaVersion": 38,
   "style": "dark",
-  "tags": [
-    "gatewayz",
-    "providers",
-    "comparison"
-  ],
-  "templating": {
-    "list": [
-      {
-        "current": {
-          "selected": false,
-          "text": "https://api.gatewayz.ai",
-          "value": "https://api.gatewayz.ai"
-        },
-        "datasource": null,
-        "definition": "",
-        "description": null,
-        "error": null,
-        "errorOnNew": false,
-        "hide": 0,
-        "includeAll": false,
-        "label": "API Base URL",
-        "multi": false,
-        "name": "API_BASE_URL",
-        "options": [],
-        "query": "https://api.gatewayz.ai",
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
-        "type": "custom",
-        "value": "https://api.gatewayz.ai"
-      }
-    ]
-  },
-  "time": {
-    "from": "now-7d",
-    "to": "now"
-  },
+  "tags": ["gatewayz", "providers", "comparison", "prometheus"],
+  "templating": { "list": [] },
+  "time": { "from": "now-24h", "to": "now" },
   "timepicker": {
-    "refresh_intervals": [
-      "30s",
-      "1m",
-      "5m",
-      "15m",
-      "30m",
-      "1h",
-      "2h",
-      "1d"
-    ]
+    "refresh_intervals": ["10s", "30s", "1m", "5m", "15m", "30m", "1h"]
   },
   "timezone": "",
   "title": "Gateway & Provider Comparison",

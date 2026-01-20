@@ -1,0 +1,297 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: gateway_alerts
+    folder: Gateway Alerts
+    interval: 1m
+    rules:
+      # Alert: Traffic Drop (Possible Outage)
+      - uid: traffic_drop_critical
+        title: Critical Traffic Drop
+        condition: C
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Request rate dropped by {{ $value }}% compared to baseline. Possible service outage or DNS issue.'
+          summary: 'Critical traffic drop detected'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/traffic-drop'
+        labels:
+          severity: critical
+          category: gateway
+          component: traffic_monitoring
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: |
+                (1 - (sum(rate(fastapi_requests_total[5m])) /
+                      avg_over_time(sum(rate(fastapi_requests_total[5m]))[1h:5m]))) * 100 > 50
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Traffic Drop %'
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              refId: C
+              type: classic_conditions
+
+      # Alert: Provider Failure Spike
+      - uid: provider_failure_spike
+        title: Provider Failure Spike
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 2m
+        annotations:
+          description: 'Provider {{ $labels.provider }} error rate spiked to {{ $value }}%. Check provider status.'
+          summary: 'Provider {{ $labels.provider }} experiencing failures'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/provider-failure'
+        labels:
+          severity: critical
+          category: gateway
+          component: provider_health
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: |
+                (sum(rate(fastapi_requests_total{status_code=~"5.."}[5m])) by (provider) /
+                 sum(rate(fastapi_requests_total[5m])) by (provider)) * 100 > 20
+              hide: false
+              intervalFactor: 1
+              legendFormat: '{{ provider }}'
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              refId: C
+              type: classic_conditions
+
+      # Alert: Provider Latency Degradation
+      - uid: provider_latency_degradation
+        title: Provider Latency Degradation
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Provider {{ $labels.provider }} P95 latency is {{ $value }}ms, exceeding 2s threshold.'
+          summary: 'Provider {{ $labels.provider }} latency degraded'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/provider-latency'
+        labels:
+          severity: warning
+          category: gateway
+          component: provider_health
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: |
+                histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le, provider)) * 1000 > 2000
+              hide: false
+              intervalFactor: 1
+              legendFormat: '{{ provider }}'
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              refId: C
+              type: classic_conditions
+
+      # Alert: Gateway Timeout Spike
+      - uid: gateway_timeout_spike
+        title: Gateway Timeout Spike
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Gateway timeout (504) rate is {{ $value }}/min. Providers may be timing out.'
+          summary: 'Gateway timeout rate elevated'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/gateway-timeout'
+        labels:
+          severity: warning
+          category: gateway
+          component: timeout_monitoring
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: 'sum(rate(fastapi_requests_total{status_code="504"}[5m])) * 60 > 5'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Timeouts/min'
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              refId: C
+              type: classic_conditions
+
+      # Alert: All Providers Down
+      - uid: all_providers_down
+        title: All Providers Down
+        condition: C
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 2m
+        annotations:
+          description: 'All AI providers are returning errors. Gateway is effectively offline. IMMEDIATE ACTION REQUIRED.'
+          summary: 'All providers are down'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/all-providers-down'
+        labels:
+          severity: critical
+          category: gateway
+          component: provider_health
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: |
+                (sum(rate(fastapi_requests_total{status_code=~"5.."}[5m])) /
+                 sum(rate(fastapi_requests_total[5m]))) > 0.95
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Error Ratio'
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              refId: C
+              type: classic_conditions
+
+      # Alert: Token/Credit Exhaustion Risk
+      - uid: credit_exhaustion_warning
+        title: Credit Exhaustion Risk
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'API key {{ $labels.api_key_prefix }} has {{ $value }}% credits remaining. May exhaust soon.'
+          summary: 'Credit exhaustion risk for {{ $labels.api_key_prefix }}'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/credit-exhaustion'
+        labels:
+          severity: warning
+          category: gateway
+          component: credit_monitoring
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: 'gatewayz_credits_remaining_percent < 10'
+              hide: false
+              intervalFactor: 1
+              legendFormat: '{{ api_key_prefix }}'
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              refId: C
+              type: classic_conditions
+    provenance: Grafana

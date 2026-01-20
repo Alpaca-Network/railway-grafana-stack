@@ -1,0 +1,198 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: security_alerts
+    folder: Security Alerts
+    interval: 1m
+    rules:
+      # Alert: High Rate of Authentication Failures
+      - uid: high_auth_failures
+        title: High Authentication Failure Rate
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Authentication failure rate is {{ $value }} failures/min. Possible brute force attack or credential stuffing.'
+          summary: 'High authentication failure rate detected'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/auth-failures'
+        labels:
+          severity: warning
+          category: security
+          component: authentication
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: 'sum(rate(fastapi_requests_total{status_code="401"}[5m])) * 60 > 10'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Auth Failures/min'
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              refId: C
+              type: classic_conditions
+
+      # Alert: Rate Limit Abuse (Sustained)
+      - uid: rate_limit_abuse
+        title: Sustained Rate Limit Abuse
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 10m
+        annotations:
+          description: 'Rate limit exceeded {{ $value }} times in 10 minutes for {{ $labels.api_key_prefix }}. Possible API abuse.'
+          summary: 'Sustained rate limit abuse detected'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/rate-limit-abuse'
+        labels:
+          severity: warning
+          category: security
+          component: rate_limiting
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: 'sum(increase(fastapi_rate_limit_exceeded_total[10m])) by (api_key_prefix) > 50'
+              hide: false
+              intervalFactor: 1
+              legendFormat: '{{ api_key_prefix }}'
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              refId: C
+              type: classic_conditions
+
+      # Alert: Forbidden Access Spike
+      - uid: forbidden_access_spike
+        title: Forbidden Access Spike
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: '403 Forbidden responses increased to {{ $value }}/min. Possible unauthorized access attempts.'
+          summary: 'Spike in forbidden access attempts'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/forbidden-spike'
+        labels:
+          severity: warning
+          category: security
+          component: access_control
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: 'sum(rate(fastapi_requests_total{status_code="403"}[5m])) * 60 > 20'
+              hide: false
+              intervalFactor: 1
+              legendFormat: '403 Responses/min'
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              refId: C
+              type: classic_conditions
+
+      # Alert: Unusual Request Pattern (DDoS Indicator)
+      - uid: unusual_request_pattern
+        title: Unusual Request Pattern Detected
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Request rate is {{ $value }}x normal baseline. Possible DDoS or traffic anomaly.'
+          summary: 'Unusual request pattern detected'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/traffic-anomaly'
+        labels:
+          severity: critical
+          category: security
+          component: traffic_analysis
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: |
+                (sum(rate(fastapi_requests_total[5m])) /
+                 avg_over_time(sum(rate(fastapi_requests_total[5m]))[1h:5m])) > 5
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Request Multiplier'
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              refId: C
+              type: classic_conditions
+    provenance: Grafana

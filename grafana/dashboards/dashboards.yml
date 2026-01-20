@@ -6,7 +6,7 @@ providers:
     folder: ''
     type: file
     disableDeletion: false
-    updateIntervalSeconds: 10
+    updateIntervalSeconds: 60
     allowUiUpdates: true
     options:
       path: /etc/grafana/provisioning/dashboards
@@ -16,7 +16,7 @@ providers:
     folder: 'Loki'
     type: file
     disableDeletion: false
-    updateIntervalSeconds: 10
+    updateIntervalSeconds: 60
     allowUiUpdates: true
     options:
       path: /etc/grafana/provisioning/dashboards/loki
@@ -25,7 +25,7 @@ providers:
     folder: 'Prometheus'
     type: file
     disableDeletion: false
-    updateIntervalSeconds: 10
+    updateIntervalSeconds: 60
     allowUiUpdates: true
     options:
       path: /etc/grafana/provisioning/dashboards/prometheus
@@ -34,7 +34,7 @@ providers:
     folder: 'Tempo'
     type: file
     disableDeletion: false
-    updateIntervalSeconds: 10
+    updateIntervalSeconds: 60
     allowUiUpdates: true
     options:
       path: /etc/grafana/provisioning/dashboards/tempo

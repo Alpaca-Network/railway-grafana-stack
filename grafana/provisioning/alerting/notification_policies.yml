@@ -176,6 +176,66 @@ notificationPolicies:
           groupWait: 5m
           muteTimeIntervals: []
 
+        # Security alerts - CRITICAL: immediate, others grouped
+        - receiver: critical-email
+          groupByStr:
+            - alertname
+            - component
+          matchers:
+            - name: category
+              value: security
+              matchType: '='
+            - name: severity
+              value: critical
+              matchType: '='
+          repeatInterval: 10m
+          groupInterval: 1m
+          groupWait: 0s
+          muteTimeIntervals: []
+
+        - receiver: ops-email
+          groupByStr:
+            - alertname
+            - component
+          matchers:
+            - name: category
+              value: security
+              matchType: '='
+          repeatInterval: 30m
+          groupInterval: 5m
+          groupWait: 2m
+          muteTimeIntervals: []
+
+        # Gateway alerts - critical for provider/traffic issues
+        - receiver: critical-email
+          groupByStr:
+            - alertname
+            - provider
+          matchers:
+            - name: category
+              value: gateway
+              matchType: '='
+            - name: severity
+              value: critical
+              matchType: '='
+          repeatInterval: 10m
+          groupInterval: 2m
+          groupWait: 0s
+          muteTimeIntervals: []
+
+        - receiver: ops-email
+          groupByStr:
+            - alertname
+            - provider
+          matchers:
+            - name: category
+              value: gateway
+              matchType: '='
+          repeatInterval: 30m
+          groupInterval: 5m
+          groupWait: 3m
+          muteTimeIntervals: []
+
       # Default handling - group info alerts for 30 minutes
       repeatInterval: 1h
       groupInterval: 30m
