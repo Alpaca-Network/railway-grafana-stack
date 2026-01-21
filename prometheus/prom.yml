@@ -30,8 +30,9 @@ scrape_configs:
 
   # MERGED: Combined gatewayz_api and fastapi_backend (were duplicates)
   # Production GatewayZ Backend API
+  # NOTE: FASTAPI_TARGET and FASTAPI_SCHEME are substituted by entrypoint.sh
   - job_name: 'gatewayz_production'
-    scheme: http
+    scheme: FASTAPI_SCHEME
     metrics_path: '/metrics'
     static_configs:
       - targets: ['FASTAPI_TARGET']
@@ -87,8 +88,9 @@ scrape_configs:
 
   # GatewayZ Prometheus Data Metrics (Provider health, circuit breakers, etc.)
   # This scrapes /prometheus/data/metrics for Grafana alerting
+  # NOTE: FASTAPI_TARGET and FASTAPI_SCHEME are substituted by entrypoint.sh
   - job_name: 'gatewayz_data_metrics_production'
-    scheme: http
+    scheme: FASTAPI_SCHEME
     metrics_path: '/prometheus/data/metrics'
     static_configs:
       - targets: ['FASTAPI_TARGET']

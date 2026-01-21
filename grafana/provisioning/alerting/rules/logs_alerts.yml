@@ -87,7 +87,7 @@ groups:
               type: threshold
 
       # Alert: Latency Degradation
-      - uid: latency_degradation
+      - uid: logs_latency_degradation
         title: Latency Degradation
         condition: C
         noDataState: NoData

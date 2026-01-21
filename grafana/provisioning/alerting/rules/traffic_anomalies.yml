@@ -7,7 +7,7 @@ groups:
     interval: 1m
     rules:
       # ================================================================
-      # TRAFFIC SPIKE - CRITICAL
+      # TRAFFIC SPIKE - CRITICAL (3x baseline)
       # ================================================================
       - uid: traffic_spike_critical
         title: Traffic Spike Critical - 3x Baseline
@@ -16,16 +16,7 @@ groups:
         execErrState: Alerting
         for: 10m
         annotations:
-          description: |
-            Traffic spike detected! Current rate: {{ $values.A.Value }} req/sec
-            Baseline (7-day avg): {{ $values.B.Value }} req/sec
-            This is {{ printf "%.1f" (div $values.A.Value $values.B.Value) }}x normal traffic.
-            
-            **Action Required:**
-            1. Check for legitimate traffic surge (marketing campaign, viral content)
-            2. Verify application performance is not degraded
-            3. Monitor error rates and latency
-            4. Consider scaling resources if needed
+          description: 'Traffic spike detected! Traffic is 3x+ normal levels. Check for legitimate traffic surge (marketing campaign, viral content), verify application performance is not degraded, monitor error rates and latency, consider scaling resources if needed.'
           summary: 'Traffic is 3x+ baseline - immediate attention required'
           runbook_url: 'https://wiki.gatewayz.ai/runbooks/traffic-spike'
         labels:
@@ -35,35 +26,30 @@ groups:
         data:
           - refId: A
             queryType: ''
-            relativeTimeRange:
-              from: 600
-              to: 0
-            datasourceUid: prometheus
             model:
-              expr: 'sum(traffic:requests_per_second:rate5m)'
+              expr: 'sum(rate(http_requests_total[5m])) / sum(rate(http_requests_total[7d])) > 3'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Traffic Ratio'
               refId: A
-          - refId: B
-            queryType: ''
-            relativeTimeRange:
-              from: 600
-              to: 0
-            datasourceUid: prometheus
-            model:
-              expr: 'sum(traffic:requests_per_second:rate7d)'
-              refId: B
           - refId: C
             queryType: ''
-            relativeTimeRange:
-              from: 0
-              to: 0
-            datasourceUid: __expr__
             model:
-              type: math
-              expression: '$A / $B > 3'
-              refId: C
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
 
       # ================================================================
-      # TRAFFIC SPIKE - WARNING
+      # TRAFFIC SPIKE - WARNING (2x baseline)
       # ================================================================
       - uid: traffic_spike_warning
         title: Traffic Spike Warning - 2x Baseline
@@ -72,15 +58,7 @@ groups:
         execErrState: Alerting
         for: 10m
         annotations:
-          description: |
-            Elevated traffic detected. Current rate: {{ $values.A.Value }} req/sec
-            Baseline (7-day avg): {{ $values.B.Value }} req/sec
-            This is {{ printf "%.1f" (div $values.A.Value $values.B.Value) }}x normal traffic.
-            
-            **Recommended Actions:**
-            1. Monitor the situation closely
-            2. Check if this is expected (deployment, feature launch)
-            3. Verify system health metrics
+          description: 'Elevated traffic detected. Traffic is 2x+ normal levels. Monitor the situation closely, check if this is expected (deployment, feature launch), verify system health metrics.'
           summary: 'Traffic is 2x+ baseline - monitoring required'
           runbook_url: 'https://wiki.gatewayz.ai/runbooks/traffic-spike'
         labels:
@@ -90,35 +68,30 @@ groups:
         data:
           - refId: A
             queryType: ''
-            relativeTimeRange:
-              from: 600
-              to: 0
-            datasourceUid: prometheus
             model:
-              expr: 'sum(traffic:requests_per_second:rate5m)'
+              expr: '(sum(rate(http_requests_total[5m])) / sum(rate(http_requests_total[7d])) > 2) and (sum(rate(http_requests_total[5m])) / sum(rate(http_requests_total[7d])) <= 3)'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Traffic Ratio'
               refId: A
-          - refId: B
-            queryType: ''
-            relativeTimeRange:
-              from: 600
-              to: 0
-            datasourceUid: prometheus
-            model:
-              expr: 'sum(traffic:requests_per_second:rate7d)'
-              refId: B
           - refId: C
             queryType: ''
-            relativeTimeRange:
-              from: 0
-              to: 0
-            datasourceUid: __expr__
             model:
-              type: math
-              expression: '($A / $B > 2) && ($A / $B <= 3)'
-              refId: C
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
 
       # ================================================================
-      # TRAFFIC DROP - WARNING
+      # TRAFFIC DROP - WARNING (50% below baseline)
       # ================================================================
       - uid: traffic_drop_warning
         title: Traffic Drop Detected - 50% Below Baseline
@@ -127,16 +100,7 @@ groups:
         execErrState: Alerting
         for: 15m
         annotations:
-          description: |
-            Significant traffic drop detected! Current rate: {{ $values.A.Value }} req/sec
-            Baseline (7-day avg): {{ $values.B.Value }} req/sec
-            Traffic is {{ printf "%.0f" (mul (sub 1 (div $values.A.Value $values.B.Value)) 100) }}% below normal.
-            
-            **Potential Causes:**
-            1. Service outage or degradation
-            2. DNS issues
-            3. Network connectivity problems
-            4. Upstream service failures
+          description: 'Significant traffic drop detected. Traffic is 50%+ below normal levels. Potential causes: Service outage or degradation, DNS issues, network connectivity problems, upstream service failures.'
           summary: 'Traffic dropped 50%+ below baseline'
           runbook_url: 'https://wiki.gatewayz.ai/runbooks/traffic-drop'
         labels:
@@ -146,31 +110,26 @@ groups:
         data:
           - refId: A
             queryType: ''
-            relativeTimeRange:
-              from: 900
-              to: 0
-            datasourceUid: prometheus
             model:
-              expr: 'sum(traffic:requests_per_second:rate5m)'
+              expr: '(sum(rate(http_requests_total[5m])) / sum(rate(http_requests_total[7d])) < 0.5) and (sum(rate(http_requests_total[7d])) > 0.1)'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Traffic Ratio'
               refId: A
-          - refId: B
-            queryType: ''
-            relativeTimeRange:
-              from: 900
-              to: 0
-            datasourceUid: prometheus
-            model:
-              expr: 'sum(traffic:requests_per_second:rate7d)'
-              refId: B
           - refId: C
             queryType: ''
-            relativeTimeRange:
-              from: 0
-              to: 0
-            datasourceUid: __expr__
             model:
-              type: math
-              expression: '($A / $B < 0.5) && ($B > 1)'
-              refId: C
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
 
     provenance: Grafana

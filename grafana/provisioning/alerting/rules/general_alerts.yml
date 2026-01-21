@@ -7,7 +7,7 @@ groups:
     interval: 1m
     rules:
       # Alert: Provider Availability Critical
-      - uid: provider_availability_critical
+      - uid: general_provider_availability_critical
         title: Provider Availability Critical
         condition: C
         noDataState: NoData

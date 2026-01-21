@@ -7,26 +7,17 @@ groups:
     interval: 1m
     rules:
       # ================================================================
-      # LATENCY DEGRADATION - CRITICAL (2x Baseline)
+      # LATENCY DEGRADATION - CRITICAL (P95 > 5s)
       # ================================================================
       - uid: latency_degradation_critical
-        title: Latency Degradation Critical - 2x Baseline
+        title: Latency Degradation Critical - P95 Above 5s
         condition: C
         noDataState: NoData
         execErrState: Alerting
         for: 10m
         annotations:
-          description: |
-            CRITICAL: P95 latency is {{ printf "%.2f" $values.A.Value }}s
-            Baseline (1h avg): {{ printf "%.2f" $values.B.Value }}s
-            This is {{ printf "%.1f" (div $values.A.Value $values.B.Value) }}x normal latency.
-
-            **Immediate Actions:**
-            1. Check provider health and response times
-            2. Review recent deployments or configuration changes
-            3. Monitor downstream dependencies
-            4. Check for resource exhaustion (CPU, memory)
-          summary: 'P95 latency is 2x+ baseline - performance degraded'
+          description: 'CRITICAL: P95 latency exceeds 5 seconds. Check provider health and response times, review recent deployments or configuration changes, monitor downstream dependencies, check for resource exhaustion (CPU, memory).'
+          summary: 'P95 latency exceeds 5s - performance degraded'
           runbook_url: 'https://wiki.gatewayz.ai/runbooks/latency-investigation'
         labels:
           severity: critical
@@ -35,53 +26,40 @@ groups:
         data:
           - refId: A
             queryType: ''
-            relativeTimeRange:
-              from: 600
-              to: 0
-            datasourceUid: grafana_mimir
             model:
-              expr: 'latency:p95:seconds'
+              expr: 'histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 5'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'P95 Latency'
               refId: A
-          - refId: B
-            queryType: ''
-            relativeTimeRange:
-              from: 600
-              to: 0
-            datasourceUid: grafana_mimir
-            model:
-              expr: 'latency:p95:seconds:1h_avg'
-              refId: B
           - refId: C
             queryType: ''
-            relativeTimeRange:
-              from: 0
-              to: 0
-            datasourceUid: __expr__
             model:
-              type: math
-              expression: '($A / $B > 2) && ($A > 1.0)'
-              refId: C
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
 
       # ================================================================
-      # LATENCY DEGRADATION - WARNING (1.5x Baseline)
+      # LATENCY DEGRADATION - WARNING (P95 > 2s)
       # ================================================================
       - uid: latency_degradation_warning
-        title: Latency Degradation Warning - 1.5x Baseline
+        title: Latency Degradation Warning - P95 Above 2s
         condition: C
         noDataState: NoData
         execErrState: Alerting
         for: 10m
         annotations:
-          description: |
-            Warning: P95 latency is {{ printf "%.2f" $values.A.Value }}s
-            Baseline (1h avg): {{ printf "%.2f" $values.B.Value }}s
-            This is {{ printf "%.1f" (div $values.A.Value $values.B.Value) }}x normal latency.
-
-            **Recommended Actions:**
-            1. Monitor the situation closely
-            2. Check if this correlates with traffic changes
-            3. Review provider performance metrics
-          summary: 'P95 latency is 1.5x+ baseline - monitoring required'
+          description: 'Warning: P95 latency exceeds 2 seconds. Monitor the situation closely, check if this correlates with traffic changes, review provider performance metrics.'
+          summary: 'P95 latency elevated - monitoring required'
           runbook_url: 'https://wiki.gatewayz.ai/runbooks/latency-investigation'
         labels:
           severity: warning
@@ -90,52 +68,40 @@ groups:
         data:
           - refId: A
             queryType: ''
-            relativeTimeRange:
-              from: 600
-              to: 0
-            datasourceUid: grafana_mimir
             model:
-              expr: 'latency:p95:seconds'
+              expr: '(histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 2) and (histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) <= 5)'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'P95 Latency'
               refId: A
-          - refId: B
-            queryType: ''
-            relativeTimeRange:
-              from: 600
-              to: 0
-            datasourceUid: grafana_mimir
-            model:
-              expr: 'latency:p95:seconds:1h_avg'
-              refId: B
           - refId: C
             queryType: ''
-            relativeTimeRange:
-              from: 0
-              to: 0
-            datasourceUid: __expr__
             model:
-              type: math
-              expression: '($A / $B > 1.5) && ($A / $B <= 2) && ($A > 0.5)'
-              refId: C
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
 
       # ================================================================
-      # P99 LATENCY SPIKE - CRITICAL (>5s)
+      # P99 LATENCY SPIKE - CRITICAL (>10s)
       # ================================================================
       - uid: p99_latency_critical
-        title: P99 Latency Critical - Above 5 Seconds
+        title: P99 Latency Critical - Above 10 Seconds
         condition: C
         noDataState: NoData
         execErrState: Alerting
         for: 5m
         annotations:
-          description: |
-            CRITICAL: P99 latency is {{ printf "%.2f" $values.A.Value }}s
-
-            **This affects the worst 1% of requests:**
-            1. Likely timeout risk for clients
-            2. Check for slow provider responses
-            3. Look for resource contention
-            4. Review request queue depth
-          summary: 'P99 latency exceeds 5s threshold'
+          description: 'CRITICAL: P99 latency exceeds 10 seconds. This affects the worst 1% of requests. Likely timeout risk for clients. Check for slow provider responses, look for resource contention, review request queue depth.'
+          summary: 'P99 latency exceeds 10s threshold'
           runbook_url: 'https://wiki.gatewayz.ai/runbooks/latency-investigation'
         labels:
           severity: critical
@@ -144,23 +110,27 @@ groups:
         data:
           - refId: A
             queryType: ''
-            relativeTimeRange:
-              from: 300
-              to: 0
-            datasourceUid: grafana_mimir
             model:
-              expr: 'latency:p99:seconds'
+              expr: 'histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 10'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'P99 Latency'
               refId: A
           - refId: C
             queryType: ''
-            relativeTimeRange:
-              from: 0
-              to: 0
-            datasourceUid: __expr__
             model:
-              type: math
-              expression: '$A > 5'
-              refId: C
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
 
       # ================================================================
       # TIME TO FIRST CHUNK (TTFC) - STREAMING LATENCY
@@ -172,13 +142,7 @@ groups:
         execErrState: Alerting
         for: 10m
         annotations:
-          description: |
-            Warning: Time to First Chunk (TTFC) P95 is {{ printf "%.2f" $values.A.Value }}s
-
-            **This affects perceived streaming performance:**
-            1. Users experience delay before seeing response
-            2. Check AI provider cold start times
-            3. Review model loading latencies
+          description: 'Warning: Time to First Chunk (TTFC) P95 exceeds 3 seconds. This affects perceived streaming performance. Users experience delay before seeing response. Check AI provider cold start times, review model loading latencies.'
           summary: 'TTFC P95 exceeds 3s - streaming feels slow'
         labels:
           severity: warning
@@ -187,22 +151,26 @@ groups:
         data:
           - refId: A
             queryType: ''
-            relativeTimeRange:
-              from: 600
-              to: 0
-            datasourceUid: grafana_mimir
             model:
-              expr: 'histogram_quantile(0.95, rate(time_to_first_chunk_seconds_bucket[5m]))'
+              expr: 'histogram_quantile(0.95, sum(rate(time_to_first_chunk_seconds_bucket[5m])) by (le)) > 3'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'TTFC P95'
               refId: A
           - refId: C
             queryType: ''
-            relativeTimeRange:
-              from: 0
-              to: 0
-            datasourceUid: __expr__
             model:
-              type: math
-              expression: '$A > 3'
-              refId: C
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
 
     provenance: Grafana

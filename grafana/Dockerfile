@@ -27,5 +27,11 @@ COPY dashboards/loki /etc/grafana/provisioning/dashboards/loki
 COPY dashboards/prometheus /etc/grafana/provisioning/dashboards/prometheus
 COPY dashboards/tempo /etc/grafana/provisioning/dashboards/tempo
 
+# ============================================================
+# ALERTING PROVISIONING
+# Copy alert rules, contact points, and notification policies
+# ============================================================
+COPY provisioning/alerting /etc/grafana/provisioning/alerting
+
 # Expose Grafana port
 EXPOSE 3000

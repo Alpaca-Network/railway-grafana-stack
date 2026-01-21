@@ -16,15 +16,7 @@ groups:
         execErrState: Alerting
         for: 5m
         annotations:
-          description: |
-            CRITICAL: Provider {{ $labels.provider }} availability is {{ printf "%.1f" $values.A.Value }}%
-            This is below the 90% critical threshold.
-
-            **Immediate Actions:**
-            1. Check provider status page
-            2. Enable fallback routing to alternate providers
-            3. Review circuit breaker status
-            4. Notify affected users if necessary
+          description: 'CRITICAL: Provider availability is below 90%. Check provider status page, enable fallback routing to alternate providers, review circuit breaker status, notify affected users if necessary.'
           summary: 'Provider availability critically low'
           runbook_url: 'https://wiki.gatewayz.ai/runbooks/provider-outage'
         labels:
@@ -34,23 +26,27 @@ groups:
         data:
           - refId: A
             queryType: ''
-            relativeTimeRange:
-              from: 300
-              to: 0
-            datasourceUid: grafana_mimir
             model:
-              expr: '100 * avg(provider_availability) by (provider)'
+              expr: '(100 * avg(provider_availability) by (provider)) < 90'
+              hide: false
+              intervalFactor: 1
+              legendFormat: '{{ provider }}'
               refId: A
           - refId: C
             queryType: ''
-            relativeTimeRange:
-              from: 0
-              to: 0
-            datasourceUid: __expr__
             model:
-              type: math
-              expression: '$A < 90'
-              refId: C
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
 
       # ================================================================
       # PROVIDER AVAILABILITY - WARNING (<95%)
@@ -62,14 +58,7 @@ groups:
         execErrState: Alerting
         for: 10m
         annotations:
-          description: |
-            Warning: Provider {{ $labels.provider }} availability is {{ printf "%.1f" $values.A.Value }}%
-            This is below the 95% warning threshold.
-
-            **Recommended Actions:**
-            1. Monitor provider closely
-            2. Review error patterns
-            3. Prepare fallback if degradation continues
+          description: 'Warning: Provider availability is below 95%. Monitor provider closely, review error patterns, prepare fallback if degradation continues.'
           summary: 'Provider availability below threshold'
           runbook_url: 'https://wiki.gatewayz.ai/runbooks/provider-degradation'
         labels:
@@ -79,23 +68,27 @@ groups:
         data:
           - refId: A
             queryType: ''
-            relativeTimeRange:
-              from: 600
-              to: 0
-            datasourceUid: grafana_mimir
             model:
-              expr: '100 * avg(provider_availability) by (provider)'
+              expr: '((100 * avg(provider_availability) by (provider)) < 95) and ((100 * avg(provider_availability) by (provider)) >= 90)'
+              hide: false
+              intervalFactor: 1
+              legendFormat: '{{ provider }}'
               refId: A
           - refId: C
             queryType: ''
-            relativeTimeRange:
-              from: 0
-              to: 0
-            datasourceUid: __expr__
             model:
-              type: math
-              expression: '($A < 95) && ($A >= 90)'
-              refId: C
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
 
       # ================================================================
       # SYSTEM AVAILABILITY - CRITICAL (<95%)
@@ -107,14 +100,7 @@ groups:
         execErrState: Alerting
         for: 5m
         annotations:
-          description: |
-            CRITICAL: System availability is {{ printf "%.1f" $values.A.Value }}%
-
-            **This indicates major service degradation:**
-            1. Check all production instances are running
-            2. Verify load balancer health
-            3. Review recent deployments
-            4. Check database and cache connectivity
+          description: 'CRITICAL: System availability is below 95%. This indicates major service degradation. Check all production instances are running, verify load balancer health, review recent deployments, check database and cache connectivity.'
           summary: 'System availability below 95%'
           runbook_url: 'https://wiki.gatewayz.ai/runbooks/system-outage'
         labels:
@@ -124,42 +110,39 @@ groups:
         data:
           - refId: A
             queryType: ''
-            relativeTimeRange:
-              from: 300
-              to: 0
-            datasourceUid: grafana_mimir
             model:
-              expr: '100 * (sum(up{job="gatewayz_production"}) / count(up{job="gatewayz_production"}))'
+              expr: '(100 * (sum(up{job="gatewayz_production"}) / count(up{job="gatewayz_production"}))) < 95'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'System Availability'
               refId: A
           - refId: C
             queryType: ''
-            relativeTimeRange:
-              from: 0
-              to: 0
-            datasourceUid: __expr__
             model:
-              type: math
-              expression: '$A < 95'
-              refId: C
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
 
       # ================================================================
       # CIRCUIT BREAKER OPEN - CRITICAL
       # ================================================================
-      - uid: circuit_breaker_open
+      - uid: circuit_breaker_open_abnormal
         title: Circuit Breaker Open - Provider Blocked
         condition: C
         noDataState: NoData
         execErrState: Alerting
         for: 2m
         annotations:
-          description: |
-            Circuit breaker is OPEN for provider {{ $labels.provider }}
-
-            **This means the provider has been automatically blocked due to failures:**
-            1. Requests are being routed to fallback providers
-            2. Check provider error logs
-            3. Wait for half-open state to test recovery
-            4. Consider manual intervention if issue persists
+          description: 'Circuit breaker is OPEN. This means the provider has been automatically blocked due to failures. Requests are being routed to fallback providers. Check provider error logs, wait for half-open state to test recovery, consider manual intervention if issue persists.'
           summary: 'Circuit breaker protecting against failing provider'
         labels:
           severity: critical
@@ -168,23 +151,27 @@ groups:
         data:
           - refId: A
             queryType: ''
-            relativeTimeRange:
-              from: 120
-              to: 0
-            datasourceUid: grafana_mimir
             model:
-              expr: 'circuit_breaker_state{state="open"}'
+              expr: 'circuit_breaker_state{state="open"} > 0'
+              hide: false
+              intervalFactor: 1
+              legendFormat: '{{ provider }}'
               refId: A
           - refId: C
             queryType: ''
-            relativeTimeRange:
-              from: 0
-              to: 0
-            datasourceUid: __expr__
             model:
-              type: math
-              expression: '$A > 0'
-              refId: C
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
 
       # ================================================================
       # BACKEND DOWN - CRITICAL
@@ -196,14 +183,7 @@ groups:
         execErrState: Alerting
         for: 2m
         annotations:
-          description: |
-            CRITICAL: GatewayZ backend instance is down!
-
-            **Immediate Actions:**
-            1. Check Railway deployment status
-            2. Review application logs for crash
-            3. Verify environment variables
-            4. Check memory/CPU limits
+          description: 'CRITICAL: GatewayZ backend instance is down! Check Railway deployment status, review application logs for crash, verify environment variables, check memory/CPU limits.'
           summary: 'Backend instance not responding'
           runbook_url: 'https://wiki.gatewayz.ai/runbooks/backend-down'
         labels:
@@ -213,23 +193,27 @@ groups:
         data:
           - refId: A
             queryType: ''
-            relativeTimeRange:
-              from: 120
-              to: 0
-            datasourceUid: grafana_mimir
             model:
-              expr: 'up{job="gatewayz_production"}'
+              expr: 'up{job="gatewayz_production"} == 0'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Backend Status'
               refId: A
           - refId: C
             queryType: ''
-            relativeTimeRange:
-              from: 0
-              to: 0
-            datasourceUid: __expr__
             model:
-              type: math
-              expression: '$A == 0'
-              refId: C
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
 
       # ================================================================
       # MULTIPLE PROVIDERS DEGRADED - CRITICAL
@@ -241,14 +225,7 @@ groups:
         execErrState: Alerting
         for: 5m
         annotations:
-          description: |
-            CRITICAL: {{ $values.A.Value }} providers are degraded (availability < 95%)
-
-            **This indicates widespread issues:**
-            1. Check for common dependencies (network, DNS)
-            2. Review rate limiting across providers
-            3. Verify API keys are valid
-            4. Consider temporary traffic reduction
+          description: 'CRITICAL: 3+ providers are degraded (availability < 95%). This indicates widespread issues. Check for common dependencies (network, DNS), review rate limiting across providers, verify API keys are valid, consider temporary traffic reduction.'
           summary: '3+ providers showing degraded availability'
         labels:
           severity: critical
@@ -257,22 +234,26 @@ groups:
         data:
           - refId: A
             queryType: ''
-            relativeTimeRange:
-              from: 300
-              to: 0
-            datasourceUid: grafana_mimir
             model:
-              expr: 'count(100 * avg(provider_availability) by (provider) < 95)'
+              expr: 'count(100 * avg(provider_availability) by (provider) < 95) >= 3'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Degraded Provider Count'
               refId: A
           - refId: C
             queryType: ''
-            relativeTimeRange:
-              from: 0
-              to: 0
-            datasourceUid: __expr__
             model:
-              type: math
-              expression: '$A >= 3'
-              refId: C
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: threshold
 
     provenance: Grafana
