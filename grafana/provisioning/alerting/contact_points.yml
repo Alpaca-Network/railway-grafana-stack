@@ -51,8 +51,9 @@ contactPoints:
       - uid: observatory_critical_uid
         type: email
         settings:
-          # Set via Railway: OBSERVATORY_POOL_CRITICAL=user1@company.com,user2@company.com
-          addresses: ${OBSERVATORY_POOL_CRITICAL:-on-call@gatewayz.ai}
+          # Critical anomaly alerts (traffic spikes, high error rates, etc.)
+          # TODO: Update these email addresses for production
+          addresses: manjeshprasad21@gmail.com, vaughn@alpacanetwork.ai
           singleEmail: false
         disableResolveMessage: false
     provenance: Grafana
@@ -63,8 +64,9 @@ contactPoints:
       - uid: observatory_warning_uid
         type: email
         settings:
-          # Set via Railway: OBSERVATORY_POOL_WARNING=user1@company.com,team@company.com
-          addresses: ${OBSERVATORY_POOL_WARNING:-ops@gatewayz.ai}
+          # Warning anomaly alerts (elevated metrics, degraded performance)
+          # TODO: Update these email addresses for production
+          addresses: manjeshprasad21@gmail.com, vaughn@alpacanetwork.ai
           singleEmail: false
         disableResolveMessage: false
     provenance: Grafana
@@ -75,8 +77,9 @@ contactPoints:
       - uid: observatory_digest_uid
         type: email
         settings:
-          # Set via Railway: OBSERVATORY_POOL_DIGEST=team@company.com
-          addresses: ${OBSERVATORY_POOL_DIGEST:-alerts@gatewayz.ai}
+          # Digest notifications (daily/weekly summaries)
+          # TODO: Update these email addresses for production
+          addresses: manjeshprasad21@gmail.com, vaughn@alpacanetwork.ai
           singleEmail: true
         disableResolveMessage: false
     provenance: Grafana
