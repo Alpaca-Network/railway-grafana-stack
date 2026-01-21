@@ -38,7 +38,7 @@ groups:
             relativeTimeRange:
               from: 600
               to: 0
-            datasourceUid: prometheus
+            datasourceUid: grafana_mimir
             model:
               expr: 'sum(traffic:requests_per_second:rate5m)'
               refId: A
@@ -47,7 +47,7 @@ groups:
             relativeTimeRange:
               from: 600
               to: 0
-            datasourceUid: prometheus
+            datasourceUid: grafana_mimir
             model:
               expr: 'sum(traffic:requests_per_second:rate7d)'
               refId: B
@@ -93,7 +93,7 @@ groups:
             relativeTimeRange:
               from: 600
               to: 0
-            datasourceUid: prometheus
+            datasourceUid: grafana_mimir
             model:
               expr: 'sum(traffic:requests_per_second:rate5m)'
               refId: A
@@ -102,7 +102,7 @@ groups:
             relativeTimeRange:
               from: 600
               to: 0
-            datasourceUid: prometheus
+            datasourceUid: grafana_mimir
             model:
               expr: 'sum(traffic:requests_per_second:rate7d)'
               refId: B
@@ -149,7 +149,7 @@ groups:
             relativeTimeRange:
               from: 900
               to: 0
-            datasourceUid: prometheus
+            datasourceUid: grafana_mimir
             model:
               expr: 'sum(traffic:requests_per_second:rate5m)'
               refId: A
@@ -158,7 +158,7 @@ groups:
             relativeTimeRange:
               from: 900
               to: 0
-            datasourceUid: prometheus
+            datasourceUid: grafana_mimir
             model:
               expr: 'sum(traffic:requests_per_second:rate7d)'
               refId: B

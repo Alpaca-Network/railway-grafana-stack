@@ -33,12 +33,12 @@ groups:
           component: gateway
         data:
           - refId: A
-            datasourceUid: prometheus
+            datasourceUid: grafana_mimir
             model:
               expr: 'errors:rate:percentage'
               refId: A
           - refId: B
-            datasourceUid: prometheus
+            datasourceUid: grafana_mimir
             model:
               expr: 'errors:rate:percentage:24h_avg'
               refId: B
@@ -71,12 +71,12 @@ groups:
           component: gateway
         data:
           - refId: A
-            datasourceUid: prometheus
+            datasourceUid: grafana_mimir
             model:
               expr: 'errors:rate:percentage'
               refId: A
           - refId: B
-            datasourceUid: prometheus
+            datasourceUid: grafana_mimir
             model:
               expr: 'errors:rate:percentage:24h_avg'
               refId: B
@@ -113,7 +113,7 @@ groups:
           component: gateway
         data:
           - refId: A
-            datasourceUid: prometheus
+            datasourceUid: grafana_mimir
             model:
               expr: 'errors:5xx:percentage'
               refId: A
