@@ -15,8 +15,16 @@ COPY prom.yml /etc/prometheus/prom.yml
 # Copy alert rules
 COPY alert.rules.yml /etc/prometheus/alert.rules.yml
 
+# Copy recording rules for baseline calculations (used by anomaly detection alerts)
+COPY recording_rules_baselines.yml /etc/prometheus/recording_rules_baselines.yml
+
+# Copy and make entrypoint executable (handles FASTAPI_TARGET substitution)
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Expose Prometheus port for Railway private networking
 EXPOSE 9090
 
-# Command to run Prometheus
+# Use entrypoint script to substitute environment variables, then start Prometheus
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["--config.file=/etc/prometheus/prom.yml", "--storage.tsdb.path=/prometheus"]

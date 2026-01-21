@@ -1,0 +1,176 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: traffic_anomalies
+    folder: Abnormal Behavior
+    interval: 1m
+    rules:
+      # ================================================================
+      # TRAFFIC SPIKE - CRITICAL
+      # ================================================================
+      - uid: traffic_spike_critical
+        title: Traffic Spike Critical - 3x Baseline
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 10m
+        annotations:
+          description: |
+            Traffic spike detected! Current rate: {{ $values.A.Value }} req/sec
+            Baseline (7-day avg): {{ $values.B.Value }} req/sec
+            This is {{ printf "%.1f" (div $values.A.Value $values.B.Value) }}x normal traffic.
+            
+            **Action Required:**
+            1. Check for legitimate traffic surge (marketing campaign, viral content)
+            2. Verify application performance is not degraded
+            3. Monitor error rates and latency
+            4. Consider scaling resources if needed
+          summary: 'Traffic is 3x+ baseline - immediate attention required'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/traffic-spike'
+        labels:
+          severity: critical
+          category: traffic_spike
+          component: gateway
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: 'sum(traffic:requests_per_second:rate5m)'
+              refId: A
+          - refId: B
+            queryType: ''
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: 'sum(traffic:requests_per_second:rate7d)'
+              refId: B
+          - refId: C
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: '$A / $B > 3'
+              refId: C
+
+      # ================================================================
+      # TRAFFIC SPIKE - WARNING
+      # ================================================================
+      - uid: traffic_spike_warning
+        title: Traffic Spike Warning - 2x Baseline
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 10m
+        annotations:
+          description: |
+            Elevated traffic detected. Current rate: {{ $values.A.Value }} req/sec
+            Baseline (7-day avg): {{ $values.B.Value }} req/sec
+            This is {{ printf "%.1f" (div $values.A.Value $values.B.Value) }}x normal traffic.
+            
+            **Recommended Actions:**
+            1. Monitor the situation closely
+            2. Check if this is expected (deployment, feature launch)
+            3. Verify system health metrics
+          summary: 'Traffic is 2x+ baseline - monitoring required'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/traffic-spike'
+        labels:
+          severity: warning
+          category: traffic_spike
+          component: gateway
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: 'sum(traffic:requests_per_second:rate5m)'
+              refId: A
+          - refId: B
+            queryType: ''
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: 'sum(traffic:requests_per_second:rate7d)'
+              refId: B
+          - refId: C
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: '($A / $B > 2) && ($A / $B <= 3)'
+              refId: C
+
+      # ================================================================
+      # TRAFFIC DROP - WARNING
+      # ================================================================
+      - uid: traffic_drop_warning
+        title: Traffic Drop Detected - 50% Below Baseline
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 15m
+        annotations:
+          description: |
+            Significant traffic drop detected! Current rate: {{ $values.A.Value }} req/sec
+            Baseline (7-day avg): {{ $values.B.Value }} req/sec
+            Traffic is {{ printf "%.0f" (mul (sub 1 (div $values.A.Value $values.B.Value)) 100) }}% below normal.
+            
+            **Potential Causes:**
+            1. Service outage or degradation
+            2. DNS issues
+            3. Network connectivity problems
+            4. Upstream service failures
+          summary: 'Traffic dropped 50%+ below baseline'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/traffic-drop'
+        labels:
+          severity: warning
+          category: traffic_drop
+          component: gateway
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: 'sum(traffic:requests_per_second:rate5m)'
+              refId: A
+          - refId: B
+            queryType: ''
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: 'sum(traffic:requests_per_second:rate7d)'
+              refId: B
+          - refId: C
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: '($A / $B < 0.5) && ($B > 1)'
+              refId: C
+
+    provenance: Grafana
