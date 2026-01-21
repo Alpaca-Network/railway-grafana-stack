@@ -29,7 +29,7 @@ groups:
       
       # Request rate by endpoint
       - record: traffic:requests_per_second:by_endpoint
-        expr: rate(http_requests_total[5m]) by (endpoint)
+        expr: sum by (endpoint) (rate(http_requests_total[5m]))
 
   # ============================================================
   # ERROR RATE BASELINES
@@ -76,9 +76,9 @@ groups:
       - record: errors:rate:by_endpoint
         expr: |
           100 * (
-            sum(rate(http_requests_total{status_code=~"4..|5.."}[5m])) by (endpoint)
+            sum by (endpoint) (rate(http_requests_total{status_code=~"4..|5.."}[5m]))
             /
-            sum(rate(http_requests_total[5m])) by (endpoint)
+            sum by (endpoint) (rate(http_requests_total[5m]))
           )
 
   # ============================================================
@@ -113,7 +113,7 @@ groups:
       
       # Latency by endpoint
       - record: latency:p95:by_endpoint
-        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) by (endpoint)
+        expr: histogram_quantile(0.95, sum by (endpoint, le) (rate(http_request_duration_seconds_bucket[5m])))
 
   # ============================================================
   # AVAILABILITY BASELINES
@@ -123,15 +123,15 @@ groups:
     rules:
       # Provider availability percentage
       - record: availability:provider:percentage
-        expr: avg(provider_availability) by (provider)
+        expr: avg by (provider) (provider_availability)
       
       # Model availability percentage
       - record: availability:model:percentage
-        expr: avg(model_availability) by (model)
+        expr: avg by (model) (model_availability)
       
       # Gateway availability percentage
       - record: availability:gateway:percentage
-        expr: avg(gateway_health_status) by (gateway)
+        expr: avg by (gateway) (gateway_health_status)
       
       # Overall system availability
       - record: availability:system:percentage
@@ -158,7 +158,7 @@ groups:
       
       # Cost by provider
       - record: cost:by_provider
-        expr: sum(rate(api_cost_total[5m])) by (provider)
+        expr: sum by (provider) (rate(api_cost_total[5m]))
 
   # ============================================================
   # RESOURCE USAGE BASELINES
