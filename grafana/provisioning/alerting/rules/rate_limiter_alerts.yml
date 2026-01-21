@@ -1,0 +1,233 @@
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: rate_limiter_alerts
+    folder: Alerts
+    interval: 30s
+    rules:
+      - uid: rate_limiter_high_hits
+        title: High Rate Limit Hits
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: sum(rate(rate_limit_hits_total[5m]))
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 50
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  type: query
+              refId: C
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: High rate limit hits detected
+          description: >-
+            Rate limiter is blocking {{ $values.B.Value | humanize }} requests/sec.
+            This may indicate API abuse or misconfigured limits.
+          dashboard: http://localhost:3000/d/backend-services-v1/backend-services
+        labels:
+          severity: warning
+          component: rate_limiter
+
+      - uid: rate_limiter_critical_hits
+        title: 🚨 CRITICAL - Potential DDoS Attack
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 120
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: sum(rate(rate_limit_hits_total[5m]))
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 120
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 120
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 200
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  type: query
+              refId: C
+        noDataState: NoData
+        execErrState: Error
+        for: 2m
+        annotations:
+          summary: 🚨 CRITICAL - Massive rate limit hits - Potential DDoS attack
+          description: >-
+            Rate limiter is blocking {{ $values.B.Value | humanize }} requests/sec,
+            exceeding 200 req/s threshold. This may indicate a DDoS attack or severe API abuse.
+            Immediate investigation required.
+          dashboard: http://localhost:3000/d/backend-services-v1/backend-services
+        labels:
+          severity: critical
+          component: rate_limiter
+          email: manjeshprasad21@gmail.com
+
+      - uid: rate_limiter_spike
+        title: Rate Limit Spike - 5x Increase
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: |
+                sum(rate(rate_limit_hits_total[5m])) /
+                sum(rate(rate_limit_hits_total[5m] offset 1h))
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 5
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  type: query
+              refId: C
+        noDataState: NoData
+        execErrState: Error
+        for: 3m
+        annotations:
+          summary: 🚨 Rate limit spike - 5x increase detected
+          description: >-
+            Rate limit hits have increased by {{ $values.B.Value | humanize }}x compared to 1 hour ago.
+            This indicates abnormal traffic patterns.
+          dashboard: http://localhost:3000/d/backend-services-v1/backend-services
+        labels:
+          severity: critical
+          component: rate_limiter
+          email: manjeshprasad21@gmail.com
+
+      - uid: traffic_spike_2x
+        title: Traffic Spike - 2x Increase
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: |
+                sum(rate(http_requests_total[5m])) /
+                sum(rate(http_requests_total[5m] offset 1h))
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 2
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  type: query
+              refId: C
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: Traffic spike detected
+          description: >-
+            Current request rate is {{ $values.B.Value | humanize }}x the rate from 1 hour ago.
+            This may indicate a traffic surge or potential attack.
+          dashboard: http://localhost:3000/d/executive-overview-v1/executive-overview
+        labels:
+          severity: warning
+          component: api

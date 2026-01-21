@@ -108,7 +108,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "grafana_mimir"
       },
       "fieldConfig": {
         "defaults": {
@@ -153,7 +153,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "grafana_mimir"
           },
           "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
           "legendFormat": "P50",
@@ -166,7 +166,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "grafana_mimir"
       },
       "fieldConfig": {
         "defaults": {
@@ -211,7 +211,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "grafana_mimir"
           },
           "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
           "legendFormat": "P95",
@@ -224,7 +224,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "grafana_mimir"
       },
       "fieldConfig": {
         "defaults": {
@@ -269,7 +269,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "grafana_mimir"
           },
           "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
           "legendFormat": "P99",
@@ -282,7 +282,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "grafana_mimir"
       },
       "fieldConfig": {
         "defaults": {
@@ -373,7 +373,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "grafana_mimir"
           },
           "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
           "legendFormat": "P50",
@@ -382,7 +382,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "grafana_mimir"
           },
           "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
           "legendFormat": "P95",
@@ -391,7 +391,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "grafana_mimir"
           },
           "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
           "legendFormat": "P99",
@@ -412,7 +412,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "grafana_mimir"
       },
       "fieldConfig": {
         "defaults": {
@@ -457,7 +457,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "grafana_mimir"
           },
           "expr": "sum(rate(fastapi_requests_total[5m]))",
           "legendFormat": "Total Request Rate",
@@ -470,7 +470,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "grafana_mimir"
       },
       "fieldConfig": {
         "defaults": {
@@ -515,7 +515,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "grafana_mimir"
           },
           "expr": "sum(fastapi_requests_in_progress) or vector(0)",
           "legendFormat": "In Progress",
@@ -528,7 +528,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "grafana_mimir"
       },
       "fieldConfig": {
         "defaults": {
@@ -570,7 +570,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "grafana_mimir"
           },
           "expr": "sum(increase(fastapi_requests_total[1h]))",
           "legendFormat": "Total (1h)",
@@ -583,7 +583,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "grafana_mimir"
       },
       "fieldConfig": {
         "defaults": {
@@ -674,7 +674,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "grafana_mimir"
           },
           "expr": "sum(rate(fastapi_requests_total{status_code=~\"2..\"}[5m]))",
           "legendFormat": "2xx Success",
@@ -683,7 +683,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "grafana_mimir"
           },
           "expr": "sum(rate(fastapi_requests_total{status_code=~\"4..\"}[5m]))",
           "legendFormat": "4xx Client Error",
@@ -692,7 +692,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "grafana_mimir"
           },
           "expr": "sum(rate(fastapi_requests_total{status_code=~\"5..\"}[5m]))",
           "legendFormat": "5xx Server Error",
@@ -713,7 +713,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "grafana_mimir"
       },
       "fieldConfig": {
         "defaults": {
@@ -758,7 +758,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "grafana_mimir"
           },
           "expr": "sum(rate(fastapi_requests_total{status_code=~\"5..\"}[5m])) / sum(rate(fastapi_requests_total[5m])) or vector(0)",
           "legendFormat": "Error Rate",
@@ -771,7 +771,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "grafana_mimir"
       },
       "fieldConfig": {
         "defaults": {
@@ -816,7 +816,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "grafana_mimir"
           },
           "expr": "sum(increase(fastapi_requests_total{status_code=~\"5..\"}[1h]))",
           "legendFormat": "Total Errors (1h)",
@@ -829,7 +829,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "grafana_mimir"
       },
       "fieldConfig": {
         "defaults": {
@@ -910,7 +910,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "grafana_mimir"
           },
           "expr": "sum(rate(fastapi_requests_total{status_code=~\"5..\"}[5m])) / sum(rate(fastapi_requests_total[5m])) or vector(0)",
           "legendFormat": "Error Rate %",
@@ -931,7 +931,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "grafana_mimir"
       },
       "fieldConfig": {
         "defaults": {
@@ -976,7 +976,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "grafana_mimir"
           },
           "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100) or vector(0)",
           "legendFormat": "CPU",
@@ -989,7 +989,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "grafana_mimir"
       },
       "fieldConfig": {
         "defaults": {
@@ -1034,7 +1034,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "grafana_mimir"
           },
           "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 or vector(0)",
           "legendFormat": "Memory",
@@ -1047,7 +1047,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "grafana_mimir"
       },
       "fieldConfig": {
         "defaults": {
@@ -1092,7 +1092,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "grafana_mimir"
           },
           "expr": "(redis_memory_used_bytes / redis_memory_max_bytes) * 100 or vector(0)",
           "legendFormat": "Redis Memory",
@@ -1105,7 +1105,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "grafana_mimir"
       },
       "fieldConfig": {
         "defaults": {
@@ -1150,7 +1150,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "grafana_mimir"
           },
           "expr": "redis_connected_clients or vector(0)",
           "legendFormat": "Connections",
@@ -1163,7 +1163,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "grafana_mimir"
       },
       "fieldConfig": {
         "defaults": {
@@ -1259,7 +1259,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "grafana_mimir"
           },
           "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100) or vector(0)",
           "legendFormat": "CPU",
@@ -1268,7 +1268,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "grafana_mimir"
           },
           "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 or vector(0)",
           "legendFormat": "Memory",
@@ -1277,7 +1277,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "grafana_mimir"
           },
           "expr": "(redis_memory_used_bytes / redis_memory_max_bytes) * 100 or vector(0)",
           "legendFormat": "Redis Memory",

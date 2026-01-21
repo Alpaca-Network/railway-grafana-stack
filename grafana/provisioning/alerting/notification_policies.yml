@@ -116,6 +116,37 @@ notificationPolicies:
           groupWait: 5m
           muteTimeIntervals: []
 
+        # Rate Limiter alerts - Critical (DDoS, spikes)
+        - receiver: critical-email
+          groupByStr:
+            - alertname
+            - component
+          matchers:
+            - name: component
+              value: rate_limiter
+              matchType: '='
+            - name: severity
+              value: critical
+              matchType: '='
+          repeatInterval: 15m
+          groupInterval: 2m
+          groupWait: 0s
+          muteTimeIntervals: []
+
+        # Rate Limiter alerts - Warning (high hits)
+        - receiver: ops-email
+          groupByStr:
+            - alertname
+            - component
+          matchers:
+            - name: component
+              value: rate_limiter
+              matchType: '='
+          repeatInterval: 30m
+          groupInterval: 5m
+          groupWait: 2m
+          muteTimeIntervals: []
+
         # Infrastructure alerts - Prometheus targets
         - receiver: critical-email
           groupByStr:

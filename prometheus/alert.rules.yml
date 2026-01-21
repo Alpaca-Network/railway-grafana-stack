@@ -292,3 +292,70 @@ groups:
           summary: "SLO Latency breach"
           description: "P95 latency is {{ $value }}s, exceeding 500ms target. Response times are degraded."
           dashboard: "http://localhost:3000/d/executive-overview-v1/executive-overview"
+
+  - name: rate_limiter_alerts
+    interval: 30s
+    rules:
+      # Rate Limiter - High Rate Limit Hits
+      - alert: HighRateLimitHits
+        expr: sum(rate(rate_limit_hits_total[5m])) > 50
+        for: 5m
+        labels:
+          severity: warning
+          component: rate_limiter
+        annotations:
+          summary: "High rate limit hits detected"
+          description: "Rate limiter is blocking {{ $value | humanize }} requests/sec. This may indicate API abuse or misconfigured limits."
+          dashboard: "http://localhost:3000/d/backend-services-v1/backend-services"
+
+      # Rate Limiter - Critical Rate Limit Hits (Potential DDoS)
+      - alert: CriticalRateLimitHits
+        expr: sum(rate(rate_limit_hits_total[5m])) > 200
+        for: 2m
+        labels:
+          severity: critical
+          component: rate_limiter
+          email: "manjeshprasad21@gmail.com"
+        annotations:
+          summary: "🚨 CRITICAL: Massive rate limit hits - Potential DDoS attack"
+          description: "Rate limiter is blocking {{ $value | humanize }} requests/sec, exceeding 200 req/s threshold. This may indicate a DDoS attack or severe API abuse. Immediate investigation required."
+          dashboard: "http://localhost:3000/d/backend-services-v1/backend-services"
+
+      # Rate Limiter - User-Specific Abuse
+      - alert: UserRateLimitAbuse
+        expr: sum(rate(rate_limit_hits_total[5m])) by (user_id) > 10
+        for: 3m
+        labels:
+          severity: warning
+          component: rate_limiter
+        annotations:
+          summary: "User {{ $labels.user_id }} exceeding rate limits"
+          description: "User {{ $labels.user_id }} has triggered rate limiter {{ $value | humanize }} times/sec for 3 minutes. This may indicate API abuse or scraping."
+          dashboard: "http://localhost:3000/d/backend-services-v1/backend-services"
+
+      # Rate Limiter - API Key Abuse
+      - alert: APIKeyRateLimitAbuse
+        expr: sum(rate(rate_limit_hits_total[5m])) by (api_key) > 20
+        for: 3m
+        labels:
+          severity: critical
+          component: rate_limiter
+        annotations:
+          summary: "API Key {{ $labels.api_key }} severely abusing rate limits"
+          description: "API Key {{ $labels.api_key }} has triggered rate limiter {{ $value | humanize }} times/sec. Consider temporary suspension."
+          dashboard: "http://localhost:3000/d/backend-services-v1/backend-services"
+
+      # Rate Limiter - Sudden Spike in Rate Limiting
+      - alert: RateLimitSpikeDetected
+        expr: |
+          sum(rate(rate_limit_hits_total[5m])) > 
+          (sum(rate(rate_limit_hits_total[5m] offset 1h)) * 5)
+        for: 3m
+        labels:
+          severity: critical
+          component: rate_limiter
+          email: "manjeshprasad21@gmail.com"
+        annotations:
+          summary: "🚨 Rate limit spike - 5x increase detected"
+          description: "Rate limit hits have increased by 5x compared to 1 hour ago. Current: {{ $value | humanize }} req/sec. This indicates abnormal traffic patterns."
+          dashboard: "http://localhost:3000/d/backend-services-v1/backend-services"
