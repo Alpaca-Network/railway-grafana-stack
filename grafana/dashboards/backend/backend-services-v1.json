@@ -62,7 +62,7 @@
   "panels": [
     {
       "datasource": {
-        "type": "datasource",
+        "type": "grafana",
         "uid": "-- Grafana --"
       },
       "gridPos": {
