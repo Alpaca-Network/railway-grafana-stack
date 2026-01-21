@@ -1,0 +1,127 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: error_rate_anomalies
+    folder: Abnormal Behavior
+    interval: 1m
+    rules:
+      # ================================================================
+      # ERROR RATE SPIKE - CRITICAL (>10%)
+      # ================================================================
+      - uid: error_rate_critical
+        title: Error Rate Critical - Above 10%
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: |
+            CRITICAL: Error rate is {{ printf "%.1f" $values.A.Value }}%
+            Baseline (24h avg): {{ printf "%.1f" $values.B.Value }}%
+            
+            **Immediate Actions:**
+            1. Check application logs for stack traces
+            2. Verify database connectivity
+            3. Check external API dependencies
+            4. Review recent deployments
+          summary: 'Error rate exceeds 10% - immediate investigation required'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/error-investigation'
+        labels:
+          severity: critical
+          category: error_rate_spike
+          component: gateway
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            model:
+              expr: 'errors:rate:percentage'
+              refId: A
+          - refId: B
+            datasourceUid: prometheus
+            model:
+              expr: 'errors:rate:percentage:24h_avg'
+              refId: B
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: '$A > 10'
+              refId: C
+
+      # ================================================================
+      # ERROR RATE SPIKE - WARNING (3x Baseline)
+      # ================================================================
+      - uid: error_rate_warning
+        title: Error Rate Warning - 3x Baseline
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: |
+            Warning: Error rate is {{ printf "%.1f" $values.A.Value }}%
+            Baseline (24h avg): {{ printf "%.1f" $values.B.Value }}%
+            This is {{ printf "%.1f" (div $values.A.Value $values.B.Value) }}x normal error rate.
+          summary: 'Error rate is 3x+ baseline'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/error-investigation'
+        labels:
+          severity: warning
+          category: error_rate_spike
+          component: gateway
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            model:
+              expr: 'errors:rate:percentage'
+              refId: A
+          - refId: B
+            datasourceUid: prometheus
+            model:
+              expr: 'errors:rate:percentage:24h_avg'
+              refId: B
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: '($A / $B > 3) && ($A <= 10)'
+              refId: C
+
+      # ================================================================
+      # 5XX SERVER ERRORS - CRITICAL
+      # ================================================================
+      - uid: server_error_5xx_critical
+        title: 5xx Server Errors Critical - Above 5%
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 3m
+        annotations:
+          description: |
+            CRITICAL: 5xx server error rate is {{ printf "%.1f" $values.A.Value }}%
+            
+            **Server errors indicate internal problems:**
+            1. Application crashes or exceptions
+            2. Database connection failures
+            3. Dependency service failures
+            4. Resource exhaustion (memory, CPU)
+          summary: '5xx server error rate exceeds 5%'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/server-errors'
+        labels:
+          severity: critical
+          category: server_errors
+          component: gateway
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            model:
+              expr: 'errors:5xx:percentage'
+              refId: A
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: '$A > 5'
+              refId: C
+
+    provenance: Grafana

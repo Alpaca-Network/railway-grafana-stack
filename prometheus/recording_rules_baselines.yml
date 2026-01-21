@@ -1,0 +1,193 @@
+# ============================================================
+# PROMETHEUS RECORDING RULES - BASELINE CALCULATIONS
+# ============================================================
+# These rules pre-calculate baseline metrics for anomaly detection
+# They run continuously to establish "normal" behavior patterns
+
+groups:
+  # ============================================================
+  # TRAFFIC BASELINES
+  # ============================================================
+  - name: traffic_baselines
+    interval: 1m
+    rules:
+      # Current request rate per second
+      - record: traffic:requests_per_second:rate5m
+        expr: rate(http_requests_total[5m])
+      
+      # 1-hour average request rate
+      - record: traffic:requests_per_second:rate1h
+        expr: avg_over_time(rate(http_requests_total[5m])[1h:])
+      
+      # 24-hour average request rate (daily baseline)
+      - record: traffic:requests_per_second:rate24h
+        expr: avg_over_time(rate(http_requests_total[5m])[24h:])
+      
+      # 7-day average request rate (weekly baseline)
+      - record: traffic:requests_per_second:rate7d
+        expr: avg_over_time(rate(http_requests_total[5m])[7d:])
+      
+      # Request rate by endpoint
+      - record: traffic:requests_per_second:by_endpoint
+        expr: rate(http_requests_total[5m]) by (endpoint)
+
+  # ============================================================
+  # ERROR RATE BASELINES
+  # ============================================================
+  - name: error_rate_baselines
+    interval: 1m
+    rules:
+      # Current error rate percentage (4xx + 5xx)
+      - record: errors:rate:percentage
+        expr: |
+          100 * (
+            sum(rate(http_requests_total{status_code=~"4..|5.."}[5m]))
+            /
+            sum(rate(http_requests_total[5m]))
+          )
+      
+      # 4xx client error rate
+      - record: errors:4xx:percentage
+        expr: |
+          100 * (
+            sum(rate(http_requests_total{status_code=~"4.."}[5m]))
+            /
+            sum(rate(http_requests_total[5m]))
+          )
+      
+      # 5xx server error rate
+      - record: errors:5xx:percentage
+        expr: |
+          100 * (
+            sum(rate(http_requests_total{status_code=~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total[5m]))
+          )
+      
+      # 1-hour error rate average
+      - record: errors:rate:percentage:1h_avg
+        expr: avg_over_time(errors:rate:percentage[1h])
+      
+      # 24-hour error rate average (daily baseline)
+      - record: errors:rate:percentage:24h_avg
+        expr: avg_over_time(errors:rate:percentage[24h])
+      
+      # Error rate by endpoint
+      - record: errors:rate:by_endpoint
+        expr: |
+          100 * (
+            sum(rate(http_requests_total{status_code=~"4..|5.."}[5m])) by (endpoint)
+            /
+            sum(rate(http_requests_total[5m])) by (endpoint)
+          )
+
+  # ============================================================
+  # LATENCY BASELINES
+  # ============================================================
+  - name: latency_baselines
+    interval: 1m
+    rules:
+      # P50 (median) latency
+      - record: latency:p50:seconds
+        expr: histogram_quantile(0.50, rate(http_request_duration_seconds_bucket[5m]))
+      
+      # P95 latency
+      - record: latency:p95:seconds
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+      
+      # P99 latency
+      - record: latency:p99:seconds
+        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))
+      
+      # 1-hour P95 average
+      - record: latency:p95:seconds:1h_avg
+        expr: avg_over_time(latency:p95:seconds[1h])
+      
+      # 24-hour P95 average (daily baseline)
+      - record: latency:p95:seconds:24h_avg
+        expr: avg_over_time(latency:p95:seconds[24h])
+      
+      # 1-hour P99 average
+      - record: latency:p99:seconds:1h_avg
+        expr: avg_over_time(latency:p99:seconds[1h])
+      
+      # Latency by endpoint
+      - record: latency:p95:by_endpoint
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) by (endpoint)
+
+  # ============================================================
+  # AVAILABILITY BASELINES
+  # ============================================================
+  - name: availability_baselines
+    interval: 1m
+    rules:
+      # Provider availability percentage
+      - record: availability:provider:percentage
+        expr: avg(provider_availability) by (provider)
+      
+      # Model availability percentage
+      - record: availability:model:percentage
+        expr: avg(model_availability) by (model)
+      
+      # Gateway availability percentage
+      - record: availability:gateway:percentage
+        expr: avg(gateway_health_status) by (gateway)
+      
+      # Overall system availability
+      - record: availability:system:percentage
+        expr: |
+          100 * (
+            sum(up{job="gatewayz_production"})
+            /
+            count(up{job="gatewayz_production"})
+          )
+
+  # ============================================================
+  # COST BASELINES (if you track cost metrics)
+  # ============================================================
+  - name: cost_baselines
+    interval: 5m
+    rules:
+      # Daily cost sum
+      - record: cost:daily:total
+        expr: sum(increase(api_cost_total[24h]))
+      
+      # 7-day average daily cost
+      - record: cost:daily:7d_avg
+        expr: avg_over_time(cost:daily:total[7d])
+      
+      # Cost by provider
+      - record: cost:by_provider
+        expr: sum(rate(api_cost_total[5m])) by (provider)
+
+  # ============================================================
+  # RESOURCE USAGE BASELINES
+  # ============================================================
+  - name: resource_baselines
+    interval: 1m
+    rules:
+      # CPU usage percentage
+      - record: resources:cpu:percentage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+      
+      # Memory usage percentage
+      - record: resources:memory:percentage
+        expr: |
+          100 * (
+            1 - (
+              node_memory_MemAvailable_bytes
+              /
+              node_memory_MemTotal_bytes
+            )
+          )
+      
+      # Disk usage percentage
+      - record: resources:disk:percentage
+        expr: |
+          100 * (
+            1 - (
+              node_filesystem_avail_bytes{mountpoint="/"}
+              /
+              node_filesystem_size_bytes{mountpoint="/"}
+            )
+          )

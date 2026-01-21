@@ -14,6 +14,210 @@ notificationPolicies:
           matchType: =~
       muteTimeIntervals: []
       routes:
+        # ================================================================
+        # ABNORMAL BEHAVIOR ALERTS - OBSERVATORY POOL
+        # These alerts are generated from LGTM+Prometheus telemetry
+        # ================================================================
+
+        # Traffic anomalies - critical (3x+ baseline)
+        - receiver: observatory-pool-critical
+          groupByStr:
+            - alertname
+            - category
+          matchers:
+            - name: category
+              value: traffic_spike
+              matchType: '='
+            - name: severity
+              value: critical
+              matchType: '='
+          repeatInterval: 15m
+          groupInterval: 5m
+          groupWait: 10s
+          muteTimeIntervals: []
+
+        # Traffic anomalies - warning (2x baseline)
+        - receiver: observatory-pool-warning
+          groupByStr:
+            - alertname
+            - category
+          matchers:
+            - name: category
+              value: traffic_spike
+              matchType: '='
+          repeatInterval: 1h
+          groupInterval: 10m
+          groupWait: 30s
+          muteTimeIntervals: []
+
+        # Traffic drop alerts
+        - receiver: observatory-pool-warning
+          groupByStr:
+            - alertname
+            - category
+          matchers:
+            - name: category
+              value: traffic_drop
+              matchType: '='
+          repeatInterval: 1h
+          groupInterval: 10m
+          groupWait: 30s
+          muteTimeIntervals: []
+
+        # Error rate anomalies - critical
+        - receiver: observatory-pool-critical
+          groupByStr:
+            - alertname
+            - category
+          matchers:
+            - name: category
+              value: error_rate_spike
+              matchType: '='
+            - name: severity
+              value: critical
+              matchType: '='
+          repeatInterval: 15m
+          groupInterval: 3m
+          groupWait: 0s
+          muteTimeIntervals: []
+
+        # Error rate anomalies - warning
+        - receiver: observatory-pool-warning
+          groupByStr:
+            - alertname
+            - category
+          matchers:
+            - name: category
+              value: error_rate_spike
+              matchType: '='
+          repeatInterval: 30m
+          groupInterval: 5m
+          groupWait: 30s
+          muteTimeIntervals: []
+
+        # Server errors (5xx) - critical
+        - receiver: observatory-pool-critical
+          groupByStr:
+            - alertname
+            - category
+          matchers:
+            - name: category
+              value: server_errors
+              matchType: '='
+          repeatInterval: 15m
+          groupInterval: 2m
+          groupWait: 0s
+          muteTimeIntervals: []
+
+        # Latency anomalies - critical
+        - receiver: observatory-pool-critical
+          groupByStr:
+            - alertname
+            - category
+          matchers:
+            - name: category
+              value: latency_anomaly
+              matchType: '='
+            - name: severity
+              value: critical
+              matchType: '='
+          repeatInterval: 15m
+          groupInterval: 5m
+          groupWait: 10s
+          muteTimeIntervals: []
+
+        # Latency anomalies - warning
+        - receiver: observatory-pool-warning
+          groupByStr:
+            - alertname
+            - category
+          matchers:
+            - name: category
+              value: latency_anomaly
+              matchType: '='
+          repeatInterval: 1h
+          groupInterval: 10m
+          groupWait: 30s
+          muteTimeIntervals: []
+
+        # Latency spikes (P99 > 5s)
+        - receiver: observatory-pool-critical
+          groupByStr:
+            - alertname
+            - category
+          matchers:
+            - name: category
+              value: latency_spike
+              matchType: '='
+          repeatInterval: 15m
+          groupInterval: 3m
+          groupWait: 0s
+          muteTimeIntervals: []
+
+        # Availability drops - critical
+        - receiver: observatory-pool-critical
+          groupByStr:
+            - alertname
+            - category
+            - provider
+          matchers:
+            - name: category
+              value: availability_drop
+              matchType: '='
+            - name: severity
+              value: critical
+              matchType: '='
+          repeatInterval: 15m
+          groupInterval: 2m
+          groupWait: 0s
+          muteTimeIntervals: []
+
+        # Availability drops - warning
+        - receiver: observatory-pool-warning
+          groupByStr:
+            - alertname
+            - category
+            - provider
+          matchers:
+            - name: category
+              value: availability_drop
+              matchType: '='
+          repeatInterval: 30m
+          groupInterval: 5m
+          groupWait: 30s
+          muteTimeIntervals: []
+
+        # Circuit breaker alerts
+        - receiver: observatory-pool-critical
+          groupByStr:
+            - alertname
+            - provider
+          matchers:
+            - name: category
+              value: circuit_breaker
+              matchType: '='
+          repeatInterval: 15m
+          groupInterval: 2m
+          groupWait: 0s
+          muteTimeIntervals: []
+
+        # Multiple provider degradation
+        - receiver: observatory-pool-critical
+          groupByStr:
+            - alertname
+          matchers:
+            - name: category
+              value: multi_provider_degradation
+              matchType: '='
+          repeatInterval: 15m
+          groupInterval: 5m
+          groupWait: 0s
+          muteTimeIntervals: []
+
+        # ================================================================
+        # EXISTING ALERT ROUTES
+        # ================================================================
+
         # SLO alerts: route availability burn-rate (critical) to on-call.
         - receiver: critical-email
           groupByStr:

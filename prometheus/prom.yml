@@ -21,6 +21,7 @@ remote_write:
 
 rule_files:
   - '/etc/prometheus/alert.rules.yml'
+  - '/etc/prometheus/recording_rules_baselines.yml'
 
 scrape_configs:
   - job_name: 'prometheus'

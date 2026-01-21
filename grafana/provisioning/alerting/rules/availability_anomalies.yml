@@ -1,0 +1,278 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: availability_anomalies
+    folder: Abnormal Behavior
+    interval: 1m
+    rules:
+      # ================================================================
+      # PROVIDER AVAILABILITY - CRITICAL (<90%)
+      # ================================================================
+      - uid: provider_availability_critical
+        title: Provider Availability Critical - Below 90%
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: |
+            CRITICAL: Provider {{ $labels.provider }} availability is {{ printf "%.1f" $values.A.Value }}%
+            This is below the 90% critical threshold.
+
+            **Immediate Actions:**
+            1. Check provider status page
+            2. Enable fallback routing to alternate providers
+            3. Review circuit breaker status
+            4. Notify affected users if necessary
+          summary: 'Provider availability critically low'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/provider-outage'
+        labels:
+          severity: critical
+          category: availability_drop
+          component: provider
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: '100 * avg(provider_availability) by (provider)'
+              refId: A
+          - refId: C
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: '$A < 90'
+              refId: C
+
+      # ================================================================
+      # PROVIDER AVAILABILITY - WARNING (<95%)
+      # ================================================================
+      - uid: provider_availability_warning
+        title: Provider Availability Warning - Below 95%
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 10m
+        annotations:
+          description: |
+            Warning: Provider {{ $labels.provider }} availability is {{ printf "%.1f" $values.A.Value }}%
+            This is below the 95% warning threshold.
+
+            **Recommended Actions:**
+            1. Monitor provider closely
+            2. Review error patterns
+            3. Prepare fallback if degradation continues
+          summary: 'Provider availability below threshold'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/provider-degradation'
+        labels:
+          severity: warning
+          category: availability_drop
+          component: provider
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: '100 * avg(provider_availability) by (provider)'
+              refId: A
+          - refId: C
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: '($A < 95) && ($A >= 90)'
+              refId: C
+
+      # ================================================================
+      # SYSTEM AVAILABILITY - CRITICAL (<95%)
+      # ================================================================
+      - uid: system_availability_critical
+        title: System Availability Critical - Below 95%
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: |
+            CRITICAL: System availability is {{ printf "%.1f" $values.A.Value }}%
+
+            **This indicates major service degradation:**
+            1. Check all production instances are running
+            2. Verify load balancer health
+            3. Review recent deployments
+            4. Check database and cache connectivity
+          summary: 'System availability below 95%'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/system-outage'
+        labels:
+          severity: critical
+          category: availability_drop
+          component: system
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: '100 * (sum(up{job="gatewayz_production"}) / count(up{job="gatewayz_production"}))'
+              refId: A
+          - refId: C
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: '$A < 95'
+              refId: C
+
+      # ================================================================
+      # CIRCUIT BREAKER OPEN - CRITICAL
+      # ================================================================
+      - uid: circuit_breaker_open
+        title: Circuit Breaker Open - Provider Blocked
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 2m
+        annotations:
+          description: |
+            Circuit breaker is OPEN for provider {{ $labels.provider }}
+
+            **This means the provider has been automatically blocked due to failures:**
+            1. Requests are being routed to fallback providers
+            2. Check provider error logs
+            3. Wait for half-open state to test recovery
+            4. Consider manual intervention if issue persists
+          summary: 'Circuit breaker protecting against failing provider'
+        labels:
+          severity: critical
+          category: circuit_breaker
+          component: provider
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 120
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: 'circuit_breaker_state{state="open"}'
+              refId: A
+          - refId: C
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: '$A > 0'
+              refId: C
+
+      # ================================================================
+      # BACKEND DOWN - CRITICAL
+      # ================================================================
+      - uid: backend_down_critical
+        title: Backend Instance Down
+        condition: C
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 2m
+        annotations:
+          description: |
+            CRITICAL: GatewayZ backend instance is down!
+
+            **Immediate Actions:**
+            1. Check Railway deployment status
+            2. Review application logs for crash
+            3. Verify environment variables
+            4. Check memory/CPU limits
+          summary: 'Backend instance not responding'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/backend-down'
+        labels:
+          severity: critical
+          category: availability_drop
+          component: backend
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 120
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: 'up{job="gatewayz_production"}'
+              refId: A
+          - refId: C
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: '$A == 0'
+              refId: C
+
+      # ================================================================
+      # MULTIPLE PROVIDERS DEGRADED - CRITICAL
+      # ================================================================
+      - uid: multiple_providers_degraded
+        title: Multiple Providers Degraded - Service Impact
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: |
+            CRITICAL: {{ $values.A.Value }} providers are degraded (availability < 95%)
+
+            **This indicates widespread issues:**
+            1. Check for common dependencies (network, DNS)
+            2. Review rate limiting across providers
+            3. Verify API keys are valid
+            4. Consider temporary traffic reduction
+          summary: '3+ providers showing degraded availability'
+        labels:
+          severity: critical
+          category: multi_provider_degradation
+          component: gateway
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_mimir
+            model:
+              expr: 'count(100 * avg(provider_availability) by (provider) < 95)'
+              refId: A
+          - refId: C
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: '$A >= 3'
+              refId: C
+
+    provenance: Grafana
