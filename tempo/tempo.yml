@@ -11,7 +11,9 @@ distributor:
         grpc:
           endpoint: "0.0.0.0:4317"
         http:
-          endpoint: "0.0.0.0:4318"
+          # Railway cross-project fix: Use port 3200 (same as HTTP API)
+          # This allows OTLP ingestion and HTTP API on the same publicly-exposed port
+          endpoint: "0.0.0.0:3200"
 
 ingester:
   max_block_duration: 5m
