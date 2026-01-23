@@ -1,3 +1,6 @@
+# Run all Tempo components together (single-process mode)
+target: all
+
 server:
   http_listen_port: 3200
   grpc_listen_port: 3201
@@ -48,6 +51,9 @@ storage:
       path: /var/tempo/traces
     wal:
       path: /var/tempo/wal
+    pool:
+      max_workers: 100
+      queue_depth: 10000
 
 # Overrides for trace retention
 # overrides:
