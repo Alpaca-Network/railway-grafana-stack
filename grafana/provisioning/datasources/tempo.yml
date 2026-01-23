@@ -5,6 +5,9 @@ datasources:
     uid: grafana_tempo  # Fixed UID to match dashboard references
     type: tempo
     access: proxy
+    # Tempo URL - uses port 3200 for both HTTP API and OTLP (configured for Railway cross-project)
+    # For Railway deployment: tempo:3200 (internal DNS within same project)
+    # Port 3200 serves both /api/* (Grafana queries) and /v1/traces (OTLP ingestion)
     url: ${TEMPO_INTERNAL_URL:-http://tempo:3200}
     isDefault: false
     editable: true
