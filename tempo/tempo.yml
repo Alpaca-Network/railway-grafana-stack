@@ -1,19 +1,8 @@
-# Run all Tempo components together (single-process mode)
-target: all
-
 server:
   http_listen_port: 3200
   grpc_listen_port: 3201
   http_listen_address: "0.0.0.0"
   grpc_listen_address: "0.0.0.0"
-  log_level: info
-
-# Memberlist configuration for single-instance deployment
-memberlist:
-  abort_if_cluster_join_fails: false
-  bind_port: 7946
-  join_members:
-    - localhost:7946
 
 distributor:
   receivers:
@@ -22,9 +11,7 @@ distributor:
         grpc:
           endpoint: "0.0.0.0:4317"
         http:
-          # Railway cross-project fix: Use port 3200 (same as HTTP API)
-          # This allows OTLP ingestion and HTTP API on the same publicly-exposed port
-          endpoint: "0.0.0.0:3200"
+          endpoint: "0.0.0.0:4318"
 
 ingester:
   max_block_duration: 5m
@@ -56,14 +43,9 @@ storage:
   trace:
     backend: local
     local:
-      # Use /tmp for Railway compatibility (no permission issues)
-      path: /tmp/tempo/traces
+      path: /var/tempo/traces
     wal:
-      # Use /tmp for Railway compatibility (no permission issues)
-      path: /tmp/tempo/wal
-    pool:
-      max_workers: 100
-      queue_depth: 10000
+      path: /var/tempo/wal
 
 # Overrides for trace retention
 # overrides:
