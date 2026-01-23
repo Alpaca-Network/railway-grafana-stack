@@ -6,6 +6,14 @@ server:
   grpc_listen_port: 3201
   http_listen_address: "0.0.0.0"
   grpc_listen_address: "0.0.0.0"
+  log_level: info
+
+# Memberlist configuration for single-instance deployment
+memberlist:
+  abort_if_cluster_join_fails: false
+  bind_port: 7946
+  join_members:
+    - localhost:7946
 
 distributor:
   receivers:
@@ -48,9 +56,11 @@ storage:
   trace:
     backend: local
     local:
-      path: /var/tempo/traces
+      # Use /tmp for Railway compatibility (no permission issues)
+      path: /tmp/tempo/traces
     wal:
-      path: /var/tempo/wal
+      # Use /tmp for Railway compatibility (no permission issues)
+      path: /tmp/tempo/wal
     pool:
       max_workers: 100
       queue_depth: 10000
