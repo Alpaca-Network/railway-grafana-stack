@@ -19,41 +19,25 @@ ingester:
   max_block_bytes: 1073741824  # 1GB
 
 # Metrics generation from traces (enables exemplars)
-# This creates Prometheus metrics from span data that can be scraped
-metrics_generator:
-  registry:
-    external_labels:
-      source: tempo
-      cluster: gatewayz
-  storage:
-    path: /var/tempo/generator/wal
-    remote_write:
-      - url: http://mimir:9009/api/v1/push
-        send_exemplars: true
-  processor:
-    service_graphs:
-      dimensions:
-        - service.name
-        - http.method
-        - http.route
-        - ai.provider
-        - ai.model
-    span_metrics:
-      dimensions:
-        - service.name
-        - http.method
-        - http.status_code
-        - http.route
-        - ai.provider
-        - ai.model
-        - ai.request_type
-      enable_target_info: true
-      filter_policies:
-        - include:
-            match_type: regexp
-            attributes:
-              - key: http.route
-                value: ".*"
+# Disabled for Railway deployment - enable when Mimir is in same project
+# metrics_generator:
+#   registry:
+#     external_labels:
+#       source: tempo
+#       cluster: gatewayz
+#   storage:
+#     path: /var/tempo/generator/wal
+#   processor:
+#     service_graphs:
+#       dimensions:
+#         - service.name
+#         - http.method
+#         - http.route
+#     span_metrics:
+#       dimensions:
+#         - service.name
+#         - http.method
+#         - http.status_code
 
 storage:
   trace:
@@ -63,15 +47,10 @@ storage:
     wal:
       path: /var/tempo/wal
 
-compactor:
-  compaction:
-    compaction_window: 1h
-    max_block_bytes: 107374182400
-
-# Overrides for trace retention and metrics generation
-overrides:
-  defaults:
-    metrics_generator:
-      processors:
-        - service-graphs
-        - span-metrics
+# Overrides for trace retention
+# overrides:
+#   defaults:
+#     metrics_generator:
+#       processors:
+#         - service-graphs
+#         - span-metrics
