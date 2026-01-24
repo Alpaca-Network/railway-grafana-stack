@@ -1,3 +1,6 @@
+# Run all components in single-process mode to keep Tempo running
+target: all
+
 server:
   http_listen_port: 3200
   grpc_listen_port: 3201
