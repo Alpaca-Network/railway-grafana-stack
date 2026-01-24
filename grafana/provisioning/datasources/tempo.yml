@@ -7,8 +7,8 @@ datasources:
     access: proxy
     # Tempo URL - Railway public URL for cross-project access
     # Grafana (monitoring project) → Tempo (backend project)
-    # Uses public Railway URL on port 3200 for HTTP API queries
-    url: ${TEMPO_INTERNAL_URL:-https://tempo-production-057e.up.railway.app:3200}
+    # Railway routes HTTPS (443) to internal port 3200
+    url: ${TEMPO_INTERNAL_URL:-https://tempo-production-057e.up.railway.app}
     isDefault: false
     editable: true
     jsonData:
