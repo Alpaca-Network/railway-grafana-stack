@@ -14,9 +14,8 @@ distributor:
         grpc:
           endpoint: "0.0.0.0:4317"
         http:
-          # Use port 3200 (same as HTTP API) for Railway compatibility
-          # Backend sends to: http://tempo.railway.internal:3200/v1/traces
-          endpoint: "0.0.0.0:3200"
+          # OTLP HTTP receiver on port 4318 (separate from HTTP API on 3200)
+          endpoint: "0.0.0.0:4318"
 
 ingester:
   max_block_duration: 5m
