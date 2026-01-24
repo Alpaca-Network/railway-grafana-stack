@@ -16,6 +16,12 @@ distributor:
         http:
           # OTLP HTTP receiver on port 4318 (separate from HTTP API on 3200)
           endpoint: "0.0.0.0:4318"
+          # Explicitly enable CORS and set size limits
+          cors:
+            allowed_origins:
+              - "*"
+          # Max request body size (10MB for trace batches)
+          max_recv_msg_size: 10485760
 
 ingester:
   max_block_duration: 5m
