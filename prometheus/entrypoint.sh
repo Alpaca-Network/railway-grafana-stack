@@ -75,19 +75,19 @@ fi
 
 # ============================================================
 # Redis Exporter Configuration
-# Determines Redis Exporter target based on environment
+# Redis Exporter runs in the backend project (separate Railway project)
+# So we need to use the public URL, not internal networking
 # ============================================================
 
-if [ -n "$REDIS_EXPORTER_INTERNAL_URL" ]; then
-    # Use explicitly set REDIS_EXPORTER_INTERNAL_URL (from Railway env vars)
-    REDIS_EXPORTER_TARGET=$(echo "$REDIS_EXPORTER_INTERNAL_URL" | sed 's|http://||')
-elif [ -n "$RAILWAY_ENVIRONMENT" ]; then
-    # Railway production environment - use internal network
-    # Note: Redis Exporter service must be named 'redis-exporter' in Railway
-    REDIS_EXPORTER_TARGET="redis-exporter.railway.internal:9121"
+if [ -n "$REDIS_EXPORTER_URL" ]; then
+    # Use explicitly set REDIS_EXPORTER_URL (public URL from backend project)
+    # Remove https:// prefix if present for the target
+    REDIS_EXPORTER_TARGET=$(echo "$REDIS_EXPORTER_URL" | sed 's|https://||' | sed 's|http://||')
 else
-    # Local Docker Compose environment - use Docker service name
-    REDIS_EXPORTER_TARGET="redis-exporter:9121"
+    # Default/placeholder - must be set in Railway environment variables
+    REDIS_EXPORTER_TARGET="redis-exporter.railway.internal:9121"
+    echo "WARNING: REDIS_EXPORTER_URL not set. Redis metrics will not be scraped."
+    echo "Set REDIS_EXPORTER_URL to the public URL of your Redis Exporter service."
 fi
 
 echo "==========================================="
