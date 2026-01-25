@@ -3,7 +3,7 @@ set -e
 
 # ============================================================
 # Prometheus Entrypoint Script
-# Substitutes environment-specific values in prom.yml:
+# Substitutes environment-specific values in prometheus.yml:
 # - FASTAPI_TARGET, FASTAPI_SCHEME (backend API)
 # - MIMIR_URL, MIMIR_TARGET (long-term metrics storage)
 # - ALERTMANAGER_TARGET (alerting)
@@ -84,39 +84,39 @@ echo "ALERTMANAGER_TARGET: $ALERTMANAGER_TARGET"
 echo "RAILWAY_ENVIRONMENT: ${RAILWAY_ENVIRONMENT:-not set (local mode)}"
 echo "==========================================="
 
-# Substitute placeholders in prom.yml
-cp /etc/prometheus/prom.yml /tmp/prom.yml.tmp
+# Substitute placeholders in prometheus.yml
+cp /etc/prometheus/prometheus.yml /tmp/prometheus.yml.tmp
 sed -e "s|FASTAPI_TARGET|${TARGET}|g" \
     -e "s|FASTAPI_SCHEME|${SCHEME}|g" \
     -e "s|MIMIR_URL|${MIMIR_URL}|g" \
     -e "s|MIMIR_TARGET|${MIMIR_TARGET}|g" \
     -e "s|ALERTMANAGER_TARGET|${ALERTMANAGER_TARGET}|g" \
-    /tmp/prom.yml.tmp > /etc/prometheus/prom.yml
+    /tmp/prometheus.yml.tmp > /etc/prometheus/prometheus.yml
 
 # Show the resulting scrape targets and remote_write for debugging
 echo "Configured scrape targets:"
-grep -E "targets:|scheme:" /etc/prometheus/prom.yml | head -20
+grep -E "targets:|scheme:" /etc/prometheus/prometheus.yml | head -20
 echo ""
 echo "Configured remote_write:"
-grep -A 10 "^remote_write:" /etc/prometheus/prom.yml
+grep -A 10 "^remote_write:" /etc/prometheus/prometheus.yml
 echo ""
 echo "Verifying placeholder substitutions:"
-if grep -q "MIMIR_URL" /etc/prometheus/prom.yml; then
+if grep -q "MIMIR_URL" /etc/prometheus/prometheus.yml; then
     echo "  ❌ ERROR: MIMIR_URL placeholder NOT replaced!"
 else
     echo "  ✅ MIMIR_URL placeholder successfully replaced"
 fi
-if grep -q "ALERTMANAGER_TARGET" /etc/prometheus/prom.yml; then
+if grep -q "ALERTMANAGER_TARGET" /etc/prometheus/prometheus.yml; then
     echo "  ❌ ERROR: ALERTMANAGER_TARGET placeholder NOT replaced!"
 else
     echo "  ✅ ALERTMANAGER_TARGET placeholder successfully replaced"
 fi
 echo ""
 echo "Configured alerting:"
-grep -A 5 "^alerting:" /etc/prometheus/prom.yml || echo "  (no alerting section found)"
+grep -A 5 "^alerting:" /etc/prometheus/prometheus.yml || echo "  (no alerting section found)"
 echo ""
 echo "Configured rule_files:"
-grep -A 5 "^rule_files:" /etc/prometheus/prom.yml || echo "  (no rule_files section found)"
+grep -A 5 "^rule_files:" /etc/prometheus/prometheus.yml || echo "  (no rule_files section found)"
 echo ""
 echo "Verifying rule files exist:"
 if [ -f /etc/prometheus/alert.rules.yml ]; then
@@ -133,7 +133,7 @@ else
 fi
 echo ""
 echo "Validating Prometheus configuration..."
-if promtool check config /etc/prometheus/prom.yml 2>/dev/null; then
+if promtool check config /etc/prometheus/prometheus.yml 2>/dev/null; then
     echo "  ✅ Configuration is valid"
 else
     echo "  ⚠️  Configuration validation skipped or failed (promtool may not be available)"

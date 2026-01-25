@@ -9,8 +9,8 @@ USER root
 RUN mkdir -p /prometheus /etc/prometheus/secrets \
   && chmod 0777 /prometheus /etc/prometheus/secrets
 
-# Copy the prom.yml configuration file to the container
-COPY prom.yml /etc/prometheus/prom.yml
+# Copy the prometheus.yml configuration file to the container (replaces default)
+COPY prometheus.yml /etc/prometheus/prometheus.yml
 
 # Copy alert rules
 COPY alert.rules.yml /etc/prometheus/alert.rules.yml
@@ -32,4 +32,4 @@ EXPOSE 9090
 
 # Use entrypoint script to substitute environment variables, then start Prometheus
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["--config.file=/etc/prometheus/prom.yml", "--storage.tsdb.path=/prometheus"]
+CMD ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus"]
