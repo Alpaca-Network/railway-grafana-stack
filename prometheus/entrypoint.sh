@@ -6,6 +6,7 @@ set -e
 # Substitutes environment-specific values in prom.yml:
 # - FASTAPI_TARGET, FASTAPI_SCHEME (backend API)
 # - MIMIR_URL, MIMIR_TARGET (long-term metrics storage)
+# - ALERTMANAGER_TARGET (alerting)
 # ============================================================
 
 # Determine target and scheme based on environment
@@ -55,6 +56,23 @@ else
     MIMIR_TARGET="mimir:9009"
 fi
 
+# ============================================================
+# Alertmanager Configuration
+# Determines Alertmanager target based on environment
+# ============================================================
+
+if [ -n "$ALERTMANAGER_INTERNAL_URL" ]; then
+    # Use explicitly set ALERTMANAGER_INTERNAL_URL (from Railway env vars)
+    ALERTMANAGER_TARGET=$(echo "$ALERTMANAGER_INTERNAL_URL" | sed 's|http://||')
+elif [ -n "$RAILWAY_ENVIRONMENT" ]; then
+    # Railway production environment - use internal network
+    # Note: Alertmanager service must be named 'alertmanager' in Railway
+    ALERTMANAGER_TARGET="alertmanager.railway.internal:9093"
+else
+    # Local Docker Compose environment - use Docker service name
+    ALERTMANAGER_TARGET="alertmanager:9093"
+fi
+
 echo "==========================================="
 echo "Prometheus Configuration"
 echo "==========================================="
@@ -62,6 +80,7 @@ echo "FASTAPI_TARGET: $TARGET"
 echo "FASTAPI_SCHEME: $SCHEME"
 echo "MIMIR_URL: $MIMIR_URL"
 echo "MIMIR_TARGET: $MIMIR_TARGET"
+echo "ALERTMANAGER_TARGET: $ALERTMANAGER_TARGET"
 echo "RAILWAY_ENVIRONMENT: ${RAILWAY_ENVIRONMENT:-not set (local mode)}"
 echo "==========================================="
 
@@ -71,6 +90,7 @@ sed -e "s|FASTAPI_TARGET|${TARGET}|g" \
     -e "s|FASTAPI_SCHEME|${SCHEME}|g" \
     -e "s|MIMIR_URL|${MIMIR_URL}|g" \
     -e "s|MIMIR_TARGET|${MIMIR_TARGET}|g" \
+    -e "s|ALERTMANAGER_TARGET|${ALERTMANAGER_TARGET}|g" \
     /tmp/prom.yml.tmp > /etc/prometheus/prom.yml
 
 # Show the resulting scrape targets and remote_write for debugging
@@ -80,13 +100,20 @@ echo ""
 echo "Configured remote_write:"
 grep -A 10 "^remote_write:" /etc/prometheus/prom.yml
 echo ""
-echo "Verifying MIMIR_URL substitution:"
+echo "Verifying placeholder substitutions:"
 if grep -q "MIMIR_URL" /etc/prometheus/prom.yml; then
     echo "  ❌ ERROR: MIMIR_URL placeholder NOT replaced!"
-    echo "  This means remote_write will NOT work!"
 else
     echo "  ✅ MIMIR_URL placeholder successfully replaced"
 fi
+if grep -q "ALERTMANAGER_TARGET" /etc/prometheus/prom.yml; then
+    echo "  ❌ ERROR: ALERTMANAGER_TARGET placeholder NOT replaced!"
+else
+    echo "  ✅ ALERTMANAGER_TARGET placeholder successfully replaced"
+fi
+echo ""
+echo "Configured alerting:"
+grep -A 5 "^alerting:" /etc/prometheus/prom.yml || echo "  (no alerting section found)"
 echo "==========================================="
 
 # Start Prometheus with provided arguments
