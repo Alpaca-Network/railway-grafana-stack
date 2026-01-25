@@ -4,6 +4,20 @@ global:
     cluster: gatewayz-monitoring
     environment: ${ENVIRONMENT:-production}
 
+# Alerting configuration
+# Alerts are evaluated by Prometheus and sent to Alertmanager
+# Alertmanager handles routing, grouping, and notification delivery
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            # Placeholder for Alertmanager (to be deployed in Phase 2)
+            # For now, this enables alert state tracking in Prometheus UI
+            # When Alertmanager is deployed, update to: alertmanager.railway.internal:9093
+            - 'localhost:9093'
+      timeout: 10s
+      api_version: v2
+
 # Remote write to Mimir for long-term storage and consistent queries
 # This ensures metrics are not lost on Prometheus restart and provides
 # consistent data across page refreshes
