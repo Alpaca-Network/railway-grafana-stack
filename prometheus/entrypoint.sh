@@ -78,7 +78,15 @@ echo "Configured scrape targets:"
 grep -E "targets:|scheme:" /etc/prometheus/prom.yml | head -20
 echo ""
 echo "Configured remote_write:"
-grep -A1 "remote_write:" /etc/prometheus/prom.yml | head -5
+grep -A 10 "^remote_write:" /etc/prometheus/prom.yml
+echo ""
+echo "Verifying MIMIR_URL substitution:"
+if grep -q "MIMIR_URL" /etc/prometheus/prom.yml; then
+    echo "  ❌ ERROR: MIMIR_URL placeholder NOT replaced!"
+    echo "  This means remote_write will NOT work!"
+else
+    echo "  ✅ MIMIR_URL placeholder successfully replaced"
+fi
 echo "==========================================="
 
 # Start Prometheus with provided arguments

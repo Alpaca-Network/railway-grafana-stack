@@ -15,6 +15,9 @@ server:
   # Listen on all interfaces for Railway
   http_listen_address: 0.0.0.0
   grpc_listen_address: 0.0.0.0
+  # Enable HTTP request logging for debugging
+  log_request_at_info_level_enabled: true
+  log_source_ips_enabled: true
 
 # Common storage configuration - required for monolithic mode
 common:

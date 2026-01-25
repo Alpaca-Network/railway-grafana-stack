@@ -22,6 +22,11 @@ COPY recording_rules_baselines.yml /etc/prometheus/recording_rules_baselines.yml
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+# Copy diagnostic scripts (for troubleshooting Prometheus → Mimir connection)
+COPY ../diagnose-prometheus-mimir.sh /app/diagnose-prometheus-mimir.sh
+COPY ../verify-remote-write.sh /app/verify-remote-write.sh
+RUN chmod +x /app/diagnose-prometheus-mimir.sh /app/verify-remote-write.sh
+
 # Expose Prometheus port for Railway private networking
 EXPOSE 9090
 
