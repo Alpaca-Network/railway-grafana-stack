@@ -73,6 +73,23 @@ else
     ALERTMANAGER_TARGET="alertmanager:9093"
 fi
 
+# ============================================================
+# Redis Exporter Configuration
+# Determines Redis Exporter target based on environment
+# ============================================================
+
+if [ -n "$REDIS_EXPORTER_INTERNAL_URL" ]; then
+    # Use explicitly set REDIS_EXPORTER_INTERNAL_URL (from Railway env vars)
+    REDIS_EXPORTER_TARGET=$(echo "$REDIS_EXPORTER_INTERNAL_URL" | sed 's|http://||')
+elif [ -n "$RAILWAY_ENVIRONMENT" ]; then
+    # Railway production environment - use internal network
+    # Note: Redis Exporter service must be named 'redis-exporter' in Railway
+    REDIS_EXPORTER_TARGET="redis-exporter.railway.internal:9121"
+else
+    # Local Docker Compose environment - use Docker service name
+    REDIS_EXPORTER_TARGET="redis-exporter:9121"
+fi
+
 echo "==========================================="
 echo "Prometheus Configuration"
 echo "==========================================="
@@ -81,6 +98,7 @@ echo "FASTAPI_SCHEME: $SCHEME"
 echo "MIMIR_URL: $MIMIR_URL"
 echo "MIMIR_TARGET: $MIMIR_TARGET"
 echo "ALERTMANAGER_TARGET: $ALERTMANAGER_TARGET"
+echo "REDIS_EXPORTER_TARGET: $REDIS_EXPORTER_TARGET"
 echo "RAILWAY_ENVIRONMENT: ${RAILWAY_ENVIRONMENT:-not set (local mode)}"
 echo "==========================================="
 
@@ -91,6 +109,7 @@ sed -e "s|FASTAPI_TARGET|${TARGET}|g" \
     -e "s|MIMIR_URL|${MIMIR_URL}|g" \
     -e "s|MIMIR_TARGET|${MIMIR_TARGET}|g" \
     -e "s|ALERTMANAGER_TARGET|${ALERTMANAGER_TARGET}|g" \
+    -e "s|REDIS_EXPORTER_TARGET|${REDIS_EXPORTER_TARGET}|g" \
     /tmp/prometheus.yml.tmp > /etc/prometheus/prometheus.yml
 
 # Show the resulting scrape targets and remote_write for debugging
