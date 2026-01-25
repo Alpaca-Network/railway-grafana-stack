@@ -33,10 +33,14 @@ open http://localhost:9090  # Prometheus
 open http://localhost:9009  # Mimir
 ```
 
-**📖 Detailed Guides:**
-- [Railway Deployment Guide](docs/deployment/RAILWAY_DEPLOYMENT_QUICK_START.md)
-- [Backend Integration](docs/backend/BACKEND_METRICS_REQUIREMENTS.md)
-- [Documentation Index](docs/docs-index.md)
+**📖 Documentation:**
+- **[Complete Documentation Index](docs/README.md)** - Start here for all guides and references
+- Quick Links:
+  - [Setup Guide](docs/setup/NEXT_STEPS.md) - Deploy Prometheus → Mimir → Grafana
+  - [Quick Reference](docs/setup/QUICK_REFERENCE.md) - Common commands and queries
+  - [Troubleshooting](docs/troubleshooting/REMOTE_WRITE_DEBUG.md) - Fix common issues
+  - [Architecture](docs/architecture/MIMIR.md) - System design and components
+  - [Alerting Plan](docs/development/ALERTING_IMPLEMENTATION_PLAN.md) - Alerts roadmap
 
 ---
 
