@@ -1,16 +1,15 @@
-# Grafana Mimir Configuration
-# Horizontally scalable, highly available, multi-tenant TSDB for Prometheus
+# Grafana Mimir Configuration - Local Development
+# Optimized for Docker Compose single-instance deployment
 #
 # Benefits:
 # - Long-term storage for Prometheus metrics
-# - Horizontal scaling for high availability
-# - Query federation across multiple Prometheus instances
-# - Reduces metric staleness issues on page refresh
+# - Consistent query results across page refreshes
+# - 30-day retention
 
-# Common settings
+# Run all components in a single process (monolithic mode)
 target: all
 
-# Multi-tenancy (disabled for single-tenant mode)
+# Disable multi-tenancy for simplicity
 multitenancy_enabled: false
 
 # Server configuration
@@ -19,25 +18,33 @@ server:
   grpc_listen_port: 9095
   log_level: info
 
+# Common storage configuration
+common:
+  storage:
+    backend: filesystem
+    filesystem:
+      dir: /data/mimir
+
 # Distributor configuration (receives writes from Prometheus)
 distributor:
   ring:
+    instance_addr: 127.0.0.1
     kvstore:
-      store: memberlist
+      store: inmemory
 
 # Ingester configuration (stores time series in memory)
 ingester:
   ring:
+    instance_addr: 127.0.0.1
     kvstore:
-      store: memberlist
+      store: inmemory
     replication_factor: 1
 
-# Querier configuration (handles queries)
-# Note: query_frontend_address is not needed in single-process mode
+# Querier configuration
 querier:
   max_concurrent: 20
 
-# Storage configuration (local filesystem for development, use S3/GCS for production)
+# Storage configuration (local filesystem)
 blocks_storage:
   backend: filesystem
   filesystem:
@@ -47,50 +54,36 @@ blocks_storage:
   bucket_store:
     sync_dir: /data/mimir/bucket-sync
 
-# Compactor configuration (compacts blocks for efficient storage)
+# Compactor configuration
 compactor:
   data_dir: /data/mimir/compactor
   sharding_ring:
+    instance_addr: 127.0.0.1
     kvstore:
-      store: memberlist
+      store: inmemory
 
 # Store gateway configuration
 store_gateway:
   sharding_ring:
+    instance_addr: 127.0.0.1
     replication_factor: 1
+    kvstore:
+      store: inmemory
 
 # Limits configuration
 limits:
-  # Maximum number of series per user
   max_global_series_per_user: 500000
-  # Maximum number of series per metric
   max_global_series_per_metric: 50000
-  # Ingestion rate limit
   ingestion_rate: 50000
   ingestion_burst_size: 100000
-  # Query limits
-  max_query_lookback: 30d
+  max_query_lookback: 720h
   max_query_parallelism: 32
-  # Retention
-  compactor_blocks_retention_period: 30d
+  compactor_blocks_retention_period: 720h
 
-# Memberlist configuration (for service discovery)
-memberlist:
-  join_members:
-    - mimir:7946
+# Ruler configuration (disabled)
+ruler:
+  enable_api: false
 
-# Ruler configuration (disabled for now to avoid directory requirements)
-# Enable this only if you need recording rules or alerting
-# ruler:
-#   enable_api: true
-#   rule_path: /data/mimir/rules
-#   alertmanager_url: http://alertmanager:9093
-
-# Activity tracker (helps with debugging stale metrics)
+# Activity tracker
 activity_tracker:
   filepath: /data/mimir/activity.log
-
-# Frontend configuration (disabled for single-process mode)
-# frontend:
-#   results_cache:
-#     backend: ""

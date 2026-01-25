@@ -16,21 +16,27 @@ server:
   http_listen_address: 0.0.0.0
   grpc_listen_address: 0.0.0.0
 
+# Common storage configuration - required for monolithic mode
+common:
+  storage:
+    backend: filesystem
+    filesystem:
+      dir: /data/mimir
+
 # Distributor configuration (receives writes from Prometheus)
 distributor:
   ring:
+    instance_addr: 127.0.0.1
     kvstore:
-      store: memberlist
+      store: inmemory
 
 # Ingester configuration (stores time series in memory)
 ingester:
   ring:
+    instance_addr: 127.0.0.1
     kvstore:
-      store: memberlist
+      store: inmemory
     replication_factor: 1
-    # Heartbeat for Railway networking
-    heartbeat_period: 15s
-    heartbeat_timeout: 1m
 
 # Querier configuration - simplified for monolithic mode
 querier:
@@ -50,15 +56,17 @@ blocks_storage:
 compactor:
   data_dir: /data/mimir/compactor
   sharding_ring:
+    instance_addr: 127.0.0.1
     kvstore:
-      store: memberlist
+      store: inmemory
 
 # Store gateway configuration
 store_gateway:
   sharding_ring:
+    instance_addr: 127.0.0.1
     replication_factor: 1
     kvstore:
-      store: memberlist
+      store: inmemory
 
 # Limits configuration (Railway-optimized)
 limits:
@@ -66,21 +74,13 @@ limits:
   max_global_series_per_metric: 50000
   ingestion_rate: 50000
   ingestion_burst_size: 100000
-  max_query_lookback: 30d
-  max_query_parallelism: 16  # Reduced for single instance
-  compactor_blocks_retention_period: 30d
+  max_query_lookback: 720h
+  max_query_parallelism: 16
+  compactor_blocks_retention_period: 720h
 
-# Memberlist configuration (single instance)
-memberlist:
-  bind_port: 7946
-  # For single instance, don't need to join other members
-  join_members: []
-
-# Ruler configuration (optional, for alerts)
+# Ruler configuration (disabled for now)
 ruler:
-  enable_api: true
-  # Only set if you have Alertmanager deployed
-  # alertmanager_url: http://alertmanager.railway.internal:9093
+  enable_api: false
 
 # Activity tracker
 activity_tracker:
