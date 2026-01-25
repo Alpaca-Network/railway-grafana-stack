@@ -81,7 +81,7 @@ jobs:
 
       - name: Check all Dockerfiles exist
         run: |
-          for service in prometheus loki tempo grafana; do
+          for service in prometheus loki tempo grafana mimir; do
             if [ -f "$service/Dockerfile" ]; then
               echo "✅ $service/Dockerfile found"
             else
@@ -89,6 +89,22 @@ jobs:
               exit 1
             fi
           done
+
+      - name: Check Prometheus entrypoint.sh exists
+        run: |
+          if [ -f "prometheus/entrypoint.sh" ]; then
+            echo "✅ prometheus/entrypoint.sh found"
+            # Verify it handles Mimir URL substitution
+            if grep -q "MIMIR_URL" prometheus/entrypoint.sh; then
+              echo "✅ Entrypoint handles MIMIR_URL substitution"
+            else
+              echo "❌ Entrypoint missing MIMIR_URL substitution"
+              exit 1
+            fi
+          else
+            echo "❌ prometheus/entrypoint.sh not found"
+            exit 1
+          fi
 
   yaml-validation:
     name: YAML Configuration Validation
@@ -145,7 +161,57 @@ jobs:
           with open('docker-compose.yml') as f:
               config = yaml.safe_load(f)
           assert 'services' in config, 'Missing services'
+          assert 'mimir' in config['services'], 'Missing mimir service'
           print('✅ docker-compose.yml is valid')
+          "
+
+      - name: Validate Mimir configuration
+        run: |
+          python -c "
+          import yaml
+          # Validate mimir-railway.yml (production config)
+          with open('mimir/mimir-railway.yml') as f:
+              config = yaml.safe_load(f)
+          assert 'server' in config, 'Missing server section'
+          assert config['server']['http_listen_port'] == 9009, 'Mimir should listen on 9009'
+          assert config.get('target') == 'all', 'Mimir should be in monolithic mode'
+          assert config.get('multitenancy_enabled') is False, 'Multitenancy should be disabled'
+          assert 'blocks_storage' in config, 'Missing blocks_storage'
+          assert 'limits' in config, 'Missing limits'
+          print('✅ mimir/mimir-railway.yml is valid')
+
+          # Validate mimir.yml (local config)
+          with open('mimir/mimir.yml') as f:
+              config = yaml.safe_load(f)
+          assert 'server' in config, 'Missing server section'
+          print('✅ mimir/mimir.yml is valid')
+          "
+
+      - name: Validate Prometheus remote_write to Mimir
+        run: |
+          python -c "
+          import yaml
+          with open('prometheus/prom.yml') as f:
+              config = yaml.safe_load(f)
+          assert 'remote_write' in config, 'Missing remote_write'
+          remote_write = config['remote_write']
+          assert len(remote_write) > 0, 'remote_write is empty'
+          assert remote_write[0].get('name') == 'mimir-remote-write', 'First remote_write should be mimir-remote-write'
+          assert 'api/v1/push' in remote_write[0].get('url', ''), 'Missing api/v1/push endpoint'
+          print('✅ Prometheus remote_write to Mimir is configured')
+          "
+
+      - name: Validate Grafana Mimir datasource
+        run: |
+          python -c "
+          import yaml
+          with open('grafana/provisioning/datasources/mimir.yml') as f:
+              config = yaml.safe_load(f)
+          assert 'datasources' in config, 'Missing datasources section'
+          ds = config['datasources'][0]
+          assert ds.get('name') == 'Mimir', 'Datasource should be named Mimir'
+          assert ds.get('type') == 'prometheus', 'Mimir datasource type should be prometheus'
+          print('✅ Grafana Mimir datasource is configured')
           "
 
   health-check:
@@ -179,17 +245,44 @@ jobs:
           from datetime import datetime
 
           async def health_check():
-              backend_url = 'https://gatewayz-staging.up.railway.app'
+              backend_url = 'https://api.gatewayz.ai'
+              mimir_url = 'https://mimir-production-1b34.up.railway.app'
               api_key = os.getenv('API_KEY', '')
               print(f"\n📊 Production Health Check - {datetime.now().isoformat()}")
               print("=" * 60)
 
-              if not api_key:
-                  print("⚠️ API_KEY not configured - skipping endpoint tests")
-                  return
-
               async with httpx.AsyncClient() as client:
-                  # Check metrics endpoint
+                  # Check Mimir health (public endpoint, no auth required)
+                  try:
+                      response = await client.get(
+                          f'{mimir_url}/ready',
+                          timeout=10
+                      )
+                      if response.status_code == 200:
+                          print("✅ Mimir /ready endpoint: UP")
+                      else:
+                          print(f"⚠️ Mimir /ready endpoint: {response.status_code}")
+                  except Exception as e:
+                      print(f"⚠️ Mimir /ready endpoint: {str(e)[:80]}")
+
+                  # Check Mimir can query metrics
+                  try:
+                      response = await client.get(
+                          f'{mimir_url}/prometheus/api/v1/labels',
+                          timeout=10
+                      )
+                      if response.status_code == 200:
+                          print("✅ Mimir query endpoint: UP")
+                      else:
+                          print(f"⚠️ Mimir query endpoint: {response.status_code}")
+                  except Exception as e:
+                      print(f"⚠️ Mimir query endpoint: {str(e)[:80]}")
+
+                  # Check backend metrics (requires auth)
+                  if not api_key:
+                      print("⚠️ API_KEY not configured - skipping backend endpoint tests")
+                      return
+
                   try:
                       response = await client.get(
                           f'{backend_url}/metrics',
@@ -290,11 +383,13 @@ jobs:
           echo "### Components Tested"
           echo "- Stack configuration files (YAML)"
           echo "- Docker Compose setup"
-          echo "- Prometheus scrape configuration"
+          echo "- Prometheus scrape configuration and remote_write to Mimir"
+          echo "- Mimir long-term metrics storage configuration"
           echo "- Loki and Tempo configuration"
-          echo "- Grafana datasources and dashboards"
+          echo "- Grafana datasources (Prometheus, Mimir, Loki, Tempo)"
           echo "- All 22 real API endpoints (with API key)"
           echo "- Dashboard JSON structure and naming conventions"
+          echo "- Mimir health check (/ready and query endpoints)"
           echo ""
           echo "### Status"
           if [ "${{ needs.configuration-tests.result }}" == "success" ] && \

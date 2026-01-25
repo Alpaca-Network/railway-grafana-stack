@@ -60,3 +60,13 @@ providers:
     allowUiUpdates: true
     options:
       path: /etc/grafana/provisioning/dashboards/tempo
+
+  - name: 'Mimir'
+    orgId: 1
+    folder: 'Mimir'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/mimir
