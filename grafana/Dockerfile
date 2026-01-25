@@ -26,6 +26,7 @@ COPY dashboards/gateway /etc/grafana/provisioning/dashboards/gateway
 COPY dashboards/loki /etc/grafana/provisioning/dashboards/loki
 COPY dashboards/prometheus /etc/grafana/provisioning/dashboards/prometheus
 COPY dashboards/tempo /etc/grafana/provisioning/dashboards/tempo
+COPY dashboards/mimir /etc/grafana/provisioning/dashboards/mimir
 
 # ============================================================
 # ALERTING PROVISIONING

@@ -7,8 +7,11 @@ global:
 # Remote write to Mimir for long-term storage and consistent queries
 # This ensures metrics are not lost on Prometheus restart and provides
 # consistent data across page refreshes
+# NOTE: MIMIR_URL is substituted by entrypoint.sh at runtime
+# - Railway: Uses mimir.railway.internal:9009
+# - Local: Uses mimir:9009 (Docker Compose network)
 remote_write:
-  - url: http://mimir:9009/api/v1/push
+  - url: MIMIR_URL/api/v1/push
     name: mimir-remote-write
     remote_timeout: 30s
     queue_config:
@@ -124,10 +127,13 @@ scrape_configs:
         replacement: prometheus_data
 
   # Mimir - Long-term metrics storage (monitors itself)
+  # NOTE: MIMIR_TARGET is substituted by entrypoint.sh at runtime
+  # - Railway: Uses mimir.railway.internal:9009
+  # - Local: Uses mimir:9009 (Docker Compose network)
   - job_name: 'mimir'
     scheme: http
     static_configs:
-      - targets: ['mimir:9009']
+      - targets: ['MIMIR_TARGET']
     scrape_interval: 30s
     scrape_timeout: 10s
     metric_relabel_configs:

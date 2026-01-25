@@ -81,6 +81,8 @@ jobs:
               'prometheus/prom.yml': 'scrape_configs',
               'loki/loki.yml': 'server',
               'tempo/tempo.yml': 'server',
+              'mimir/mimir.yml': 'server',
+              'mimir/mimir-railway.yml': 'server',
               'docker-compose.yml': 'services'
           }
 
@@ -101,6 +103,43 @@ jobs:
                   print(f'❌ {config_file} error: {e}')
                   all_valid = False
 
+          # Additional Mimir validations
+          try:
+              with open('mimir/mimir-railway.yml') as f:
+                  config = yaml.safe_load(f)
+              if config.get('target') != 'all':
+                  print('❌ mimir-railway.yml should have target: all')
+                  all_valid = False
+              if config.get('multitenancy_enabled') is not False:
+                  print('❌ mimir-railway.yml should have multitenancy_enabled: false')
+                  all_valid = False
+              if 'blocks_storage' not in config:
+                  print('❌ mimir-railway.yml missing blocks_storage')
+                  all_valid = False
+              print('✅ mimir/mimir-railway.yml Railway-specific validations passed')
+          except Exception as e:
+              print(f'❌ Mimir Railway validation error: {e}')
+              all_valid = False
+
+          # Validate Prometheus remote_write to Mimir
+          try:
+              with open('prometheus/prom.yml') as f:
+                  config = yaml.safe_load(f)
+              if 'remote_write' not in config:
+                  print('❌ prometheus/prom.yml missing remote_write')
+                  all_valid = False
+              elif len(config['remote_write']) == 0:
+                  print('❌ prometheus/prom.yml remote_write is empty')
+                  all_valid = False
+              elif config['remote_write'][0].get('name') != 'mimir-remote-write':
+                  print('❌ prometheus/prom.yml first remote_write should be mimir-remote-write')
+                  all_valid = False
+              else:
+                  print('✅ Prometheus remote_write to Mimir configured')
+          except Exception as e:
+              print(f'❌ Prometheus remote_write validation error: {e}')
+              all_valid = False
+
           sys.exit(0 if all_valid else 1)
           EOF
 
@@ -120,7 +159,7 @@ jobs:
 
       - name: Check all service Dockerfiles
         run: |
-          for service in prometheus loki tempo grafana; do
+          for service in prometheus loki tempo grafana mimir; do
             if [ -f "$service/Dockerfile" ]; then
               echo "✅ $service/Dockerfile found"
             else
@@ -128,6 +167,22 @@ jobs:
               exit 1
             fi
           done
+
+      - name: Check Prometheus entrypoint.sh exists
+        run: |
+          if [ -f "prometheus/entrypoint.sh" ]; then
+            echo "✅ prometheus/entrypoint.sh found"
+            # Verify it handles Mimir URL substitution
+            if grep -q "MIMIR_URL" prometheus/entrypoint.sh; then
+              echo "✅ Entrypoint handles MIMIR_URL substitution"
+            else
+              echo "❌ Entrypoint missing MIMIR_URL substitution"
+              exit 1
+            fi
+          else
+            echo "❌ prometheus/entrypoint.sh not found"
+            exit 1
+          fi
 
   endpoint-tests:
     name: API Endpoint Integration Tests
@@ -212,7 +267,9 @@ jobs:
           echo "### Components Validated"
           echo "- Stack configuration files (YAML)"
           echo "- Docker Compose setup"
-          echo "- Service Dockerfiles"
+          echo "- Service Dockerfiles (prometheus, loki, tempo, grafana, mimir)"
+          echo "- Mimir long-term metrics storage configuration"
+          echo "- Prometheus remote_write to Mimir"
           echo "- Configuration consistency"
           echo "- All 22 real API endpoints (with API key)"
           echo "- Dashboard JSON structure and naming conventions"
