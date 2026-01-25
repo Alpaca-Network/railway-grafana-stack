@@ -114,6 +114,30 @@ fi
 echo ""
 echo "Configured alerting:"
 grep -A 5 "^alerting:" /etc/prometheus/prom.yml || echo "  (no alerting section found)"
+echo ""
+echo "Configured rule_files:"
+grep -A 5 "^rule_files:" /etc/prometheus/prom.yml || echo "  (no rule_files section found)"
+echo ""
+echo "Verifying rule files exist:"
+if [ -f /etc/prometheus/alert.rules.yml ]; then
+    ALERT_COUNT=$(grep -c "alert:" /etc/prometheus/alert.rules.yml 2>/dev/null || echo "0")
+    echo "  ✅ alert.rules.yml exists ($ALERT_COUNT alert rules)"
+else
+    echo "  ❌ alert.rules.yml NOT FOUND!"
+fi
+if [ -f /etc/prometheus/recording_rules_baselines.yml ]; then
+    RECORD_COUNT=$(grep -c "record:" /etc/prometheus/recording_rules_baselines.yml 2>/dev/null || echo "0")
+    echo "  ✅ recording_rules_baselines.yml exists ($RECORD_COUNT recording rules)"
+else
+    echo "  ❌ recording_rules_baselines.yml NOT FOUND!"
+fi
+echo ""
+echo "Validating Prometheus configuration..."
+if promtool check config /etc/prometheus/prom.yml 2>/dev/null; then
+    echo "  ✅ Configuration is valid"
+else
+    echo "  ⚠️  Configuration validation skipped or failed (promtool may not be available)"
+fi
 echo "==========================================="
 
 # Start Prometheus with provided arguments
