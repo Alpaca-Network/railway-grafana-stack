@@ -1,15 +1,7 @@
 # Railway configuration for Tempo
-# This tells Railway which port to expose publicly
-# Port 3200 = HTTP API for Grafana queries
-# Backend uses internal DNS (tempo.railway.internal:4318) so doesn't need public access to 4318
-
 [build]
 builder = "dockerfile"
 
 [deploy]
-# Expose port 3200 for Grafana queries (HTTP API)
-# Backend uses internal DNS for trace ingestion on 4318
-healthcheckPath = "/ready"
-healthcheckTimeout = 30
 restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 3
+restartPolicyMaxRetries = 5

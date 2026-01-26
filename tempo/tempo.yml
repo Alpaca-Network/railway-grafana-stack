@@ -1,17 +1,14 @@
-# Tempo 2.x configuration - single binary mode
-# Port mapping:
-#   3200 - HTTP API (Grafana queries) - MUST be exposed via Railway public URL
-#   4317 - OTLP gRPC (trace ingestion from backend)
-#   4318 - OTLP HTTP (trace ingestion from backend)
+# Tempo 2.6.1 - Minimal working configuration
+# Single binary mode runs all components in one process
 target: all
 
 server:
   http_listen_port: 3200
-  # Use different port for Tempo's internal gRPC to avoid conflict with OTLP gRPC
   grpc_listen_port: 9095
   http_listen_address: "0.0.0.0"
   grpc_listen_address: "0.0.0.0"
 
+# OTLP receivers for trace ingestion
 distributor:
   receivers:
     otlp:
@@ -23,8 +20,6 @@ distributor:
 
 ingester:
   max_block_duration: 5m
-  trace_idle_period: 10s
-  max_block_bytes: 1_000_000_000
 
 storage:
   trace:
@@ -33,20 +28,3 @@ storage:
       path: /var/tempo/traces
     wal:
       path: /var/tempo/wal
-    block:
-      bloom_filter_false_positive: 0.05
-
-# Query limits to prevent OOM
-query_frontend:
-  max_retries: 2
-
-querier:
-  max_concurrent_queries: 5
-
-# Memory limits
-overrides:
-  defaults:
-    ingestion:
-      max_traces_per_user: 10000
-    read:
-      max_bytes_per_tag_values_query: 5000000
