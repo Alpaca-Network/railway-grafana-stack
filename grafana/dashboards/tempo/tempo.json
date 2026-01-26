@@ -1,18 +1,8 @@
 {
   "annotations": {
-    "list": [
-      {
-        "builtIn": 1,
-        "datasource": "-- Grafana --",
-        "enable": true,
-        "hide": true,
-        "iconColor": "rgba(0, 211, 255, 1)",
-        "name": "Annotations & Alerts",
-        "type": "dashboard"
-      }
-    ]
+    "list": []
   },
-  "description": "Distributed tracing dashboard for GatewayZ AI inference platform",
+  "description": "Distributed tracing dashboard for GatewayZ",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -21,219 +11,99 @@
   "panels": [
     {
       "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
+        "type": "tempo",
+        "uid": "grafana_tempo"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
       },
       "gridPos": {
-        "h": 2,
+        "h": 20,
         "w": 24,
         "x": 0,
         "y": 0
       },
       "id": 1,
-      "options": {
-        "content": "# GatewayZ Distributed Traces\nClick any trace to see the full span waterfall. Use **Explore** for advanced TraceQL queries.",
-        "mode": "markdown"
-      },
-      "type": "text"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 2
-      },
-      "id": 20,
-      "panels": [],
-      "title": "All Traces",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "tempo",
-        "uid": "grafana_tempo"
-      },
-      "description": "All recent traces - simplest query",
-      "gridPos": {
-        "h": 14,
-        "w": 24,
-        "x": 0,
-        "y": 3
-      },
-      "id": 2,
-      "options": {
-        "enableStreaming": false
-      },
+      "options": {},
       "targets": [
         {
           "datasource": {
             "type": "tempo",
             "uid": "grafana_tempo"
           },
-          "limit": 50,
-          "queryType": "traceqlSearch",
-          "refId": "A",
-          "tableType": "traces"
+          "queryType": "traceql",
+          "query": "{}",
+          "limit": 100,
+          "refId": "A"
         }
       ],
-      "title": "Recent Traces",
-      "type": "traces"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 17
-      },
-      "id": 21,
-      "panels": [],
-      "title": "By Duration",
-      "type": "row"
+      "title": "All Traces",
+      "type": "table"
     },
     {
       "datasource": {
         "type": "tempo",
         "uid": "grafana_tempo"
       },
-      "description": "Slow traces over 1 second",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
       "gridPos": {
-        "h": 10,
+        "h": 12,
         "w": 12,
         "x": 0,
-        "y": 18
+        "y": 20
       },
-      "id": 4,
-      "options": {
-        "enableStreaming": false
-      },
+      "id": 2,
+      "options": {},
       "targets": [
         {
           "datasource": {
             "type": "tempo",
             "uid": "grafana_tempo"
           },
-          "limit": 20,
-          "queryType": "traceqlSearch",
-          "refId": "A",
-          "tableType": "traces",
-          "minDuration": "1s"
+          "queryType": "traceql",
+          "query": "{status=error}",
+          "limit": 50,
+          "refId": "A"
+        }
+      ],
+      "title": "Error Traces",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "tempo",
+        "uid": "grafana_tempo"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 20
+      },
+      "id": 3,
+      "options": {},
+      "targets": [
+        {
+          "datasource": {
+            "type": "tempo",
+            "uid": "grafana_tempo"
+          },
+          "queryType": "traceql",
+          "query": "{duration > 1s}",
+          "limit": 50,
+          "refId": "A"
         }
       ],
       "title": "Slow Traces (>1s)",
-      "type": "traces"
-    },
-    {
-      "datasource": {
-        "type": "tempo",
-        "uid": "grafana_tempo"
-      },
-      "description": "Very slow traces over 5 seconds",
-      "gridPos": {
-        "h": 10,
-        "w": 12,
-        "x": 12,
-        "y": 18
-      },
-      "id": 5,
-      "options": {
-        "enableStreaming": false
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "tempo",
-            "uid": "grafana_tempo"
-          },
-          "limit": 20,
-          "queryType": "traceqlSearch",
-          "refId": "A",
-          "tableType": "traces",
-          "minDuration": "5s"
-        }
-      ],
-      "title": "Very Slow Traces (>5s)",
-      "type": "traces"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 28
-      },
-      "id": 22,
-      "panels": [],
-      "title": "Service Search",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "tempo",
-        "uid": "grafana_tempo"
-      },
-      "description": "Search by service name - enter service name in query",
-      "gridPos": {
-        "h": 10,
-        "w": 24,
-        "x": 0,
-        "y": 29
-      },
-      "id": 6,
-      "options": {
-        "enableStreaming": false
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "tempo",
-            "uid": "grafana_tempo"
-          },
-          "limit": 30,
-          "queryType": "traceqlSearch",
-          "refId": "A",
-          "tableType": "traces",
-          "serviceName": "gatewayz-api"
-        }
-      ],
-      "title": "GatewayZ API Traces",
-      "type": "traces"
-    },
-    {
-      "collapsed": true,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 39
-      },
-      "id": 24,
-      "panels": [
-        {
-          "datasource": {
-            "type": "datasource",
-            "uid": "-- Grafana --"
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 24,
-            "x": 0,
-            "y": 40
-          },
-          "id": 9,
-          "options": {
-            "content": "## TraceQL Examples\n\n| Query | Description |\n|-------|-------------|\n| `{}` | All traces |\n| `{duration > 1s}` | Slow requests |\n| `{status = error}` | Error traces |\n| `{resource.service.name = \"gatewayz-api\"}` | By service |\n\n## Troubleshooting\n\nIf no data appears:\n1. Check Tempo datasource: Settings → Data Sources → Tempo → Save & Test\n2. Verify traces are being sent: Check backend logs for OTLP export\n3. Wait 10-30s for traces to flush from ingester to storage",
-            "mode": "markdown"
-          },
-          "type": "text"
-        }
-      ],
-      "title": "Help & Examples",
-      "type": "row"
+      "type": "table"
     }
   ],
   "refresh": "30s",
@@ -243,12 +113,12 @@
     "list": []
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "GatewayZ Traces - Tempo",
   "uid": "gatewayz-traces-tempo-v1",
-  "version": 4
+  "version": 5
 }
