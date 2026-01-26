@@ -5,7 +5,7 @@ FROM grafana/tempo:2.6.1
 USER root
 
 # Create data directories
-RUN mkdir -p /var/tempo/traces /var/tempo/wal && chmod -R 777 /var/tempo
+RUN mkdir -p /var/tempo/traces /var/tempo/wal /var/tempo/generator/wal && chmod -R 777 /var/tempo
 
 COPY tempo.yml /etc/tempo/tempo.yml
 
