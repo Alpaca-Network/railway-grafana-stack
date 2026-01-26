@@ -1,5 +1,5 @@
-# Tempo 2.6.1 - Minimal working configuration with query support
-target: all
+# Tempo 2.6.1 - Configuration optimized for Railway
+stream_over_http_enabled: true
 
 server:
   http_listen_port: 3200
@@ -19,6 +19,8 @@ distributor:
 
 ingester:
   max_block_duration: 5m
+  trace_idle_period: 10s
+  flush_check_period: 10s
 
 compactor:
   compaction:
@@ -31,3 +33,6 @@ storage:
       path: /var/tempo/traces
     wal:
       path: /var/tempo/wal
+    pool:
+      max_workers: 100
+      queue_depth: 10000
