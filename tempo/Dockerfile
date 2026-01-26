@@ -8,6 +8,8 @@ USER root
 RUN mkdir -p /var/tempo/traces /var/tempo/wal && chmod -R 777 /var/tempo
 
 COPY tempo.yml /etc/tempo/tempo.yml
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 # PORT CONFIGURATION FOR RAILWAY:
 # Tempo listens on multiple ports (configured in tempo.yml):
@@ -20,4 +22,4 @@ COPY tempo.yml /etc/tempo/tempo.yml
 # Backend uses internal DNS (tempo.railway.internal:4318) for trace ingestion
 EXPOSE 3200 4317 4318
 
-CMD ["-config.file=/etc/tempo/tempo.yml"]
+ENTRYPOINT ["/entrypoint.sh"]
