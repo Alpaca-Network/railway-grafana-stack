@@ -1,9 +1,11 @@
 # Tempo 2.x configuration - single binary mode
+# Railway only exposes one port externally, using 4318 for OTLP HTTP ingestion
+# Internal services can still access other ports via railway.internal DNS
 target: all
 
 server:
   http_listen_port: 3200
-  grpc_listen_port: 3201
+  grpc_listen_port: 4317
   http_listen_address: "0.0.0.0"
   grpc_listen_address: "0.0.0.0"
 
