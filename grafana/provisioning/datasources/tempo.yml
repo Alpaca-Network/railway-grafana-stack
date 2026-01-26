@@ -5,10 +5,10 @@ datasources:
     uid: grafana_tempo  # Fixed UID to match dashboard references
     type: tempo
     access: proxy
-    # Tempo URL - Railway public URL for cross-project access
-    # Grafana (monitoring project) → Tempo (backend project)
-    # Railway routes HTTPS (443) to internal port 3200
-    url: ${TEMPO_INTERNAL_URL:-https://tempo-production-057e.up.railway.app}
+    # Tempo URL - use Railway internal networking (same project)
+    # Format: http://<service-name>.railway.internal:<port>
+    # Tempo HTTP API runs on port 3200
+    url: ${TEMPO_INTERNAL_URL:-http://tempo.railway.internal:3200}
     isDefault: false
     editable: true
     jsonData:
