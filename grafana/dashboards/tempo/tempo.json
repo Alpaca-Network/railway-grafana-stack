@@ -17,20 +17,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
   "id": null,
-  "links": [
-    {
-      "asDropdown": false,
-      "icon": "external link",
-      "includeVars": false,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": true,
-      "title": "Backend Health",
-      "tooltip": "",
-      "type": "link",
-      "url": "/d/backend-health-v1"
-    }
-  ],
+  "links": [],
   "panels": [
     {
       "datasource": {
@@ -38,36 +25,16 @@
         "uid": "-- Grafana --"
       },
       "gridPos": {
-        "h": 3,
+        "h": 2,
         "w": 24,
         "x": 0,
         "y": 0
       },
       "id": 1,
       "options": {
-        "content": "# GatewayZ Distributed Traces - Tempo\n\nEnd-to-end visibility for API requests, AI model inference, provider routing, and system bottlenecks. Click any trace to see the full span waterfall.\n\n**Tip:** Use the Explore view for advanced TraceQL queries. These panels use lightweight search queries to prevent Tempo overload.",
+        "content": "# GatewayZ Distributed Traces\nClick any trace to see the full span waterfall. Use **Explore** for advanced TraceQL queries.",
         "mode": "markdown"
       },
-      "pluginVersion": "11.5.2",
-      "type": "text"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 24,
-        "x": 0,
-        "y": 3
-      },
-      "id": 14,
-      "options": {
-        "content": "### Quick Links\n| [Explore Traces](/explore?orgId=1&left=%7B%22datasource%22:%22grafana_tempo%22%7D) | [Backend Health](/d/backend-health-v1) | [Prometheus Metrics](/d/prometheus-v1) |\n|---|---|---|",
-        "mode": "markdown"
-      },
-      "pluginVersion": "11.5.2",
       "type": "text"
     },
     {
@@ -76,11 +43,11 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 2
       },
       "id": 20,
       "panels": [],
-      "title": "Recent Traces",
+      "title": "All Traces",
       "type": "row"
     },
     {
@@ -88,34 +55,12 @@
         "type": "tempo",
         "uid": "grafana_tempo"
       },
-      "description": "Most recent traces from all services. Click a trace to view details.",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "inspect": false
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null }
-            ]
-          }
-        },
-        "overrides": []
-      },
+      "description": "All recent traces - simplest query",
       "gridPos": {
-        "h": 12,
+        "h": 14,
         "w": 24,
         "x": 0,
-        "y": 7
+        "y": 3
       },
       "id": 2,
       "options": {
@@ -127,14 +72,13 @@
             "type": "tempo",
             "uid": "grafana_tempo"
           },
-          "limit": 20,
-          "queryType": "traceql",
+          "limit": 50,
+          "queryType": "traceqlSearch",
           "refId": "A",
-          "query": "{}",
           "tableType": "traces"
         }
       ],
-      "title": "Recent Traces (Last 20)",
+      "title": "Recent Traces",
       "type": "traces"
     },
     {
@@ -143,11 +87,11 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 19
+        "y": 17
       },
       "id": 21,
       "panels": [],
-      "title": "AI Model Inference Traces",
+      "title": "By Duration",
       "type": "row"
     },
     {
@@ -155,20 +99,12 @@
         "type": "tempo",
         "uid": "grafana_tempo"
       },
-      "description": "Traces for AI model inference calls",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
+      "description": "Slow traces over 1 second",
       "gridPos": {
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 20
+        "y": 18
       },
       "id": 4,
       "options": {
@@ -181,12 +117,13 @@
             "uid": "grafana_tempo"
           },
           "limit": 20,
-          "queryType": "traceql",
+          "queryType": "traceqlSearch",
           "refId": "A",
-          "query": "{name =~ \".*chat.*\" || name =~ \".*model.*\" || name =~ \".*inference.*\"}"
+          "tableType": "traces",
+          "minDuration": "1s"
         }
       ],
-      "title": "AI Model Calls",
+      "title": "Slow Traces (>1s)",
       "type": "traces"
     },
     {
@@ -194,20 +131,12 @@
         "type": "tempo",
         "uid": "grafana_tempo"
       },
-      "description": "Slow AI model inference traces (>2s)",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
+      "description": "Very slow traces over 5 seconds",
       "gridPos": {
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 20
+        "y": 18
       },
       "id": 5,
       "options": {
@@ -220,12 +149,13 @@
             "uid": "grafana_tempo"
           },
           "limit": 20,
-          "queryType": "traceql",
+          "queryType": "traceqlSearch",
           "refId": "A",
-          "query": "{duration > 2s}"
+          "tableType": "traces",
+          "minDuration": "5s"
         }
       ],
-      "title": "Slow Requests (>2s)",
+      "title": "Very Slow Traces (>5s)",
       "type": "traces"
     },
     {
@@ -234,11 +164,11 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 30
+        "y": 28
       },
       "id": 22,
       "panels": [],
-      "title": "Error Analysis",
+      "title": "Service Search",
       "type": "row"
     },
     {
@@ -246,59 +176,12 @@
         "type": "tempo",
         "uid": "grafana_tempo"
       },
-      "description": "Traces with error status",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
+      "description": "Search by service name - enter service name in query",
       "gridPos": {
         "h": 10,
-        "w": 12,
+        "w": 24,
         "x": 0,
-        "y": 31
-      },
-      "id": 3,
-      "options": {
-        "enableStreaming": false
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "tempo",
-            "uid": "grafana_tempo"
-          },
-          "limit": 20,
-          "queryType": "traceql",
-          "refId": "A",
-          "query": "{status = error}"
-        }
-      ],
-      "title": "Error Traces",
-      "type": "traces"
-    },
-    {
-      "datasource": {
-        "type": "tempo",
-        "uid": "grafana_tempo"
-      },
-      "description": "HTTP 5xx server errors",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 12,
-        "x": 12,
-        "y": 31
+        "y": 29
       },
       "id": 6,
       "options": {
@@ -310,79 +193,62 @@
             "type": "tempo",
             "uid": "grafana_tempo"
           },
-          "limit": 20,
-          "queryType": "traceql",
+          "limit": 30,
+          "queryType": "traceqlSearch",
           "refId": "A",
-          "query": "{span.http.status_code >= 500}"
+          "tableType": "traces",
+          "serviceName": "gatewayz-api"
         }
       ],
-      "title": "HTTP 5xx Errors",
+      "title": "GatewayZ API Traces",
       "type": "traces"
     },
     {
-      "collapsed": false,
+      "collapsed": true,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 41
+        "y": 39
       },
       "id": 24,
-      "panels": [],
-      "title": "Setup Instructions",
+      "panels": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Grafana --"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 40
+          },
+          "id": 9,
+          "options": {
+            "content": "## TraceQL Examples\n\n| Query | Description |\n|-------|-------------|\n| `{}` | All traces |\n| `{duration > 1s}` | Slow requests |\n| `{status = error}` | Error traces |\n| `{resource.service.name = \"gatewayz-api\"}` | By service |\n\n## Troubleshooting\n\nIf no data appears:\n1. Check Tempo datasource: Settings → Data Sources → Tempo → Save & Test\n2. Verify traces are being sent: Check backend logs for OTLP export\n3. Wait 10-30s for traces to flush from ingester to storage",
+            "mode": "markdown"
+          },
+          "type": "text"
+        }
+      ],
+      "title": "Help & Examples",
       "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Grafana --"
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 24,
-        "x": 0,
-        "y": 42
-      },
-      "id": 9,
-      "options": {
-        "content": "## Backend Integration\n\nTo see traces, configure your **GatewayZ Backend** to send traces to Tempo.\n\n### Environment Variables (Backend Railway project):\n\n```bash\nTEMPO_ENABLED=true\nTEMPO_OTLP_HTTP_ENDPOINT=http://tempo.railway.internal:4318\nOTEL_SERVICE_NAME=gatewayz-api\n```\n\n### Example TraceQL Queries (use in Explore):\n\n| Query | Description |\n|-------|-------------|\n| `{}` | All traces |\n| `{resource.service.name=\"gatewayz-api\"}` | By service |\n| `{status=error}` | Error traces |\n| `{duration > 2s}` | Slow requests |\n| `{span.http.status_code >= 500}` | HTTP 5xx errors |\n\n### Note on Metrics\n\nTraceQL metrics queries (count, avg, histogram) are disabled on this dashboard to prevent Tempo memory issues. Use Prometheus for metrics and this dashboard for trace exploration only.",
-        "mode": "markdown"
-      },
-      "pluginVersion": "11.5.2",
-      "type": "text"
     }
   ],
-  "refresh": "",
+  "refresh": "30s",
   "schemaVersion": 39,
-  "style": "dark",
-  "tags": [
-    "gatewayz",
-    "traces",
-    "tempo",
-    "production"
-  ],
+  "tags": ["gatewayz", "traces", "tempo"],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-15m",
     "to": "now"
   },
-  "timepicker": {
-    "refresh_intervals": [
-      "5s",
-      "10s",
-      "30s",
-      "1m",
-      "5m",
-      "15m",
-      "30m",
-      "1h"
-    ]
-  },
+  "timepicker": {},
   "timezone": "browser",
   "title": "GatewayZ Traces - Tempo",
   "uid": "gatewayz-traces-tempo-v1",
-  "version": 3,
-  "weekStart": ""
+  "version": 4
 }
