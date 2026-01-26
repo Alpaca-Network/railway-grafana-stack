@@ -12,6 +12,7 @@
       }
     ]
   },
+  "description": "Lightweight distributed tracing dashboard - no heavy metrics queries",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
@@ -21,17 +22,17 @@
     {
       "datasource": {
         "type": "datasource",
-        "uid": "grafana_tempo"
+        "uid": "-- Grafana --"
       },
       "gridPos": {
-        "h": 3,
+        "h": 2,
         "w": 24,
         "x": 0,
         "y": 0
       },
       "id": 1,
       "options": {
-        "content": "# 🔁 GatewayZ Traces — Tempo\nDistributed tracing visibility for API requests, model inference calls, and system bottlenecks.",
+        "content": "# GatewayZ Traces - Tempo\nLightweight trace explorer. Use Explore for advanced queries.",
         "mode": "markdown"
       },
       "pluginVersion": "11.5.2",
@@ -54,25 +55,25 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 3
+        "y": 2
       },
       "id": 2,
       "options": {
-        "spanBar": {
-          "type": "none"
-        },
-        "tableSortField": "Duration",
-        "tableSortOrder": "desc"
+        "enableStreaming": false
       },
       "targets": [
         {
-          "hide": false,
+          "datasource": {
+            "type": "tempo",
+            "uid": "grafana_tempo"
+          },
+          "limit": 20,
           "queryType": "traceql",
           "refId": "A",
-          "query": "{resource.service.name=\"gatewayz\"}"
+          "query": "{}"
         }
       ],
-      "title": "Recent GatewayZ Traces",
+      "title": "Recent Traces",
       "type": "traces"
     },
     {
@@ -81,58 +82,58 @@
         "uid": "grafana_tempo"
       },
       "fieldConfig": {
-        "defaults": {},
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
         "overrides": []
       },
       "gridPos": {
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 3
+        "y": 2
       },
       "id": 3,
       "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
+        "enableStreaming": false
       },
       "targets": [
         {
+          "datasource": {
+            "type": "tempo",
+            "uid": "grafana_tempo"
+          },
+          "limit": 20,
           "queryType": "traceql",
           "refId": "A",
-          "query": "{resource.service.name=\"gatewayz\" && status=error}"
+          "query": "{status=error}"
         }
       ],
-      "title": "Span Errors",
-      "type": "timeseries"
+      "title": "Error Traces",
+      "type": "traces"
     }
   ],
-  "refresh": "30s",
+  "refresh": "",
   "schemaVersion": 39,
   "style": "dark",
   "tags": [
     "gatewayz",
     "traces",
-    "tempo",
-    "production",
-    "distributed-tracing"
+    "tempo"
   ],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {},
-  "timezone": "",
-  "title": "GatewayZ Traces - Tempo",
-  "uid": "gatewayz-traces-tempo-v1",
-  "version": 1,
+  "timezone": "browser",
+  "title": "GatewayZ Traces - Tempo (Lite)",
+  "uid": "gatewayz-traces-tempo-lite",
+  "version": 2,
   "weekStart": ""
 }
