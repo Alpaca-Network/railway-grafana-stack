@@ -3,23 +3,49 @@ set -e
 
 echo "=== Tempo Startup ==="
 
-# Check for corrupted WAL files (invalid UUID errors)
-# WAL files should have valid UUIDs as directory names
-if [ -d "/var/tempo/wal" ]; then
-    echo "Checking WAL directory for corruption..."
+# Clean up any corrupted data in /var/tempo
+# The "wal" tenant error means there's a directory named "wal" being treated as a tenant
+if [ -d "/var/tempo" ]; then
+    echo "Checking for corrupted tenant directories..."
     
-    # Find any files/dirs that don't match UUID pattern (8-4-4-4-12 hex chars)
-    # Valid UUID example: 550e8400-e29b-41d4-a716-446655440000
-    CORRUPTED=$(find /var/tempo/wal -maxdepth 1 -type d ! -name "wal" 2>/dev/null | while read dir; do
-        basename "$dir" | grep -vE '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' && echo "$dir"
-    done || true)
+    # Remove any "wal" directory that's at the traces level (wrong location)
+    if [ -d "/var/tempo/traces/wal" ]; then
+        echo "Found misplaced 'wal' directory in traces. Removing..."
+        rm -rf /var/tempo/traces/wal
+    fi
     
-    if [ -n "$CORRUPTED" ] || [ "$(find /var/tempo/wal -type f -name "*.tmp" 2>/dev/null | wc -l)" -gt 0 ]; then
-        echo "WARNING: Found potentially corrupted WAL data. Clearing WAL directory..."
-        rm -rf /var/tempo/wal/*
-        echo "WAL directory cleared."
-    else
-        echo "WAL directory looks healthy."
+    # Check for directories with invalid names in traces folder
+    for dir in /var/tempo/traces/*/; do
+        if [ -d "$dir" ]; then
+            dirname=$(basename "$dir")
+            # Skip valid tenant names (single-tenant, generator, etc.)
+            case "$dirname" in
+                single-tenant|generator|traces|wal)
+                    # "wal" shouldn't be here - remove it
+                    if [ "$dirname" = "wal" ]; then
+                        echo "Removing invalid 'wal' tenant directory..."
+                        rm -rf "$dir"
+                    fi
+                    ;;
+            esac
+        fi
+    done
+    
+    # Clean WAL directory of any non-UUID entries
+    if [ -d "/var/tempo/wal" ]; then
+        echo "Cleaning WAL directory..."
+        for entry in /var/tempo/wal/*; do
+            if [ -e "$entry" ]; then
+                name=$(basename "$entry")
+                # Check if it's a valid UUID or known file
+                if ! echo "$name" | grep -qE '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'; then
+                    if [ "$name" != "blocks" ]; then
+                        echo "Removing invalid WAL entry: $name"
+                        rm -rf "$entry"
+                    fi
+                fi
+            fi
+        done
     fi
 fi
 
