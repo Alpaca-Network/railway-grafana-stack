@@ -1,11 +1,14 @@
 # Tempo 2.x configuration - single binary mode
-# Railway only exposes one port externally, using 4318 for OTLP HTTP ingestion
-# Internal services can still access other ports via railway.internal DNS
+# Port mapping:
+#   3200 - HTTP API (Grafana queries) - MUST be exposed via Railway public URL
+#   4317 - OTLP gRPC (trace ingestion from backend)
+#   4318 - OTLP HTTP (trace ingestion from backend)
 target: all
 
 server:
   http_listen_port: 3200
-  grpc_listen_port: 4317
+  # Use different port for Tempo's internal gRPC to avoid conflict with OTLP gRPC
+  grpc_listen_port: 9095
   http_listen_address: "0.0.0.0"
   grpc_listen_address: "0.0.0.0"
 
