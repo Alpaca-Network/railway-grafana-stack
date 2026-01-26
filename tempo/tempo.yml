@@ -30,5 +30,18 @@ storage:
       path: /var/tempo/wal
     block:
       bloom_filter_false_positive: 0.05
-      v2_index_downsample_bytes: 1000
-      v2_encoding: zstd
+
+# Query limits to prevent OOM
+query_frontend:
+  max_retries: 2
+
+querier:
+  max_concurrent_queries: 5
+
+# Memory limits
+overrides:
+  defaults:
+    ingestion:
+      max_traces_per_user: 10000
+    read:
+      max_bytes_per_tag_values_query: 5000000
