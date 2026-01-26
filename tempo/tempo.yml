@@ -22,6 +22,27 @@ ingester:
   trace_idle_period: 10s
   max_block_bytes: 1073741824  # 1GB
 
+# Querier configuration - REQUIRED for /api/search to work
+querier:
+  # Search configuration for TraceQL queries
+  search:
+    # External endpoint for querier (used by query_frontend)
+    external_endpoint: ""
+  # Max concurrent queries per tenant
+  max_concurrent_queries: 20
+  # Frontend worker (required for single-binary mode)
+  frontend_worker:
+    frontend_address: ""
+
+# Compactor - REQUIRED for search over completed blocks
+compactor:
+  compaction:
+    # How long to keep blocks before deletion
+    block_retention: 72h  # 3 days
+  ring:
+    kvstore:
+      store: inmemory
+
 # Metrics generation from traces (enables exemplars)
 # Disabled for Railway deployment - enable when Mimir is in same project
 # metrics_generator:
@@ -50,11 +71,15 @@ storage:
       path: /var/tempo/traces
     wal:
       path: /var/tempo/wal
+    # Blocklist poll interval - how often to check for new blocks
+    blocklist_poll: 5m
 
-# Overrides for trace retention
-# overrides:
-#   defaults:
-#     metrics_generator:
-#       processors:
-#         - service-graphs
-#         - span-metrics
+# Overrides for trace retention and limits
+overrides:
+  defaults:
+    search:
+      # Max bytes per tag values query (prevents OOM)
+      max_bytes_per_tag_values_query: 5000000
+    global:
+      # Max bytes per trace (10MB)
+      max_bytes_per_trace: 10000000
