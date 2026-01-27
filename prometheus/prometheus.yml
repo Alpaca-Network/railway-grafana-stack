@@ -77,21 +77,6 @@ scrape_configs:
         target_label: component
         replacement: redis
 
-  # Staging GatewayZ Backend API
-  # SECURITY: Bearer token is loaded from file to avoid hardcoding in config
-  - job_name: 'gatewayz_staging'
-    scheme: https
-    metrics_path: '/metrics'
-    static_configs:
-      - targets: ['gatewayz-staging.up.railway.app']
-    scrape_interval: 15s
-    scrape_timeout: 10s
-    bearer_token_file: '/etc/prometheus/secrets/staging_bearer_token'
-    metric_relabel_configs:
-      - source_labels: []
-        target_label: env
-        replacement: staging
-
   # Health Service Metrics Exporter
   - job_name: 'health_service_exporter'
     scheme: http
@@ -115,24 +100,6 @@ scrape_configs:
       - source_labels: []
         target_label: env
         replacement: production
-      - source_labels: []
-        target_label: source
-        replacement: prometheus_data
-
-  # Staging environment data metrics
-  # SECURITY: Bearer token is loaded from file to avoid hardcoding in config
-  - job_name: 'gatewayz_data_metrics_staging'
-    scheme: https
-    metrics_path: '/prometheus/data/metrics'
-    static_configs:
-      - targets: ['gatewayz-staging.up.railway.app']
-    scrape_interval: 30s
-    scrape_timeout: 15s
-    bearer_token_file: '/etc/prometheus/secrets/staging_bearer_token'
-    metric_relabel_configs:
-      - source_labels: []
-        target_label: env
-        replacement: staging
       - source_labels: []
         target_label: source
         replacement: prometheus_data

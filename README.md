@@ -10,7 +10,6 @@
 
 ### Production Access
 - **Grafana Dashboard:** [https://logs.gatewayz.ai](https://logs.gatewayz.ai)
-- **Staging Environment:** [gatewayz-staging.up.railway.app](https://gatewayz-staging.up.railway.app)
 
 ### Local Development (Docker Compose)
 
@@ -34,13 +33,11 @@ open http://localhost:9009  # Mimir
 ```
 
 **📖 Documentation:**
-- **[Complete Documentation Index](docs/README.md)** - Start here for all guides and references
+- **[Complete Documentation Index](docs/docs-index.md)** - Start here for all guides and references
 - Quick Links:
-  - [Setup Guide](docs/setup/NEXT_STEPS.md) - Deploy Prometheus → Mimir → Grafana
-  - [Quick Reference](docs/setup/QUICK_REFERENCE.md) - Common commands and queries
-  - [Troubleshooting](docs/troubleshooting/REMOTE_WRITE_DEBUG.md) - Fix common issues
-  - [Architecture](docs/architecture/MIMIR.md) - System design and components
-  - [Alerting Plan](docs/development/ALERTING_IMPLEMENTATION_PLAN.md) - Alerts roadmap
+  - **[Cheatsheet](docs/cheatsheet.md)** - Common commands and queries
+  - **[Troubleshooting](docs/troubleshooting/REMOTE_WRITE_DEBUG.md)** - Fix common issues
+  - **[Architecture](docs/architecture/MIMIR.md)** - System design and components
 
 ---
 
@@ -49,7 +46,7 @@ open http://localhost:9009  # Mimir
 ```
 ┌──────────────────────────────────────────────────────────┐
 │              GatewayZ Backend API                         │
-│  (FastAPI: api.gatewayz.ai, staging.up.railway.app)     │
+│  (FastAPI: api.gatewayz.ai)                             │
 └───────┬─────────────┬──────────────┬────────────────────┘
         │             │              │
   Metrics (Pull)  Logs (Push)   Traces (Push)
@@ -144,13 +141,12 @@ All dashboards use **real API endpoints** with live data from Prometheus/Mimir -
 
 ### Prometheus Scrape Jobs
 
-**File:** `prometheus/prom.yml`
+**File:** `prometheus/prometheus.yml`
 
 | Job Name | Target | Interval | Purpose |
 |----------|--------|----------|---------|
 | `prometheus` | localhost:9090 | 15s | Self-monitoring |
 | `gatewayz_production` | `${FASTAPI_TARGET}` | 15s | **Production API metrics** |
-| `gatewayz_staging` | gatewayz-staging.up.railway.app | 15s | Staging API metrics |
 | `redis_exporter` | redis-exporter:9121 | 30s | Redis metrics |
 | `gatewayz_data_metrics_production` | `${FASTAPI_TARGET}` | 30s | Provider health, circuit breakers |
 | `mimir` | mimir:9009 | 30s | Mimir self-monitoring |
@@ -360,47 +356,29 @@ open http://localhost:9090/targets
 
 ---
 
-## 🆕 What's New
+## ✨ Key Features
 
-### January 2026 - Mimir Integration + Dashboard Separation
+### 🚀 Horizontal Scaling with Mimir
+- Long-term metrics storage with 30-day retention.
+- Horizontally scalable architecture.
+- Remote write from Prometheus.
 
-**Branch:** `feat/feat-mimir-took`
+### 📊 Golden Signals Monitoring
+- **Latency**: P50/P95/P99 percentiles + trends.
+- **Traffic**: Request volume and rates.
+- **Errors**: Error rate gauge + trends.
+- **Saturation**: CPU/Memory/Redis utilization.
 
-**✅ Grafana Mimir for Horizontal Scaling:**
-- Long-term metrics storage (30+ days, configurable)
-- Horizontally scalable with built-in replication
-- High availability ready
-- Remote write from Prometheus
-- Consistent queries across dashboard refreshes
+### 🔍 Specialized Dashboards
+- **Executive Overview**: High-level KPIs and alerts.
+- **Backend Services**: Redis cache hit rates, API performance.
+- **Loki Logs**: Deep log search without metrics noise.
+- **Tempo Traces**: Distributed tracing and service graphs.
 
-**✅ Dashboard Clarity Improvements:**
-- **Loki Dashboard**: Removed all Prometheus/Mimir panels (pure logs)
-- **Tempo Dashboard**: Removed all Prometheus/Mimir panels (pure traces)
-- **Backend Services**: Combined Backend Health + Redis into one dashboard
-- **Executive Overview**: All panels use Prometheus/Mimir datasources
-
-**✅ Enhanced Alerting:**
-- Prometheus/Alertmanager SMTP fixes
-- Health score alerts (< 20% triggers email)
-- Redis alerts (memory, hit rate, connection count)
-- SLO breach alerts (availability, latency)
-- Notification policies for critical vs operational alerts
-
-**📖 Complete Guide:** [MIMIR_INTEGRATION_SUMMARY.md](MIMIR_INTEGRATION_SUMMARY.md)
-
-### December 2025 - Four Golden Signals Dashboard
-
-**✅ Google SRE Methodology Implementation:**
-- **SIGNAL 1 - LATENCY:** P50/P95/P99 percentiles + 24h trends
-- **SIGNAL 2 - TRAFFIC:** Request volume, rate, active requests
-- **SIGNAL 3 - ERRORS:** Error rate gauge + 24h error trends
-- **SIGNAL 4 - SATURATION:** CPU/Memory/Redis utilization + trends
-- **17 panels total** with 30-second auto-refresh
-
-**✅ Dashboard Organization:**
-- Folder-based organization (Executive, Backend, Gateway, Models, Logs, Traces)
-- Improved navigation and discovery
-- Consistent naming conventions
+### 🛡️ Production Grade
+- **Alerting**: Email notifications for health scores and SLO breaches.
+- **Testing**: Comprehensive integration test suite (90+ tests).
+- **Security**: No hardcoded credentials; fully environment-variable driven.
 
 ---
 
@@ -434,18 +412,6 @@ export API_KEY="your_api_key"
 pytest tests/test_dashboards.py -v -m dashboard
 pytest tests/test_api_endpoints.py -v -m endpoint
 ```
-
-**📖 Complete Testing Guide:** [docs/archive/root-md/CI_CD_TESTING_REPORT.md](docs/archive/root-md/CI_CD_TESTING_REPORT.md)
-
-### Quality Assurance Status
-
-✅ **All Endpoints are REAL** - No mock data  
-✅ **Security Best Practices** - No hardcoded credentials  
-✅ **Comprehensive Testing** - 90+ test methods  
-✅ **CI/CD Integration** - Automatic validation  
-✅ **Production Ready** - Approved by QA experts  
-
-**QA Rating:** ⭐⭐⭐⭐⭐ EXCELLENT (5/5 for Test Coverage & Security)
 
 ---
 
@@ -501,11 +467,7 @@ docker compose down -v
 - **[Mimir Integration](MIMIR_INTEGRATION_SUMMARY.md)** - Horizontal scaling guide
 - **[Troubleshooting](docs/troubleshooting/)** - Service-specific fix guides
 
-### Additional Resources
 
-- **[Endpoint Verification Report](docs/archive/root-md/ENDPOINT_VERIFICATION_REPORT.md)** - All endpoints verified as real
-- **[CI/CD Testing Report](docs/archive/root-md/CI_CD_TESTING_REPORT.md)** - Complete testing breakdown
-- **[QA Review Report](docs/archive/root-md/QA_REVIEW_REPORT.md)** - Expert sign-off
 
 ---
 
@@ -535,7 +497,7 @@ railway-grafana-stack/
 │           └── notification_policies.yml
 ├── prometheus/
 │   ├── Dockerfile
-│   ├── prom.yml             # Scrape jobs (FASTAPI_TARGET here)
+│   ├── prometheus.yml       # Scrape jobs (FASTAPI_TARGET here)
 │   └── alert.rules.yml      # Alert rules
 ├── mimir/
 │   ├── Dockerfile
@@ -546,9 +508,12 @@ railway-grafana-stack/
 ├── tempo/
 │   ├── Dockerfile
 │   └── tempo.yml            # Tempo configuration
+├── alertmanager/
+│   └── alertmanager.yml     # Alertmanager configuration
 ├── tests/                    # Pytest test suite
-├── scripts/                  # Validation scripts
+├── scripts/                  # Validation and setup scripts
 ├── docs/                     # Documentation
+├── railway.toml              # Railway deployment configuration
 ├── docker-compose.yml        # Local development
 └── README.md                 # This file
 ```
@@ -558,8 +523,7 @@ railway-grafana-stack/
 1. Create feature branch: `git checkout -b feature/my-feature`
 2. Make changes and test locally with `docker compose up`
 3. Run tests: `pytest tests/ -v`
-4. Push to staging branch for testing
-5. Create pull request to `main`
+4. Create pull request to `main`
 
 ---
 

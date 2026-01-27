@@ -3,7 +3,7 @@
 ## Prerequisites
 - Railway account with project access
 - GitHub repository connected to Railway
-- `staging/models-and-fixes` branch pushed to GitHub
+- `main` branch pushed to GitHub
 
 ---
 
@@ -68,16 +68,9 @@ Railway will auto-detect services from `docker-compose.yml`. Configure each:
    ```
 4. Click **Deploy**
 
-### Step 3: Deploy from Staging Branch
 
-1. In Railway dashboard, go to **Deployments**
-2. Click **New Deployment**
-3. Select **GitHub** source
-4. Choose branch: `staging/models-and-fixes`
-5. Click **Deploy**
-6. Wait 2-3 minutes for all services to start
 
-### Step 4: Verify Deployment
+### Step 3: Verify Deployment
 
 1. Go to **Deployments** and wait for all services to show "Success"
 2. Click **Grafana** service
@@ -89,7 +82,7 @@ Railway will auto-detect services from `docker-compose.yml`. Configure each:
    - Loki
    - Tempo
 
-### Step 5: Verify Dashboards
+### Step 4: Verify Dashboards
 
 1. Go to **Dashboards**
 2. Verify each dashboard loads:
@@ -228,7 +221,7 @@ This is expected if backend isn't emitting metrics/logs/traces yet.
 ## Quick Checklist
 
 - [ ] GitHub repository connected to Railway
-- [ ] All services deployed from `staging/models-and-fixes`
+- [ ] All services deployed from `main`
 - [ ] Environment variables set for all services
 - [ ] All services show "Success" in deployments
 - [ ] Grafana is accessible

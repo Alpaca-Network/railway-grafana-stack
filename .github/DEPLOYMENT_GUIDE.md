@@ -1,125 +1,63 @@
 # Deployment Guide
 
-This guide explains how the CI/CD workflow handles deployments to Production and Staging environments.
+This guide explains how the CI/CD workflow handles deployments to the Production environment.
 
-## Overview
+## 🔄 Workflow Overview
 
-The deployment workflow (`deploy.yml`) automatically deploys to different environments based on:
-1. **Branch name** (automatic push triggers)
-2. **Manual workflow dispatch** (with environment selection)
+The `deploy.yml` workflow manages the build, validation, and deployment process.
 
-## Deployment Rules
+### Triggers
 
-### Automatic Deployments (on push)
-
-| Branch | Environment | Trigger |
-|--------|-------------|---------|
+| Branch / Event | Environment | Action |
+|---------------|------------|--------|
 | `main` | Production | Push to main branch |
-| `staging` | Staging | Push to staging branch |
-| `refactor/**` | Staging | Push to any refactor branch |
-| `fix/**` | Staging | Push to any fix branch |
+| Manual Dispatch | Production | Manual trigger via GitHub Actions UI |
 
-### Manual Deployments (workflow_dispatch)
+### Manual Trigger Inputs
 
-You can manually trigger deployments from GitHub Actions with these options:
-- **staging** - Deploy only to Staging
-- **production** - Deploy only to Production
-- **both** - Deploy to both Staging and Production
+When manually triggering the workflow, you can select the environment (currently only 'production' is supported as Staging is deprecated).
 
-## Workflow Steps
+## 📋 Phases
 
-1. **Validate** - Validates JSON dashboards and YAML configuration files
-2. **Determine Environment** - Decides which environment(s) to deploy to
-3. **Build Images** - Builds Docker images for all services
-4. **Deploy Staging** (if applicable) - Deploys to Staging environment
-5. **Deploy Production** (if applicable) - Deploys to Production environment
-6. **Summary** - Prints deployment summary
+1. **Validation** - Validates JSON dashboards and YAML configuration files
+2. **Determine Environment** - Sets deployment variables based on branch/input
+3. **Build Images** - Builds Docker images for all services (cached for speed)
+4. **Deploy Production** - Deploys to Production environment (if triggered)
+5. **Summary** - Reports status of the deployment
 
-## Required Secrets
+## 🔐 Secrets Configuration
 
-Configure these secrets in your GitHub repository settings:
-
-### Staging Environment
-- `RAILWAY_TOKEN_STAGING` - Railway API token for staging project
-- `RAILWAY_PROJECT_ID_STAGING` - Railway project ID for staging
-- `STAGING_GRAFANA_URL` (optional) - URL to verify staging deployment
+Required GitHub Secrets for deployment:
 
 ### Production Environment
 - `RAILWAY_TOKEN_PRODUCTION` - Railway API token for production project
 - `RAILWAY_PROJECT_ID_PRODUCTION` - Railway project ID for production
 - `PRODUCTION_GRAFANA_URL` (optional) - URL to verify production deployment
 
-## How to Set Up Secrets
+## 🚀 How to Deploy
 
-1. Go to your GitHub repository
-2. Settings → Secrets and variables → Actions
-3. Create new repository secrets with the names above
-4. Paste your Railway tokens and project IDs
+### Automatic Deployment
 
-## Triggering Deployments
+1. Merge Pull Request to `main` branch
+2. Workflow automatically triggers validation and deployment to Production
 
-### Automatic (on push)
-```bash
-# Deploy to Staging
-git push origin refactor/my-feature
+### Manual Deployment
 
-# Deploy to Production
-git push origin main
-```
+1. Go to **Actions** tab in GitHub
+2. Select "Deploy to Production" workflow
+3. Click **Run workflow**
+4. Select environment: `production`
+5. Click **Run workflow**
 
-### Manual (workflow_dispatch)
-1. Go to GitHub Actions tab
-2. Select "Deploy to Production & Staging" workflow
-3. Click "Run workflow"
-4. Select environment: staging, production, or both
-5. Click "Run workflow"
+## ✅ Verification
 
-## Verification
+The workflow performs automated verification after deployment:
+1. Checks that the health endpoint is reachable (HTTP 200)
+2. Retries for up to 5 minutes to allow for startup time
 
-Each deployment includes health checks for:
-- Grafana (`/api/health`)
-- Prometheus (`/-/healthy`)
-- Loki (`/ready`)
-- Tempo (`/status`)
+## 🛑 Rollback
 
-## Troubleshooting
-
-### Deployment fails with "Railway token not found"
-- Verify secrets are set in GitHub repository settings
-- Check secret names match exactly (case-sensitive)
-
-### Services don't start after deployment
-- Check Railway logs in the Railway dashboard
-- Verify environment variables are set correctly
-- Ensure docker-compose.yml is valid
-
-### Health checks timeout
-- Services may still be starting (normal for first deployment)
-- Check Railway logs for startup errors
-- Verify network connectivity between services
-
-## Best Practices
-
-1. **Always test in Staging first** - Push to a feature branch to deploy to staging
-2. **Use meaningful branch names** - Helps identify what's being deployed
-3. **Review changes before production** - Use pull requests to main branch
-4. **Monitor deployments** - Check GitHub Actions logs and Railway dashboard
-5. **Keep secrets secure** - Never commit tokens or passwords to git
-
-## CI/CD Pipeline
-
-```
-Push to branch
-    ↓
-Validate (JSON/YAML)
-    ↓
-Determine Environment
-    ↓
-Build Docker Images
-    ↓
-Deploy to Staging (if applicable)
-    ↓
-Deploy to Production (if applicable)
-    ↓
-Summary Report
-```
+If a deployment fails or issues are found:
+1. Revert the commit in `main`
+2. Push the revert
+3. The workflow will deploy the previous stable version
