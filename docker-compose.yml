@@ -1,5 +1,3 @@
-version: '3.8'
-
 # ============================================================================
 # GatewayZ Monitoring Stack with Mimir for Horizontal Scaling
 # ============================================================================
@@ -62,8 +60,7 @@ services:
     depends_on:
       alertmanager:
         condition: service_started
-      mimir:
-        condition: service_started
+
 
   prometheus:
     build:
@@ -111,7 +108,7 @@ services:
       - "9093:9093"
     volumes:
       - alertmanager_data:/alertmanager
-      - ./prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
       - '--storage.path=/alertmanager'

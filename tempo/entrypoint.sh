@@ -51,7 +51,7 @@ fi
 
 # Ensure directories exist with correct permissions
 mkdir -p /var/tempo/traces /var/tempo/wal
-chmod -R 777 /var/tempo
+chmod -R 777 /var/tempo || echo "Warning: Could not chmod /var/tempo, continuing..."
 
 echo "Starting Tempo..."
 exec /tempo -config.file=/etc/tempo/tempo.yml "$@"

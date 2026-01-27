@@ -128,7 +128,7 @@ jobs:
         run: |
           python -c "
           import yaml
-          with open('prometheus/prom.yml') as f:
+          with open('prometheus/prometheus.yml') as f:
               config = yaml.safe_load(f)
           assert 'scrape_configs' in config, 'Missing scrape_configs'
           print('✅ prometheus/prom.yml is valid')
@@ -191,7 +191,7 @@ jobs:
         run: |
           python -c "
           import yaml
-          with open('prometheus/prom.yml') as f:
+          with open('prometheus/prometheus.yml') as f:
               config = yaml.safe_load(f)
           assert 'remote_write' in config, 'Missing remote_write'
           remote_write = config['remote_write']
