@@ -78,6 +78,8 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
+    environment:
+      - PRODUCTION_BEARER_TOKEN=${PRODUCTION_BEARER_TOKEN:-}
     # Prometheus writes to /prometheus; do NOT use read-only root filesystem here.
     read_only: false
     tmpfs:

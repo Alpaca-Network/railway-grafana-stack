@@ -12,6 +12,13 @@ set -e
 # Determine target and scheme based on environment
 # Priority: Environment vars > RAILWAY_ENVIRONMENT detection > local defaults
 
+# Set up Production Bearer Token if provided
+if [ -n "$PRODUCTION_BEARER_TOKEN" ]; then
+    echo -n "$PRODUCTION_BEARER_TOKEN" > /etc/prometheus/secrets/production_bearer_token
+    chmod 644 /etc/prometheus/secrets/production_bearer_token
+    echo "✅ Production bearer token configured"
+fi
+
 if [ -n "$FASTAPI_TARGET" ]; then
     # Use explicitly set FASTAPI_TARGET (from docker-compose or Railway env vars)
     TARGET="$FASTAPI_TARGET"

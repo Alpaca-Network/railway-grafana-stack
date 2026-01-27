@@ -25,7 +25,9 @@
       "asDropdown": true,
       "icon": "doc",
       "includeVars": true,
-      "tags": ["gatewayz"],
+      "tags": [
+        "gatewayz"
+      ],
       "targetBlank": false,
       "title": "Other Dashboards",
       "type": "dashboards"
@@ -216,7 +218,9 @@
       "id": 10,
       "options": {
         "legend": {
-          "calcs": ["sum"],
+          "calcs": [
+            "sum"
+          ],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -334,16 +338,23 @@
       },
       "id": 11,
       "options": {
-        "displayLabels": ["name", "percent"],
+        "displayLabels": [
+          "name",
+          "percent"
+        ],
         "legend": {
           "displayMode": "list",
           "placement": "right",
           "showLegend": true,
-          "values": ["value"]
+          "values": [
+            "value"
+          ]
         },
         "pieType": "donut",
         "reduceOptions": {
-          "calcs": ["sum"],
+          "calcs": [
+            "sum"
+          ],
           "fields": "",
           "values": false
         },
@@ -542,7 +553,11 @@
           "id": 16,
           "options": {
             "legend": {
-              "calcs": ["sum", "mean", "max"],
+              "calcs": [
+                "sum",
+                "mean",
+                "max"
+              ],
               "displayMode": "table",
               "placement": "right",
               "showLegend": true
@@ -806,16 +821,23 @@
           },
           "id": 20,
           "options": {
-            "displayLabels": ["name", "percent"],
+            "displayLabels": [
+              "name",
+              "percent"
+            ],
             "legend": {
               "displayMode": "list",
               "placement": "right",
               "showLegend": true,
-              "values": ["value"]
+              "values": [
+                "value"
+              ]
             },
             "pieType": "donut",
             "reduceOptions": {
-              "calcs": ["sum"],
+              "calcs": [
+                "sum"
+              ],
               "fields": "",
               "values": false
             },
@@ -1093,8 +1115,12 @@
       {
         "current": {
           "selected": true,
-          "text": ["All"],
-          "value": ["$__all"]
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
         },
         "datasource": {
           "type": "loki",
@@ -1104,6 +1130,7 @@
         "description": "Filter by environment (production/staging)",
         "hide": 0,
         "includeAll": true,
+        "allValue": ".+",
         "label": "Environment",
         "multi": true,
         "name": "environment",
@@ -1123,8 +1150,12 @@
       {
         "current": {
           "selected": true,
-          "text": ["All"],
-          "value": ["$__all"]
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
         },
         "datasource": {
           "type": "loki",
@@ -1134,6 +1165,7 @@
         "description": "Filter by application/service",
         "hide": 0,
         "includeAll": true,
+        "allValue": ".+",
         "label": "Application",
         "multi": true,
         "name": "app",
@@ -1153,12 +1185,17 @@
       {
         "current": {
           "selected": true,
-          "text": ["All"],
-          "value": ["$__all"]
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
         },
         "description": "Filter by log level",
         "hide": 0,
         "includeAll": true,
+        "allValue": ".+",
         "label": "Log Level",
         "multi": true,
         "name": "log_level",
