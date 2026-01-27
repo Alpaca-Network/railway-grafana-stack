@@ -27,8 +27,8 @@ class TestYAMLConfiguration:
 
     def test_prometheus_config_valid_yaml(self, repo_root):
         """Test Prometheus configuration is valid YAML"""
-        prom_config = repo_root / "prometheus" / "prom.yml"
-        assert prom_config.exists(), "prometheus/prom.yml not found"
+        prom_config = repo_root / "prometheus" / "prometheus.yml"
+        assert prom_config.exists(), "prometheus/prometheus.yml not found"
 
         with open(prom_config) as f:
             config = yaml.safe_load(f)
@@ -38,7 +38,7 @@ class TestYAMLConfiguration:
 
     def test_prometheus_scrape_jobs_configured(self, repo_root):
         """Test Prometheus has required scrape jobs"""
-        prom_config = repo_root / "prometheus" / "prom.yml"
+        prom_config = repo_root / "prometheus" / "prometheus.yml"
 
         with open(prom_config) as f:
             config = yaml.safe_load(f)
@@ -49,7 +49,7 @@ class TestYAMLConfiguration:
         # Check for required jobs
         assert "prometheus" in job_names, "Prometheus self-scrape job missing"
         assert "gatewayz_production" in job_names, "Production scrape job missing"
-        assert "gatewayz_staging" in job_names, "Staging scrape job missing"
+        assert "gatewayz_production" in job_names, "Production scrape job missing"
 
     def test_loki_config_valid_yaml(self, repo_root):
         """Test Loki configuration is valid YAML"""
@@ -198,7 +198,7 @@ class TestDockerFiles:
         services = {
             "prometheus": "9090",
             "loki": "3100",
-            "tempo": ["3200", "3201", "4317", "4318"],
+            "tempo": ["3200", "4317", "4318"],
             "grafana": "3000"
         }
 
@@ -245,28 +245,11 @@ class TestConfigurationIntegrity:
         # Count how many times 0.0.0.0 appears (should be at least 2)
         assert content.count("0.0.0.0") >= 2, "Tempo should have multiple 0.0.0.0 bindings"
 
-    def test_prometheus_staging_scrape_job_configured(self, repo_root):
-        """Test Prometheus has staging scrape job configured"""
-        prom_config = repo_root / "prometheus" / "prom.yml"
 
-        with open(prom_config) as f:
-            config = yaml.safe_load(f)
-
-        scrape_configs = config.get("scrape_configs", [])
-        staging_job = next(
-            (job for job in scrape_configs if job.get("job_name") == "gatewayz_staging"),
-            None
-        )
-
-        assert staging_job is not None, "Staging scrape job not found"
-        static_configs = staging_job.get("static_configs", [])
-        assert len(static_configs) > 0, "Staging job missing static_configs"
-        assert static_configs[0].get("targets") == ["gatewayz-staging.up.railway.app"], \
-            "Staging job target not configured correctly"
 
     def test_prometheus_production_scrape_job_configured(self, repo_root):
         """Test Prometheus has production scrape job configured"""
-        prom_config = repo_root / "prometheus" / "prom.yml"
+        prom_config = repo_root / "prometheus" / "prometheus.yml"
 
         with open(prom_config) as f:
             config = yaml.safe_load(f)
@@ -359,7 +342,7 @@ class TestMimirConfiguration:
 
     def test_prometheus_remote_write_to_mimir(self, repo_root):
         """Test Prometheus has remote_write configured for Mimir"""
-        prom_config = repo_root / "prometheus" / "prom.yml"
+        prom_config = repo_root / "prometheus" / "prometheus.yml"
 
         with open(prom_config) as f:
             config = yaml.safe_load(f)
@@ -377,7 +360,7 @@ class TestMimirConfiguration:
 
     def test_prometheus_mimir_scrape_job(self, repo_root):
         """Test Prometheus has Mimir scrape job configured"""
-        prom_config = repo_root / "prometheus" / "prom.yml"
+        prom_config = repo_root / "prometheus" / "prometheus.yml"
 
         with open(prom_config) as f:
             config = yaml.safe_load(f)

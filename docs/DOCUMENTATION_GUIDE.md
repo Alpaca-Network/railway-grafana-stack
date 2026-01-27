@@ -60,7 +60,7 @@ railway-grafana-stack/
 
 #### **Deploy & Test**
 - 🚀 Deploy to Railway → [docs/deployment/RAILWAY_DEPLOYMENT_QUICK_START.md](deployment/RAILWAY_DEPLOYMENT_QUICK_START.md)
-- 🧪 Test before production → [docs/deployment/STAGING_WORKFLOW.md](deployment/STAGING_WORKFLOW.md)
+
 
 #### **Fix Issues**
 - 🔗 Datasource problems → [docs/troubleshooting/GRAFANA_CONNECTIONS.md](troubleshooting/GRAFANA_CONNECTIONS.md)

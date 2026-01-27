@@ -121,7 +121,7 @@ SMTP_USERNAME=your-email@gmail.com
 SMTP_PASSWORD=your-app-password
 
 # Authentication
-STAGING_BEARER_TOKEN=gw_staging_xxxxx
+
 
 # Grafana
 GF_SECURITY_ADMIN_PASSWORD=yourpassword123

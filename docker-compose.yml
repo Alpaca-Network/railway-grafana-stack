@@ -5,7 +5,6 @@ version: '3.8'
 # ============================================================================
 #
 # REQUIRED ENVIRONMENT VARIABLES (set in .env file):
-# - STAGING_BEARER_TOKEN: Bearer token for staging API authentication
 # - GF_SECURITY_ADMIN_PASSWORD: Grafana admin password (CHANGE FROM DEFAULT!)
 # - ALERT_EMAIL: Email for alert notifications
 # - SMTP_PASSWORD: SMTP password for sending alerts
@@ -60,15 +59,11 @@ services:
           cpus: '0.25'
           memory: 256M
 
-  # Init container to write bearer token to file for Prometheus
-  prometheus-init:
-    image: busybox:latest
-    volumes:
-      - prometheus_secrets:/etc/prometheus/secrets
-    environment:
-      - STAGING_BEARER_TOKEN=${STAGING_BEARER_TOKEN:-}
-    command: ["sh", "-c", "echo -n \"$STAGING_BEARER_TOKEN\" > /etc/prometheus/secrets/staging_bearer_token && chmod 644 /etc/prometheus/secrets/staging_bearer_token"]
-    restart: "no"
+    depends_on:
+      alertmanager:
+        condition: service_started
+      mimir:
+        condition: service_started
 
   prometheus:
     build:
@@ -81,7 +76,6 @@ services:
       - "9090:9090"
     volumes:
       - prometheus_data:/prometheus
-      - prometheus_secrets:/etc/prometheus/secrets
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
@@ -97,8 +91,6 @@ services:
       timeout: 5s
       retries: 5
     depends_on:
-      prometheus-init:
-        condition: service_completed_successfully
       alertmanager:
         condition: service_started
       mimir:
@@ -351,7 +343,6 @@ services:
 
 volumes:
   prometheus_data:
-  prometheus_secrets:
   alertmanager_data:
   loki_data:
   grafana_data:

@@ -3,61 +3,7 @@
 ## Overview
 This guide sets up a dedicated Models Monitoring Dashboard to track model throughput, latency, error rates, and availability across your AI model infrastructure.
 
-## Staging Endpoint Configuration
 
-### Endpoint Details
-- **URL:** `https://gatewayz-staging.up.railway.app/`
-- **Admin API Key:** `gw_live_wTfpLJ5VB28qMXpOAhr7Uw`
-- **Metrics Path:** `/metrics`
-
-### Anthropic Messages API Endpoint
-The staging environment provides an Anthropic-style API endpoint that transforms requests to work with OpenAI-compatible providers (OpenRouter, Featherless).
-
-**Key Differences from OpenAI:**
-- Uses `messages` array with separate `system` parameter
-- `max_tokens` is REQUIRED (not optional)
-- Returns Anthropic-style response with `content` array and `stop_reason`
-- Supports `stop_sequences` instead of `stop`
-- Supports `top_k` parameter (Anthropic-specific)
-
-**Example Request:**
-```json
-{
-  "model": "claude-sonnet-4-5-20250929",
-  "max_tokens": 1024,
-  "messages": [
-    {"role": "user", "content": "Hello, Claude!"}
-  ]
-}
-```
-
-**Example Response:**
-```json
-{
-  "id": "msg-123",
-  "type": "message",
-  "role": "assistant",
-  "content": [{"type": "text", "text": "Hello! How can I help?"}],
-  "model": "claude-sonnet-4-5-20250929",
-  "stop_reason": "end_turn",
-  "usage": {"input_tokens": 10, "output_tokens": 12}
-}
-```
-
-## Prometheus Configuration
-
-The staging endpoint has been added to Prometheus scrape configuration:
-
-```yaml
-- job_name: 'gatewayz_staging'
-  scheme: https
-  metrics_path: '/metrics'
-  static_configs:
-    - targets: ['gatewayz-staging.up.railway.app']
-  scrape_interval: 15s
-  scrape_timeout: 10s
-  bearer_token: 'gw_live_wTfpLJ5VB28qMXpOAhr7Uw'
-```
 
 ## Dashboard Panels
 
@@ -150,7 +96,7 @@ http://localhost:3000
 ## Railway Deployment
 
 ### 1. Ensure Prometheus is configured
-The `prometheus/prom.yml` file includes the staging endpoint configuration.
+The `prometheus/prom.yml` file handles the configuration.
 
 ### 2. Redeploy services
 ```bash
@@ -163,23 +109,17 @@ git push origin main
 ### 3. Verify on Railway
 - Access Grafana at your Railway Grafana URL
 - Navigate to Models Monitoring Dashboard
-- Confirm staging metrics are being scraped
+- Confirm metrics are being scraped
 
 ## Troubleshooting
 
 ### No data in panels
 1. Check Prometheus targets: `http://prometheus:9090/targets`
-2. Verify staging endpoint is reachable: `curl -H "Authorization: Bearer gw_live_wTfpLJ5VB28qMXpOAhr7Uw" https://gatewayz-staging.up.railway.app/metrics`
-3. Check metric names match exactly (case-sensitive)
+2. Check metric names match exactly (case-sensitive)
 
 ### Bearer token issues
-- Ensure `bearer_token` is correctly set in `prometheus/prom.yml`
+- Ensure `bearer_token` is correctly set in `prometheus/prometheus.yml` (if using token auth)
 - Verify token is valid and has metrics endpoint access
-
-### Staging endpoint unreachable
-- Check Railway deployment status
-- Verify network connectivity
-- Check firewall rules allow HTTPS on port 443
 
 ## Next Steps
 
