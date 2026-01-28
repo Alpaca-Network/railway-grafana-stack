@@ -16,8 +16,6 @@ COPY datasources /etc/grafana/provisioning/datasources
 COPY provisioning/dashboards/dashboards.yml /etc/grafana/provisioning/dashboards/dashboards.yml
 
 # copy dashboard subdirectories
-COPY dashboards/backend /etc/grafana/provisioning/dashboards/backend
-COPY dashboards/executive /etc/grafana/provisioning/dashboards/executive
 COPY dashboards/gateway /etc/grafana/provisioning/dashboards/gateway
 
 # copy service-specific dashboards from new architecture
