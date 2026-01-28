@@ -1,72 +1,12 @@
 apiVersion: 1
 
 providers:
-  - name: 'Executive'
+  - name: 'GatewayZ Dashboards'
     orgId: 1
-    folder: 'Executive'
+    folder: ''
     type: file
     disableDeletion: false
     updateIntervalSeconds: 10
     allowUiUpdates: true
     options:
-      path: /etc/grafana/provisioning/dashboards/executive
-
-  - name: 'Backend'
-    orgId: 1
-    folder: 'Backend'
-    type: file
-    disableDeletion: false
-    updateIntervalSeconds: 10
-    allowUiUpdates: true
-    options:
-      path: /etc/grafana/provisioning/dashboards/backend
-
-  - name: 'Gateway'
-    orgId: 1
-    folder: 'Gateway'
-    type: file
-    disableDeletion: false
-    updateIntervalSeconds: 10
-    allowUiUpdates: true
-    options:
-      path: /etc/grafana/provisioning/dashboards/gateway
-
-  - name: 'Loki'
-    orgId: 1
-    folder: 'Loki'
-    type: file
-    disableDeletion: false
-    updateIntervalSeconds: 10
-    allowUiUpdates: true
-    options:
-      path: /etc/grafana/provisioning/dashboards/loki
-
-  - name: 'Prometheus'
-    orgId: 1
-    folder: 'Prometheus'
-    type: file
-    disableDeletion: false
-    updateIntervalSeconds: 10
-    allowUiUpdates: true
-    options:
-      path: /etc/grafana/provisioning/dashboards/prometheus
-
-  - name: 'Tempo'
-    orgId: 1
-    folder: 'Tempo'
-    type: file
-    disableDeletion: false
-    updateIntervalSeconds: 10
-    allowUiUpdates: true
-    options:
-      path: /etc/grafana/provisioning/dashboards/tempo
-
-  - name: 'Mimir'
-    orgId: 1
-    folder: 'Mimir'
-    type: file
-    disableDeletion: false
-    updateIntervalSeconds: 10
-    allowUiUpdates: true
-    options:
-      path: /etc/grafana/provisioning/dashboards/mimir
+      path: /etc/grafana/provisioning/dashboards

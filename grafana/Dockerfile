@@ -11,26 +11,34 @@ ENV PROMETHEUS_INTERNAL_URL=http://prometheus.railway.internal:9090
 ENV TEMPO_INTERNAL_URL=http://tempo.railway.internal:3200
 ENV MIMIR_INTERNAL_URL=http://mimir.railway.internal:9009
 
-# copy the datasources and dashboard provisioning config
+# Clean up any old/stale dashboard folders from previous builds
+# Also remove Grafana's internal database cache to ensure deleted dashboards don't persist
+RUN rm -rf /etc/grafana/provisioning/dashboards/executive \
+    /etc/grafana/provisioning/dashboards/backend \
+    /etc/grafana/provisioning/dashboards/*.json \
+    /var/lib/grafana/grafana.db \
+    /var/lib/grafana/sessions \
+    2>/dev/null || true
+
+# Copy the datasources and dashboard provisioning config
 COPY datasources /etc/grafana/provisioning/datasources
 COPY provisioning/dashboards/dashboards.yml /etc/grafana/provisioning/dashboards/dashboards.yml
 
-# copy dashboard subdirectories
-COPY dashboards/gateway /etc/grafana/provisioning/dashboards/gateway
-
-# copy service-specific dashboards from new architecture
-# NOTE: This Dockerfile is built with context `./grafana` in Railway.
-# Therefore, service dashboards must be available inside this build context.
-COPY dashboards/loki /etc/grafana/provisioning/dashboards/loki
-COPY dashboards/prometheus /etc/grafana/provisioning/dashboards/prometheus
-COPY dashboards/tempo /etc/grafana/provisioning/dashboards/tempo
-COPY dashboards/mimir /etc/grafana/provisioning/dashboards/mimir
+# Copy all dashboard JSON files (flat structure - no subdirectories)
+COPY dashboards/*.json /etc/grafana/provisioning/dashboards/
 
 # ============================================================
 # ALERTING PROVISIONING
 # Copy alert rules, contact points, and notification policies
 # ============================================================
 COPY provisioning/alerting /etc/grafana/provisioning/alerting
+
+# Copy custom entrypoint that cleans database cache on startup
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Set custom entrypoint
+ENTRYPOINT ["/entrypoint.sh"]
 
 # Expose Grafana port
 EXPOSE 3000

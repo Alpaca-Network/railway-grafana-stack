@@ -32,8 +32,8 @@ services:
       dockerfile: Dockerfile
     user: root
     ports:
-      - "9009:9009"   # HTTP API (for Grafana queries)
-      - "9095:9095"   # gRPC (for Prometheus remote write)
+      - "9009:9009" # HTTP API (for Grafana queries)
+      - "9095:9095" # gRPC (for Prometheus remote write)
     volumes:
       - mimir_data:/data/mimir
     restart: unless-stopped
@@ -45,7 +45,7 @@ services:
     tmpfs:
       - /tmp
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:9009/ready"]
+      test: [ "CMD", "wget", "-qO-", "http://localhost:9009/ready" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -61,8 +61,6 @@ services:
 
     depends_on:
       alertmanager:
-        condition: service_started
-      mimir:
         condition: service_started
 
   prometheus:
@@ -86,7 +84,7 @@ services:
     tmpfs:
       - /tmp
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/healthy"]
+      test: [ "CMD", "wget", "-qO-", "http://localhost:9090/-/healthy" ]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -111,7 +109,7 @@ services:
       - "9093:9093"
     volumes:
       - alertmanager_data:/alertmanager
-      - ./prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
       - '--storage.path=/alertmanager'
@@ -128,7 +126,7 @@ services:
     tmpfs:
       - /tmp
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:9093/-/healthy"]
+      test: [ "CMD", "wget", "-qO-", "http://localhost:9093/-/healthy" ]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -161,7 +159,7 @@ services:
     tmpfs:
       - /tmp
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3100/ready"]
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3100/ready" ]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -179,7 +177,7 @@ services:
     image: busybox:latest
     volumes:
       - tempo_data:/var/tempo
-    command: ["sh", "-c", "mkdir -p /var/tempo/traces /var/tempo/wal /var/tempo/generator/wal && chmod -R 0777 /var/tempo"]
+    command: [ "sh", "-c", "mkdir -p /var/tempo/traces /var/tempo/wal /var/tempo/generator/wal && chmod -R 0777 /var/tempo" ]
     restart: "no"
 
   tempo:
@@ -207,7 +205,7 @@ services:
     tmpfs:
       - /tmp
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3200/ready"]
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3200/ready" ]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -243,7 +241,7 @@ services:
     tmpfs:
       - /tmp
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:9121"]
+      test: [ "CMD", "wget", "-qO-", "http://localhost:9121" ]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -261,7 +259,7 @@ services:
       context: ./json-api-proxy
       dockerfile: Dockerfile
     ports:
-      - "5050:5050"  # Changed from 5000 to avoid macOS AirPlay conflict
+      - "5050:5050" # Changed from 5000 to avoid macOS AirPlay conflict
     environment:
       API_BASE_URL: ${API_BASE_URL:-https://api.gatewayz.ai}
       PORT: 5050
@@ -274,7 +272,7 @@ services:
     tmpfs:
       - /tmp
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:5050/"]
+      test: [ "CMD", "wget", "-qO-", "http://localhost:5050/" ]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -286,7 +284,6 @@ services:
         reservations:
           cpus: '0.05'
           memory: 64M
-
 
   grafana:
     build:
@@ -302,7 +299,7 @@ services:
     cap_drop:
       - ALL
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3000/api/health" ]
       interval: 30s
       timeout: 5s
       retries: 10

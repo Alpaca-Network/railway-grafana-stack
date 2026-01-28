@@ -3,6 +3,7 @@
 # ============================================================
 # These rules pre-calculate baseline metrics for anomaly detection
 # They run continuously to establish "normal" behavior patterns
+# Updated to use fastapi_requests_total (new metric) instead of http_requests_total
 
 groups:
   # ============================================================
@@ -13,23 +14,23 @@ groups:
     rules:
       # Current request rate per second
       - record: traffic:requests_per_second:rate5m
-        expr: rate(http_requests_total[5m])
-      
+        expr: sum(rate(fastapi_requests_total[5m]))
+
       # 1-hour average request rate
       - record: traffic:requests_per_second:rate1h
-        expr: avg_over_time(rate(http_requests_total[5m])[1h:])
-      
+        expr: avg_over_time(sum(rate(fastapi_requests_total[5m]))[1h:])
+
       # 24-hour average request rate (daily baseline)
       - record: traffic:requests_per_second:rate24h
-        expr: avg_over_time(rate(http_requests_total[5m])[24h:])
-      
+        expr: avg_over_time(sum(rate(fastapi_requests_total[5m]))[24h:])
+
       # 7-day average request rate (weekly baseline)
       - record: traffic:requests_per_second:rate7d
-        expr: avg_over_time(rate(http_requests_total[5m])[7d:])
-      
+        expr: avg_over_time(sum(rate(fastapi_requests_total[5m]))[7d:])
+
       # Request rate by endpoint
       - record: traffic:requests_per_second:by_endpoint
-        expr: sum by (endpoint) (rate(http_requests_total[5m]))
+        expr: sum by (path) (rate(fastapi_requests_total[5m]))
 
   # ============================================================
   # ERROR RATE BASELINES
@@ -41,45 +42,45 @@ groups:
       - record: errors:rate:percentage
         expr: |
           100 * (
-            sum(rate(http_requests_total{status_code=~"4..|5.."}[5m]))
+            sum(rate(fastapi_requests_total{status_code=~"4..|5.."}[5m]))
             /
-            sum(rate(http_requests_total[5m]))
-          )
-      
+            sum(rate(fastapi_requests_total[5m]))
+          ) or vector(0)
+
       # 4xx client error rate
       - record: errors:4xx:percentage
         expr: |
           100 * (
-            sum(rate(http_requests_total{status_code=~"4.."}[5m]))
+            sum(rate(fastapi_requests_total{status_code=~"4.."}[5m]))
             /
-            sum(rate(http_requests_total[5m]))
-          )
-      
+            sum(rate(fastapi_requests_total[5m]))
+          ) or vector(0)
+
       # 5xx server error rate
       - record: errors:5xx:percentage
         expr: |
           100 * (
-            sum(rate(http_requests_total{status_code=~"5.."}[5m]))
+            sum(rate(fastapi_requests_total{status_code=~"5.."}[5m]))
             /
-            sum(rate(http_requests_total[5m]))
-          )
-      
+            sum(rate(fastapi_requests_total[5m]))
+          ) or vector(0)
+
       # 1-hour error rate average
       - record: errors:rate:percentage:1h_avg
         expr: avg_over_time(errors:rate:percentage[1h])
-      
+
       # 24-hour error rate average (daily baseline)
       - record: errors:rate:percentage:24h_avg
         expr: avg_over_time(errors:rate:percentage[24h])
-      
+
       # Error rate by endpoint
       - record: errors:rate:by_endpoint
         expr: |
           100 * (
-            sum by (endpoint) (rate(http_requests_total{status_code=~"4..|5.."}[5m]))
+            sum by (path) (rate(fastapi_requests_total{status_code=~"4..|5.."}[5m]))
             /
-            sum by (endpoint) (rate(http_requests_total[5m]))
-          )
+            sum by (path) (rate(fastapi_requests_total[5m]))
+          ) or vector(0)
 
   # ============================================================
   # LATENCY BASELINES
@@ -89,31 +90,65 @@ groups:
     rules:
       # P50 (median) latency
       - record: latency:p50:seconds
-        expr: histogram_quantile(0.50, rate(http_request_duration_seconds_bucket[5m]))
-      
+        expr: histogram_quantile(0.50, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le))
+
       # P95 latency
       - record: latency:p95:seconds
-        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
-      
+        expr: histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le))
+
       # P99 latency
       - record: latency:p99:seconds
-        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))
-      
+        expr: histogram_quantile(0.99, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le))
+
       # 1-hour P95 average
       - record: latency:p95:seconds:1h_avg
         expr: avg_over_time(latency:p95:seconds[1h])
-      
+
       # 24-hour P95 average (daily baseline)
       - record: latency:p95:seconds:24h_avg
         expr: avg_over_time(latency:p95:seconds[24h])
-      
+
       # 1-hour P99 average
       - record: latency:p99:seconds:1h_avg
         expr: avg_over_time(latency:p99:seconds[1h])
-      
+
       # Latency by endpoint
       - record: latency:p95:by_endpoint
-        expr: histogram_quantile(0.95, sum by (endpoint, le) (rate(http_request_duration_seconds_bucket[5m])))
+        expr: histogram_quantile(0.95, sum by (path, le) (rate(fastapi_requests_duration_seconds_bucket[5m])))
+
+  # ============================================================
+  # MODEL USAGE BASELINES (for Analytics Dashboard)
+  # ============================================================
+  - name: model_usage_baselines
+    interval: 1m
+    rules:
+      # Total model inference requests rate
+      - record: models:requests:rate5m
+        expr: sum(rate(model_inference_requests_total[5m]))
+
+      # Model requests by provider
+      - record: models:requests:by_provider:rate5m
+        expr: sum by (provider) (rate(model_inference_requests_total[5m]))
+
+      # Model requests by model name
+      - record: models:requests:by_model:rate5m
+        expr: sum by (model) (rate(model_inference_requests_total[5m]))
+
+      # Top models by request count (1h)
+      - record: models:requests:by_model:1h_total
+        expr: sum by (model) (increase(model_inference_requests_total[1h]))
+
+      # Top models by request count (24h)
+      - record: models:requests:by_model:24h_total
+        expr: sum by (model) (increase(model_inference_requests_total[24h]))
+
+      # Token usage by model
+      - record: models:tokens:by_model:rate5m
+        expr: sum by (model) (rate(tokens_used_total[5m]))
+
+      # Token usage by provider
+      - record: models:tokens:by_provider:rate5m
+        expr: sum by (provider) (rate(tokens_used_total[5m]))
 
   # ============================================================
   # AVAILABILITY BASELINES
@@ -123,16 +158,8 @@ groups:
     rules:
       # Provider availability percentage
       - record: availability:provider:percentage
-        expr: avg by (provider) (provider_availability)
-      
-      # Model availability percentage
-      - record: availability:model:percentage
-        expr: avg by (model) (model_availability)
-      
-      # Gateway availability percentage
-      - record: availability:gateway:percentage
-        expr: avg by (gateway) (gateway_health_status)
-      
+        expr: avg by (provider) (provider_availability) * 100
+
       # Overall system availability
       - record: availability:system:percentage
         expr: |
@@ -140,54 +167,49 @@ groups:
             sum(up{job="gatewayz_production"})
             /
             count(up{job="gatewayz_production"})
-          )
+          ) or vector(100)
 
   # ============================================================
-  # COST BASELINES (if you track cost metrics)
+  # COST BASELINES
   # ============================================================
   - name: cost_baselines
     interval: 5m
     rules:
+      # Hourly cost total
+      - record: cost:hourly:total
+        expr: sum(increase(gatewayz_api_cost_usd_total[1h]))
+
       # Daily cost sum
       - record: cost:daily:total
-        expr: sum(increase(api_cost_total[24h]))
-      
-      # 7-day average daily cost
-      - record: cost:daily:7d_avg
-        expr: avg_over_time(cost:daily:total[7d])
-      
+        expr: sum(increase(gatewayz_api_cost_usd_total[24h]))
+
       # Cost by provider
-      - record: cost:by_provider
-        expr: sum by (provider) (rate(api_cost_total[5m]))
+      - record: cost:by_provider:rate5m
+        expr: sum by (provider) (rate(gatewayz_api_cost_usd_total[5m]))
+
+      # Cost by model
+      - record: cost:by_model:rate5m
+        expr: sum by (model) (rate(gatewayz_api_cost_usd_total[5m]))
 
   # ============================================================
-  # RESOURCE USAGE BASELINES
+  # REDIS BASELINES (from redis_exporter)
   # ============================================================
-  - name: resource_baselines
+  - name: redis_baselines
     interval: 1m
     rules:
-      # CPU usage percentage
-      - record: resources:cpu:percentage
-        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
-      
-      # Memory usage percentage
-      - record: resources:memory:percentage
+      # Redis memory usage percentage
+      - record: redis:memory:percentage
+        expr: (redis_memory_used_bytes / redis_memory_max_bytes) * 100 or vector(0)
+
+      # Redis connected clients
+      - record: redis:clients:connected
+        expr: redis_connected_clients or vector(0)
+
+      # Redis cache hit rate
+      - record: redis:cache:hit_rate
         expr: |
           100 * (
-            1 - (
-              node_memory_MemAvailable_bytes
-              /
-              node_memory_MemTotal_bytes
-            )
-          )
-      
-      # Disk usage percentage
-      - record: resources:disk:percentage
-        expr: |
-          100 * (
-            1 - (
-              node_filesystem_avail_bytes{mountpoint="/"}
-              /
-              node_filesystem_size_bytes{mountpoint="/"}
-            )
-          )
+            rate(redis_keyspace_hits_total[5m])
+            /
+            (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]))
+          ) or vector(0)
