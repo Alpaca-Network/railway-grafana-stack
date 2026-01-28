@@ -33,12 +33,5 @@ COPY dashboards/*.json /etc/grafana/provisioning/dashboards/
 # ============================================================
 COPY provisioning/alerting /etc/grafana/provisioning/alerting
 
-# Copy custom entrypoint that cleans database cache on startup
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-# Set custom entrypoint
-ENTRYPOINT ["/entrypoint.sh"]
-
 # Expose Grafana port
 EXPOSE 3000
