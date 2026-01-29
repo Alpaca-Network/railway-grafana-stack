@@ -1,4 +1,5 @@
 # Tempo 2.6.1 - Configuration optimized for Railway
+# Updated: OpenLLMetry/Traceloop integration with span metrics
 stream_over_http_enabled: true
 
 server:
@@ -22,9 +23,57 @@ ingester:
   trace_idle_period: 10s
   flush_check_period: 10s
 
+# Metrics Generator - Creates span metrics for Prometheus
+# This enables the traces_spanmetrics_* metrics for "most popular models" queries
+# Prometheus scrapes these metrics from Tempo's /metrics endpoint
+metrics_generator:
+  registry:
+    external_labels:
+      source: tempo
+      cluster: gatewayz
+  storage:
+    path: /var/tempo/generator/wal
+  processor:
+    span_metrics:
+      # Include LLM-specific dimensions for model popularity tracking
+      dimensions:
+        - service.name
+        - gen_ai.request.model
+        - gen_ai.system
+        - ai.provider
+        - ai.model_id
+        - customer.id
+        - http.status_code
+      # Enable histogram for latency analysis
+      enable_target_info: true
+      histogram_buckets: [0.01, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
+    # Service graphs for dependency mapping
+    service_graphs:
+      dimensions:
+        - service.name
+        - gen_ai.system
+
+# Overrides for high-cardinality attributes
+overrides:
+  defaults:
+    metrics_generator:
+      processors: [span-metrics, service-graphs]
+      # Enable metrics generation for all traces
+      generate_native_histograms: both
+
 compactor:
   compaction:
     block_retention: 48h
+
+# Query Frontend configuration for TraceQL
+query_frontend:
+  search:
+    # Duration to wait for a block to be searched
+    duration_slo: 5s
+    # Number of concurrent jobs
+    concurrent_jobs: 2000
+  trace_by_id:
+    duration_slo: 5s
 
 storage:
   trace:
@@ -36,3 +85,25 @@ storage:
     pool:
       max_workers: 100
       queue_depth: 10000
+    # Block configuration for search
+    block:
+      # Enable search on ingested data
+      version: vParquet4
+    # Enable search tags for TraceQL queries
+    search:
+      # Tags that will be searchable via TraceQL
+      # These are automatically indexed for fast lookups
+      enabled_tags:
+        - service.name
+        - gen_ai.request.model
+        - gen_ai.system
+        - gen_ai.usage.input_tokens
+        - gen_ai.usage.output_tokens
+        - gen_ai.usage.total_tokens
+        - ai.provider
+        - ai.model_id
+        - ai.operation
+        - customer.id
+        - http.method
+        - http.status_code
+        - http.route
