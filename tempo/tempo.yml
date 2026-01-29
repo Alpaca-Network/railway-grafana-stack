@@ -87,23 +87,5 @@ storage:
       queue_depth: 10000
     # Block configuration for search
     block:
-      # Enable search on ingested data
+      # vParquet4 enables efficient TraceQL queries
       version: vParquet4
-    # Enable search tags for TraceQL queries
-    search:
-      # Tags that will be searchable via TraceQL
-      # These are automatically indexed for fast lookups
-      enabled_tags:
-        - service.name
-        - gen_ai.request.model
-        - gen_ai.system
-        - gen_ai.usage.input_tokens
-        - gen_ai.usage.output_tokens
-        - gen_ai.usage.total_tokens
-        - ai.provider
-        - ai.model_id
-        - ai.operation
-        - customer.id
-        - http.method
-        - http.status_code
-        - http.route
