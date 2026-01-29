@@ -90,6 +90,22 @@ else
     echo "Set REDIS_EXPORTER_URL to the public URL of your Redis Exporter service."
 fi
 
+# ============================================================
+# Tempo Configuration
+# Tempo metrics endpoint for span metrics (model popularity, etc.)
+# ============================================================
+
+if [ -n "$TEMPO_INTERNAL_URL" ]; then
+    # Use explicitly set TEMPO_INTERNAL_URL (from Railway env vars)
+    TEMPO_TARGET=$(echo "$TEMPO_INTERNAL_URL" | sed 's|http://||')
+elif [ -n "$RAILWAY_ENVIRONMENT" ]; then
+    # Railway production environment - use internal network
+    TEMPO_TARGET="tempo.railway.internal:3200"
+else
+    # Local Docker Compose environment - use Docker service name
+    TEMPO_TARGET="tempo:3200"
+fi
+
 echo "==========================================="
 echo "Prometheus Configuration"
 echo "==========================================="
@@ -99,6 +115,7 @@ echo "MIMIR_URL: $MIMIR_URL"
 echo "MIMIR_TARGET: $MIMIR_TARGET"
 echo "ALERTMANAGER_TARGET: $ALERTMANAGER_TARGET"
 echo "REDIS_EXPORTER_TARGET: $REDIS_EXPORTER_TARGET"
+echo "TEMPO_TARGET: $TEMPO_TARGET"
 echo "RAILWAY_ENVIRONMENT: ${RAILWAY_ENVIRONMENT:-not set (local mode)}"
 echo "==========================================="
 
@@ -110,6 +127,7 @@ sed -e "s|FASTAPI_TARGET|${TARGET}|g" \
     -e "s|MIMIR_TARGET|${MIMIR_TARGET}|g" \
     -e "s|ALERTMANAGER_TARGET|${ALERTMANAGER_TARGET}|g" \
     -e "s|REDIS_EXPORTER_TARGET|${REDIS_EXPORTER_TARGET}|g" \
+    -e "s|TEMPO_TARGET|${TEMPO_TARGET}|g" \
     /tmp/prometheus.yml.tmp > /etc/prometheus/prometheus.yml
 
 # Show the resulting scrape targets and remote_write for debugging
