@@ -3,6 +3,30 @@ set -e
 
 echo "=== Tempo Startup ==="
 
+# ============================================================
+# Mimir Remote Write Configuration
+# Tempo's metrics_generator sends span metrics to Mimir
+# ============================================================
+
+if [ -n "$MIMIR_INTERNAL_URL" ]; then
+    # Use explicitly set MIMIR_INTERNAL_URL (from Railway env vars)
+    MIMIR_REMOTE_WRITE_URL="${MIMIR_INTERNAL_URL}/api/v1/push"
+elif [ -n "$RAILWAY_ENVIRONMENT" ]; then
+    # Railway production environment - use internal network
+    MIMIR_REMOTE_WRITE_URL="http://mimir.railway.internal:9009/api/v1/push"
+else
+    # Local Docker Compose environment - use Docker service name
+    MIMIR_REMOTE_WRITE_URL="http://mimir:9009/api/v1/push"
+fi
+
+echo "MIMIR_REMOTE_WRITE_URL: $MIMIR_REMOTE_WRITE_URL"
+
+# Substitute the Mimir URL in tempo.yml
+if [ -f "/etc/tempo/tempo.yml" ]; then
+    sed -i "s|MIMIR_REMOTE_WRITE_URL|${MIMIR_REMOTE_WRITE_URL}|g" /etc/tempo/tempo.yml
+    echo "Configured metrics_generator remote_write to: $MIMIR_REMOTE_WRITE_URL"
+fi
+
 # Clean up any corrupted data in /var/tempo
 # The "wal" tenant error means there's a directory named "wal" being treated as a tenant
 if [ -d "/var/tempo" ]; then

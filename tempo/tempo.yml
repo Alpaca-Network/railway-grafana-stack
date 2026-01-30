@@ -28,7 +28,7 @@ ingester:
 
 # Metrics Generator - Creates span metrics for Prometheus
 # This enables the traces_spanmetrics_* metrics for "most popular models" queries
-# Prometheus scrapes these metrics from Tempo's /metrics endpoint
+# Remote writes metrics to Mimir for long-term storage and querying
 metrics_generator:
   registry:
     external_labels:
@@ -36,11 +36,18 @@ metrics_generator:
       cluster: gatewayz
   storage:
     path: /var/tempo/generator/wal
+    remote_write:
+      # MIMIR_REMOTE_WRITE_URL is substituted by entrypoint.sh
+      # Railway: http://mimir.railway.internal:9009/api/v1/push
+      # Local: http://mimir:9009/api/v1/push
+      - url: MIMIR_REMOTE_WRITE_URL
+        send_exemplars: true
   processor:
     span_metrics:
       # Include LLM-specific dimensions for model popularity tracking
       dimensions:
         - service.name
+        - span_name
         - gen_ai.request.model
         - gen_ai.system
         - ai.provider
