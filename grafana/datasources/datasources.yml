@@ -50,7 +50,8 @@ datasources:
     # Tempo URL - Internal DNS for same-project access
     # Grafana and Tempo are in the same Railway project (railway-grafana-stack)
     # Port 3200 is Tempo's query API (not 4318 which is for ingestion)
-    url: ${TEMPO_INTERNAL_URL:-http://tempo.railway.internal:3200}
+    # NOTE: TEMPO_INTERNAL_URL is set in Dockerfile to http://tempo.railway.internal:3200
+    url: ${TEMPO_INTERNAL_URL}
     user:
     database:
     basicAuth:
@@ -114,12 +115,13 @@ datasources:
   # - Historical queries (longer than Prometheus retention)
   # - Consistent query results across page refreshes
   # - Aggregated metrics from multiple Prometheus instances
+  # NOTE: MIMIR_INTERNAL_URL is set in Dockerfile to http://mimir.railway.internal:9009
   - name: Mimir
     type: prometheus
     access: proxy
     orgId: 1
     uid: grafana_mimir
-    url: ${MIMIR_INTERNAL_URL:-http://mimir:9009}/prometheus
+    url: ${MIMIR_INTERNAL_URL}/prometheus
     user:
     database:
     basicAuth:

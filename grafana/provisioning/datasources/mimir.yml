@@ -6,11 +6,12 @@ datasources:
   # - Historical queries (longer than Prometheus retention)
   # - Consistent query results across page refreshes
   # - Aggregated metrics from multiple Prometheus instances
+  # NOTE: MIMIR_INTERNAL_URL is set in Dockerfile to http://mimir.railway.internal:9009
   - name: Mimir
     uid: grafana_mimir
     type: prometheus
     access: proxy
-    url: ${MIMIR_INTERNAL_URL:-http://mimir:9009}/prometheus
+    url: ${MIMIR_INTERNAL_URL}/prometheus
     isDefault: false
     editable: true
     jsonData:
