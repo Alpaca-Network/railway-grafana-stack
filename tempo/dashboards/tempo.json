@@ -67,7 +67,7 @@
             "type": "tempo",
             "uid": "grafana_tempo"
           },
-          "limit": 20,
+          "limit": 100,
           "queryType": "traceql",
           "refId": "A",
           "query": "{}"
@@ -105,7 +105,7 @@
             "type": "tempo",
             "uid": "grafana_tempo"
           },
-          "limit": 20,
+          "limit": 100,
           "queryType": "traceql",
           "refId": "A",
           "query": "{status=error}"
