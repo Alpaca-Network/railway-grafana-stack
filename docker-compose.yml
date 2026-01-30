@@ -59,12 +59,6 @@ services:
           cpus: '0.25'
           memory: 256M
 
-    depends_on:
-      alertmanager:
-        condition: service_started
-      mimir:
-        condition: service_started
-
   prometheus:
     build:
       context: ./prometheus
@@ -179,7 +173,7 @@ services:
     image: busybox:latest
     volumes:
       - tempo_data:/var/tempo
-    command: ["sh", "-c", "mkdir -p /var/tempo/traces /var/tempo/wal /var/tempo/generator/wal && chmod -R 0777 /var/tempo"]
+    command: ["sh", "-c", "mkdir -p /var/tempo/traces /var/tempo/wal /var/tempo/generator/wal /var/tempo/generator/traces && chmod -R 0777 /var/tempo"]
     restart: "no"
 
   tempo:
