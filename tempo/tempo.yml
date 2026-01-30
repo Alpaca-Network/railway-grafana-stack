@@ -19,9 +19,12 @@ distributor:
           endpoint: "0.0.0.0:4318"
 
 ingester:
-  max_block_duration: 5m
-  trace_idle_period: 10s
-  flush_check_period: 10s
+  # Shorter block duration for faster trace visibility
+  max_block_duration: 1m
+  trace_idle_period: 5s
+  flush_check_period: 5s
+  # Complete blocks faster for search availability
+  complete_block_timeout: 30s
 
 # Metrics Generator - Creates span metrics for Prometheus
 # This enables the traces_spanmetrics_* metrics for "most popular models" queries
@@ -65,32 +68,19 @@ compactor:
   compaction:
     block_retention: 48h
 
-# Querier configuration - enables searching recent traces in ingester/WAL
+# Querier configuration for Tempo 2.6.1
 querier:
-  # Search the ingester for recent traces (critical for real-time visibility!)
-  search:
-    # Search ingester for traces not yet flushed to blocks
-    query_ingesters: true
-    # External hedge requests for faster responses
-    external_hedge_requests_at: 5s
-    external_hedge_requests_up_to: 3
-  # Also query ingester for trace by ID lookups
-  trace_by_id:
-    query_ingesters: true
+  max_concurrent_queries: 20
+  frontend_worker:
+    frontend_address: ""
 
 # Query Frontend configuration for TraceQL
 query_frontend:
   search:
-    # Duration to wait for a block to be searched
     duration_slo: 5s
-    # Number of concurrent jobs
     concurrent_jobs: 2000
-    # Search ingester for recent data
-    query_ingesters: true
   trace_by_id:
     duration_slo: 5s
-    # Include ingester in trace lookups
-    query_ingesters: true
 
 storage:
   trace:
