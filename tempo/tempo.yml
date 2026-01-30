@@ -65,6 +65,19 @@ compactor:
   compaction:
     block_retention: 48h
 
+# Querier configuration - enables searching recent traces in ingester/WAL
+querier:
+  # Search the ingester for recent traces (critical for real-time visibility!)
+  search:
+    # Search ingester for traces not yet flushed to blocks
+    query_ingesters: true
+    # External hedge requests for faster responses
+    external_hedge_requests_at: 5s
+    external_hedge_requests_up_to: 3
+  # Also query ingester for trace by ID lookups
+  trace_by_id:
+    query_ingesters: true
+
 # Query Frontend configuration for TraceQL
 query_frontend:
   search:
@@ -72,8 +85,12 @@ query_frontend:
     duration_slo: 5s
     # Number of concurrent jobs
     concurrent_jobs: 2000
+    # Search ingester for recent data
+    query_ingesters: true
   trace_by_id:
     duration_slo: 5s
+    # Include ingester in trace lookups
+    query_ingesters: true
 
 storage:
   trace:
