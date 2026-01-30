@@ -30,10 +30,15 @@ ingester:
 # This enables the traces_spanmetrics_* metrics for "most popular models" queries
 # Remote writes metrics to Mimir for long-term storage and querying
 metrics_generator:
+  # Ring configuration for metrics generator (required for Tempo 2.6.1)
+  ring:
+    kvstore:
+      store: inmemory
   registry:
     external_labels:
       source: tempo
       cluster: gatewayz
+    stale_duration: 15m
   storage:
     path: /var/tempo/generator/wal
     remote_write:
@@ -42,6 +47,9 @@ metrics_generator:
       # Local: http://mimir:9009/api/v1/push
       - url: MIMIR_REMOTE_WRITE_URL
         send_exemplars: true
+    remote_write_flush_deadline: 1m
+  traces_storage:
+    path: /var/tempo/generator/traces
   processor:
     span_metrics:
       # Include LLM-specific dimensions for model popularity tracking

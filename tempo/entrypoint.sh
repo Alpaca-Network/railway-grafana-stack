@@ -74,8 +74,12 @@ if [ -d "/var/tempo" ]; then
 fi
 
 # Ensure directories exist with correct permissions
-mkdir -p /var/tempo/traces /var/tempo/wal
+# IMPORTANT: /var/tempo/generator/* directories are required for metrics_generator
+mkdir -p /var/tempo/traces /var/tempo/wal /var/tempo/generator/wal /var/tempo/generator/traces
 chmod -R 777 /var/tempo
+
+echo "Created directories:"
+ls -la /var/tempo/
 
 echo "Starting Tempo..."
 exec /tempo -config.file=/etc/tempo/tempo.yml "$@"
