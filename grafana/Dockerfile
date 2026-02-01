@@ -20,9 +20,6 @@ COPY datasources /etc/grafana/provisioning/datasources
 COPY provisioning/dashboards/dashboards.yml /etc/grafana/provisioning/dashboards/dashboards.yml
 
 # Copy dashboard folders
-COPY dashboards/executive /etc/grafana/provisioning/dashboards/executive
-COPY dashboards/backend /etc/grafana/provisioning/dashboards/backend
-COPY dashboards/gateway /etc/grafana/provisioning/dashboards/gateway
 COPY dashboards/loki /etc/grafana/provisioning/dashboards/loki
 COPY dashboards/prometheus /etc/grafana/provisioning/dashboards/prometheus
 COPY dashboards/tempo /etc/grafana/provisioning/dashboards/tempo

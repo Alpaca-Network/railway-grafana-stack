@@ -214,41 +214,7 @@ services:
           cpus: '0.10'
           memory: 128M
 
-  redis-exporter:
-    image: oliver006/redis_exporter:latest
-    # NOTE (Railway hardening): do not publish exporter publicly.
-    ports:
-      - "9121:9121"
-    environment:
-      REDIS_ADDR: ${REDIS_ADDR:-redis-production-bb6d.up.railway.app:6379}
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
-      REDIS_SKIP_PING: "false"
-      REDIS_SKIP_CLUSTER_INFO: "true"
-    depends_on:
-      - prometheus
-    restart: unless-stopped
-    networks:
-      - default
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    read_only: true
-    tmpfs:
-      - /tmp
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:9121"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: 128M
-        reservations:
-          cpus: '0.05'
-          memory: 64M
+
 
   json-api-proxy:
     build:
