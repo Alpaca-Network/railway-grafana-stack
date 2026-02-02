@@ -1,40 +1,10 @@
-apiVersion: 1
-
-providers:
-  - name: 'default'
-    orgId: 1
-    folder: ''
-    type: file
-    disableDeletion: false
-    updateIntervalSeconds: 10
-    allowUiUpdates: true
-    options:
-      path: /etc/grafana/provisioning/dashboards
-      foldersFromFilesStructure: false
-  - name: 'loki-dashboards'
-    orgId: 1
-    folder: 'Loki'
-    type: file
-    disableDeletion: false
-    updateIntervalSeconds: 10
-    allowUiUpdates: true
-    options:
-      path: /etc/grafana/provisioning/dashboards/loki
-  - name: 'prometheus-dashboards'
-    orgId: 1
-    folder: 'Prometheus'
-    type: file
-    disableDeletion: false
-    updateIntervalSeconds: 10
-    allowUiUpdates: true
-    options:
-      path: /etc/grafana/provisioning/dashboards/prometheus
-  - name: 'tempo-dashboards'
-    orgId: 1
-    folder: 'Tempo'
-    type: file
-    disableDeletion: false
-    updateIntervalSeconds: 10
-    allowUiUpdates: true
-    options:
-      path: /etc/grafana/provisioning/dashboards/tempo
+# NOTE: This file is NOT used - dashboards are provisioned via
+# grafana/provisioning/dashboards/dashboards.yml
+# This file exists only for documentation purposes.
+#
+# Dashboard folders:
+# - Model Performance: /etc/grafana/provisioning/dashboards/model_performance
+# - Loki: /etc/grafana/provisioning/dashboards/loki
+# - Prometheus: /etc/grafana/provisioning/dashboards/prometheus
+# - Tempo: /etc/grafana/provisioning/dashboards/tempo
+# - Mimir: /etc/grafana/provisioning/dashboards/mimir

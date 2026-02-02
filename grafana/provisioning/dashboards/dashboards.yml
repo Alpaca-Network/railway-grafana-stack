@@ -1,36 +1,6 @@
 apiVersion: 1
 
 providers:
-  - name: 'Executive'
-    orgId: 1
-    folder: 'Executive'
-    type: file
-    disableDeletion: false
-    updateIntervalSeconds: 10
-    allowUiUpdates: true
-    options:
-      path: /etc/grafana/provisioning/dashboards/executive
-
-  - name: 'Backend'
-    orgId: 1
-    folder: 'Backend'
-    type: file
-    disableDeletion: false
-    updateIntervalSeconds: 10
-    allowUiUpdates: true
-    options:
-      path: /etc/grafana/provisioning/dashboards/backend
-
-  - name: 'Gateway'
-    orgId: 1
-    folder: 'Gateway'
-    type: file
-    disableDeletion: false
-    updateIntervalSeconds: 10
-    allowUiUpdates: true
-    options:
-      path: /etc/grafana/provisioning/dashboards/gateway
-
   - name: 'Model Performance'
     orgId: 1
     folder: 'Model Performance'
