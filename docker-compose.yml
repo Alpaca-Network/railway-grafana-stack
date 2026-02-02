@@ -1,5 +1,3 @@
-version: '3.8'
-
 # ============================================================================
 # GatewayZ Monitoring Stack with Mimir for Horizontal Scaling
 # ============================================================================
@@ -32,8 +30,8 @@ services:
       dockerfile: Dockerfile
     user: root
     ports:
-      - "9009:9009"   # HTTP API (for Grafana queries)
-      - "9095:9095"   # gRPC (for Prometheus remote write)
+      - "9009:9009" # HTTP API (for Grafana queries)
+      - "9095:9095" # gRPC (for Prometheus remote write)
     volumes:
       - mimir_data:/data/mimir
     restart: unless-stopped
@@ -45,7 +43,7 @@ services:
     tmpfs:
       - /tmp
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:9009/ready"]
+      test: [ "CMD", "wget", "-qO-", "http://localhost:9009/ready" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -80,13 +78,11 @@ services:
     tmpfs:
       - /tmp
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/healthy"]
+      test: [ "CMD", "wget", "-qO-", "http://localhost:9090/-/healthy" ]
       interval: 30s
       timeout: 5s
       retries: 5
     depends_on:
-      alertmanager:
-        condition: service_started
       mimir:
         condition: service_started
     deploy:
@@ -98,42 +94,8 @@ services:
           cpus: '0.10'
           memory: 128M
 
-  alertmanager:
-    image: prom/alertmanager:latest
-    user: root
-    ports:
-      - "9093:9093"
-    volumes:
-      - alertmanager_data:/alertmanager
-      - ./prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
-    command:
-      - '--config.file=/etc/alertmanager/alertmanager.yml'
-      - '--storage.path=/alertmanager'
-      - '--log.level=info'
-    restart: unless-stopped
-    environment:
-      - SMTP_USERNAME=${SMTP_USERNAME:-}
-      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    read_only: false
-    tmpfs:
-      - /tmp
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:9093/-/healthy"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: 256M
-        reservations:
-          cpus: '0.05'
-          memory: 64M
+  # NOTE: Alertmanager removed - alerts are handled directly by Prometheus
+  # If you need Alertmanager, uncomment and configure in prometheus/alertmanager.yml
 
   loki:
     build:
@@ -155,7 +117,7 @@ services:
     tmpfs:
       - /tmp
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3100/ready"]
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3100/ready" ]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -167,14 +129,6 @@ services:
         reservations:
           cpus: '0.10'
           memory: 128M
-
-  # Init container to set up Tempo volume permissions
-  tempo-init:
-    image: busybox:latest
-    volumes:
-      - tempo_data:/var/tempo
-    command: ["sh", "-c", "mkdir -p /var/tempo/traces /var/tempo/wal /var/tempo/generator/wal /var/tempo/generator/traces && chmod -R 0777 /var/tempo"]
-    restart: "no"
 
   tempo:
     build:
@@ -189,9 +143,7 @@ services:
     volumes:
       - tempo_data:/var/tempo
     restart: unless-stopped
-    depends_on:
-      tempo-init:
-        condition: service_completed_successfully
+    # NOTE: tempo-init removed - directory setup is handled in entrypoint.sh
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -201,7 +153,7 @@ services:
     tmpfs:
       - /tmp
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3200/ready"]
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3200/ready" ]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -214,48 +166,12 @@ services:
           cpus: '0.10'
           memory: 128M
 
-  redis-exporter:
-    image: oliver006/redis_exporter:latest
-    # NOTE (Railway hardening): do not publish exporter publicly.
-    ports:
-      - "9121:9121"
-    environment:
-      REDIS_ADDR: ${REDIS_ADDR:-redis-production-bb6d.up.railway.app:6379}
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
-      REDIS_SKIP_PING: "false"
-      REDIS_SKIP_CLUSTER_INFO: "true"
-    depends_on:
-      - prometheus
-    restart: unless-stopped
-    networks:
-      - default
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    read_only: true
-    tmpfs:
-      - /tmp
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:9121"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: 128M
-        reservations:
-          cpus: '0.05'
-          memory: 64M
-
   json-api-proxy:
     build:
       context: ./json-api-proxy
       dockerfile: Dockerfile
     ports:
-      - "5050:5050"  # Changed from 5000 to avoid macOS AirPlay conflict
+      - "5050:5050" # Changed from 5000 to avoid macOS AirPlay conflict
     environment:
       API_BASE_URL: ${API_BASE_URL:-https://api.gatewayz.ai}
       PORT: 5050
@@ -268,7 +184,7 @@ services:
     tmpfs:
       - /tmp
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:5050/"]
+      test: [ "CMD", "wget", "-qO-", "http://localhost:5050/" ]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -280,7 +196,6 @@ services:
         reservations:
           cpus: '0.05'
           memory: 64M
-
 
   grafana:
     build:
@@ -296,7 +211,7 @@ services:
     cap_drop:
       - ALL
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3000/api/health" ]
       interval: 30s
       timeout: 5s
       retries: 10
@@ -337,7 +252,6 @@ services:
 
 volumes:
   prometheus_data:
-  alertmanager_data:
   loki_data:
   grafana_data:
   tempo_data:
