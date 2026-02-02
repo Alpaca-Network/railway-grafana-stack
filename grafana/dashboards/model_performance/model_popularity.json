@@ -1,13 +1,25 @@
 {
   "annotations": {
-    "list": []
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
   },
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": null,
+  "id": 54,
   "links": [],
-  "liveNow": false,
   "panels": [
     {
       "datasource": {
@@ -17,123 +29,7 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 0
-      },
-      "id": 1,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_mimir"
-          },
-          "expr": "sum(increase(traces_spanmetrics_calls_total[24h]))",
-          "legendFormat": "Total Requests",
-          "refId": "A"
-        }
-      ],
-      "title": "Total Model Requests (24h)",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_mimir"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 0
-      },
-      "id": 2,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_mimir"
-          },
-          "expr": "count(count by (span_name) (traces_spanmetrics_calls_total))",
-          "legendFormat": "Unique Models",
-          "refId": "A"
-        }
-      ],
-      "title": "Unique Models Used",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_mimir"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
           "mappings": [],
           "thresholds": {
@@ -149,23 +45,28 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 10,
-        "w": 24,
+        "h": 5,
+        "w": 8,
         "x": 0,
-        "y": 8
+        "y": 0
       },
-      "id": 3,
+      "id": 6,
       "options": {
-        "legend": {
-          "calcs": ["sum"],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
         },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
       "pluginVersion": "11.5.2",
       "targets": [
@@ -174,13 +75,15 @@
             "type": "prometheus",
             "uid": "grafana_mimir"
           },
-          "expr": "topk(10, sum by (span_name) (increase(traces_spanmetrics_calls_total[24h])))",
-          "legendFormat": "{{span_name}}",
+          "editorMode": "code",
+          "expr": "sum(increase(traces_spanmetrics_calls_total[$__range]))",
+          "legendFormat": "{{gen_ai_request_model}}",
+          "range": true,
           "refId": "A"
         }
       ],
-      "title": "Top 10 Models by Request Count (24h)",
-      "type": "timeseries"
+      "title": "Request Count",
+      "type": "stat"
     },
     {
       "datasource": {
@@ -207,23 +110,28 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 10,
-        "w": 12,
-        "x": 0,
-        "y": 18
+        "h": 5,
+        "w": 6,
+        "x": 8,
+        "y": 0
       },
-      "id": 4,
+      "id": 2,
       "options": {
-        "displayMode": "lcd",
-        "minVizHeight": 10,
-        "minVizWidth": 0,
-        "orientation": "horizontal",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
-          "calcs": ["sum"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
-        "showUnfilled": true
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
       "pluginVersion": "11.5.2",
       "targets": [
@@ -232,13 +140,15 @@
             "type": "prometheus",
             "uid": "grafana_mimir"
           },
-          "expr": "topk(10, sum by (span_name) (increase(traces_spanmetrics_calls_total[24h])))",
-          "legendFormat": "{{span_name}}",
+          "editorMode": "code",
+          "expr": "count(\n  count by (span_name) (\n    increase(traces_spanmetrics_calls_total[$__range])\n  )\n)",
+          "legendFormat": "Unique Models",
+          "range": true,
           "refId": "A"
         }
       ],
-      "title": "Model Popularity Ranking (24h)",
-      "type": "bargauge"
+      "title": "Unique Models Used",
+      "type": "stat"
     },
     {
       "datasource": {
@@ -248,7 +158,7 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
           "mappings": [],
           "thresholds": {
@@ -265,23 +175,26 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 10,
-        "w": 12,
-        "x": 12,
-        "y": 18
+        "h": 5,
+        "w": 10,
+        "x": 14,
+        "y": 0
       },
       "id": 5,
       "options": {
-        "displayMode": "lcd",
-        "minVizHeight": 10,
-        "minVizWidth": 0,
-        "orientation": "horizontal",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "vertical",
         "reduceOptions": {
-          "calcs": ["mean"],
+          "calcs": [
+            "mean"
+          ],
           "fields": "",
           "values": false
         },
-        "showUnfilled": true
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
       },
       "pluginVersion": "11.5.2",
       "targets": [
@@ -290,13 +203,16 @@
             "type": "prometheus",
             "uid": "grafana_mimir"
           },
+          "editorMode": "code",
           "expr": "topk(10, sum by (span_name) (rate(traces_spanmetrics_latency_sum[1h])) / sum by (span_name) (rate(traces_spanmetrics_latency_count[1h])))",
           "legendFormat": "{{span_name}}",
+          "range": true,
           "refId": "A"
         }
       ],
-      "title": "Average Latency by Model (1h)",
-      "type": "bargauge"
+      "title": "Average Latency by Model",
+      "transparent": true,
+      "type": "gauge"
     },
     {
       "datasource": {
@@ -308,6 +224,39 @@
           "color": {
             "mode": "palette-classic"
           },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -317,27 +266,29 @@
                 "value": null
               }
             ]
-          }
+          },
+          "unit": "short"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 10,
-        "w": 24,
+        "h": 11,
+        "w": 11,
         "x": 0,
-        "y": 28
+        "y": 5
       },
-      "id": 6,
+      "id": 1,
       "options": {
         "legend": {
           "calcs": [],
-          "displayMode": "table",
-          "placement": "right",
+          "displayMode": "list",
+          "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
         }
       },
       "pluginVersion": "11.5.2",
@@ -347,12 +298,14 @@
             "type": "prometheus",
             "uid": "grafana_mimir"
           },
-          "expr": "sum by (gen_ai_request_model) (increase(traces_spanmetrics_calls_total{gen_ai_request_model!=\"\"}[1h]))",
-          "legendFormat": "{{gen_ai_request_model}}",
+          "editorMode": "code",
+          "expr": "sum(increase(traces_spanmetrics_calls_total[$__range]))",
+          "legendFormat": "Total Requests",
+          "range": true,
           "refId": "A"
         }
       ],
-      "title": "Requests by gen_ai.request.model (1h)",
+      "title": "Total Model Requests ",
       "type": "timeseries"
     },
     {
@@ -374,34 +327,41 @@
                 "value": null
               }
             ]
-          }
+          },
+          "unit": "short"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 10,
-        "w": 12,
-        "x": 0,
-        "y": 38
+        "h": 11,
+        "w": 13,
+        "x": 11,
+        "y": 5
       },
-      "id": 7,
+      "id": 4,
       "options": {
+        "displayMode": "lcd",
         "legend": {
-          "calcs": ["sum"],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
         },
-        "pieType": "pie",
+        "maxVizHeight": 300,
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
         "reduceOptions": {
-          "calcs": ["sum"],
+          "calcs": [
+            "sum"
+          ],
           "fields": "",
           "values": false
         },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
       },
       "pluginVersion": "11.5.2",
       "targets": [
@@ -410,13 +370,15 @@
             "type": "prometheus",
             "uid": "grafana_mimir"
           },
-          "expr": "sum by (gen_ai_system) (increase(traces_spanmetrics_calls_total{gen_ai_system!=\"\"}[24h]))",
-          "legendFormat": "{{gen_ai_system}}",
+          "editorMode": "code",
+          "expr": "topk(10, sum by (span_name) (increase(traces_spanmetrics_calls_total[$__range])))",
+          "legendFormat": "{{span_name}}",
+          "range": true,
           "refId": "A"
         }
       ],
-      "title": "Requests by Provider (24h)",
-      "type": "piechart"
+      "title": "HTTP Requests",
+      "type": "bargauge"
     },
     {
       "datasource": {
@@ -427,6 +389,39 @@
         "defaults": {
           "color": {
             "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
@@ -439,31 +434,53 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "__systemRef": "hideSeriesFrom",
+            "matcher": {
+              "id": "byNames",
+              "options": {
+                "mode": "exclude",
+                "names": [
+                  "unified_handler/anthropic/claude-sonnet-4.5"
+                ],
+                "prefix": "All except:",
+                "readOnly": true
+              }
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": true
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
-        "h": 10,
-        "w": 12,
-        "x": 12,
-        "y": 38
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 16
       },
-      "id": 8,
+      "id": 3,
       "options": {
         "legend": {
-          "calcs": ["sum"],
+          "calcs": [
+            "sum"
+          ],
           "displayMode": "table",
           "placement": "right",
           "showLegend": true
         },
-        "pieType": "pie",
-        "reduceOptions": {
-          "calcs": ["sum"],
-          "fields": "",
-          "values": false
-        },
         "tooltip": {
-          "mode": "single",
-          "sort": "none"
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
         }
       },
       "pluginVersion": "11.5.2",
@@ -473,29 +490,39 @@
             "type": "prometheus",
             "uid": "grafana_mimir"
           },
-          "expr": "sum by (service_name) (increase(traces_spanmetrics_calls_total{service_name!=\"\"}[24h]))",
-          "legendFormat": "{{service_name}}",
+          "editorMode": "code",
+          "expr": "sum by (span_name) (increase(traces_spanmetrics_calls_total[$__range]))",
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
           "refId": "A"
         }
       ],
-      "title": "Requests by Service (24h)",
-      "type": "piechart"
+      "title": "Model popularity trend",
+      "type": "timeseries"
     }
   ],
+  "preload": false,
   "refresh": "30s",
-  "schemaVersion": 39,
-  "tags": ["model-performance", "ai", "llm", "tempo", "span-metrics"],
+  "schemaVersion": 40,
+  "tags": [
+    "model-performance",
+    "ai",
+    "llm",
+    "tempo",
+    "span-metrics"
+  ],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "now-24h",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Model Popularity",
   "uid": "model-popularity",
-  "version": 1,
+  "version": 13,
   "weekStart": ""
 }

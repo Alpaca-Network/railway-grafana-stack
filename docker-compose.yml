@@ -166,6 +166,8 @@ services:
           cpus: '0.10'
           memory: 128M
 
+
+
   json-api-proxy:
     build:
       context: ./json-api-proxy
