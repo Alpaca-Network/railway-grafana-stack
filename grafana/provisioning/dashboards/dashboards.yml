@@ -50,3 +50,13 @@ providers:
     allowUiUpdates: true
     options:
       path: /etc/grafana/provisioning/dashboards/mimir
+
+  - name: 'Provider Directory'
+    orgId: 1
+    folder: 'Provider Directory'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/provider
