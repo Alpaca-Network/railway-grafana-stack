@@ -134,6 +134,12 @@ datasources:
       prometheusType: Mimir
       prometheusVersion: 2.11.0
       timeout: 60
+      # REQUIRED: X-Scope-OrgID header for Mimir tenant identification
+      # Even with multitenancy_enabled: false, Mimir requires this header
+      # "anonymous" is the default tenant used when multi-tenancy is disabled
+      httpHeaderName1: X-Scope-OrgID
       exemplarTraceIdDestinations:
         - datasourceUid: grafana_tempo
           name: traceId
+    secureJsonData:
+      httpHeaderValue1: anonymous

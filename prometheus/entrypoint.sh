@@ -57,20 +57,17 @@ else
 fi
 
 # ============================================================
-# Alertmanager Configuration
-# Determines Alertmanager target based on environment
+# Alertmanager Configuration (OPTIONAL)
+# Alertmanager is disabled by default. Grafana Alerting is used instead.
+# To enable, set ALERTMANAGER_INTERNAL_URL and uncomment in prometheus.yml
 # ============================================================
 
 if [ -n "$ALERTMANAGER_INTERNAL_URL" ]; then
-    # Use explicitly set ALERTMANAGER_INTERNAL_URL (from Railway env vars)
     ALERTMANAGER_TARGET=$(echo "$ALERTMANAGER_INTERNAL_URL" | sed 's|http://||')
-elif [ -n "$RAILWAY_ENVIRONMENT" ]; then
-    # Railway production environment - use internal network
-    # Note: Alertmanager service must be named 'alertmanager' in Railway
-    ALERTMANAGER_TARGET="alertmanager.railway.internal:9093"
+    echo "Alertmanager enabled: $ALERTMANAGER_TARGET"
 else
-    # Local Docker Compose environment - use Docker service name
     ALERTMANAGER_TARGET="alertmanager:9093"
+    echo "Alertmanager disabled (using Grafana Alerting instead)"
 fi
 
 # ============================================================
@@ -143,14 +140,16 @@ if grep -q "MIMIR_URL" /etc/prometheus/prometheus.yml; then
 else
     echo "  ✅ MIMIR_URL placeholder successfully replaced"
 fi
-if grep -q "ALERTMANAGER_TARGET" /etc/prometheus/prometheus.yml; then
-    echo "  ❌ ERROR: ALERTMANAGER_TARGET placeholder NOT replaced!"
+# Alertmanager is optional - only check if enabled
+if grep -q "^alerting:" /etc/prometheus/prometheus.yml; then
+    if grep -q "ALERTMANAGER_TARGET" /etc/prometheus/prometheus.yml; then
+        echo "  ⚠️  ALERTMANAGER_TARGET placeholder not replaced (Alertmanager may not be configured)"
+    else
+        echo "  ✅ Alertmanager configured"
+    fi
 else
-    echo "  ✅ ALERTMANAGER_TARGET placeholder successfully replaced"
+    echo "  ℹ️  Alertmanager disabled (using Grafana Alerting)"
 fi
-echo ""
-echo "Configured alerting:"
-grep -A 5 "^alerting:" /etc/prometheus/prometheus.yml || echo "  (no alerting section found)"
 echo ""
 echo "Configured rule_files:"
 grep -A 5 "^rule_files:" /etc/prometheus/prometheus.yml || echo "  (no rule_files section found)"
@@ -174,6 +173,23 @@ if promtool check config /etc/prometheus/prometheus.yml 2>/dev/null; then
     echo "  ✅ Configuration is valid"
 else
     echo "  ⚠️  Configuration validation skipped or failed (promtool may not be available)"
+fi
+echo ""
+echo "Testing Mimir connectivity..."
+# Wait for Mimir to be ready (important for remote_write)
+MIMIR_READY=false
+for i in 1 2 3 4 5; do
+    if wget -qO- "${MIMIR_URL}/ready" 2>/dev/null | grep -q "ready"; then
+        echo "  ✅ Mimir is ready at ${MIMIR_URL}"
+        MIMIR_READY=true
+        break
+    fi
+    echo "  ⏳ Waiting for Mimir to be ready (attempt $i/5)..."
+    sleep 2
+done
+if [ "$MIMIR_READY" = "false" ]; then
+    echo "  ⚠️  Mimir not ready yet. Remote write will retry automatically."
+    echo "     Check Mimir logs if this persists."
 fi
 echo "==========================================="
 

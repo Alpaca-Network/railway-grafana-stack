@@ -5,18 +5,18 @@ global:
     environment: ${ENVIRONMENT:-production}
 
 # Alerting configuration
-# Alerts are evaluated by Prometheus and sent to Alertmanager
-# Alertmanager handles routing, grouping, and notification delivery
-# NOTE: ALERTMANAGER_TARGET is substituted by entrypoint.sh at runtime
-# - Railway: Uses alertmanager.railway.internal:9093
-# - Local: Uses alertmanager:9093 (Docker Compose network)
-alerting:
-  alertmanagers:
-    - static_configs:
-        - targets:
-            - 'ALERTMANAGER_TARGET'
-      timeout: 10s
-      api_version: v2
+# NOTE: Alertmanager is optional. When not configured, alerts are only
+# visible in Prometheus UI at /alerts. For email/slack notifications,
+# configure Grafana Alerting instead (see grafana/provisioning/alerting/)
+#
+# To enable Alertmanager, uncomment and set ALERTMANAGER_TARGET:
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets:
+#             - 'ALERTMANAGER_TARGET'
+#       timeout: 10s
+#       api_version: v2
 
 # Remote write to Mimir for long-term storage and consistent queries
 # This ensures metrics are not lost on Prometheus restart and provides
@@ -28,6 +28,15 @@ remote_write:
   - url: MIMIR_URL/api/v1/push
     name: mimir-remote-write
     remote_timeout: 30s
+    # REQUIRED: X-Scope-OrgID header for Mimir tenant identification
+    # Even with multitenancy_enabled: false, Mimir requires this header
+    # "anonymous" is the default tenant used when multi-tenancy is disabled
+    headers:
+      X-Scope-OrgID: anonymous
+    # Retry on rate limiting (HTTP 429) - critical for reliability
+    retry_on_http_429: true
+    # Send metric metadata (HELP, TYPE) to Mimir
+    send_exemplars: true
     queue_config:
       capacity: 10000
       max_shards: 50
@@ -35,6 +44,20 @@ remote_write:
       batch_send_deadline: 5s
       min_backoff: 30ms
       max_backoff: 5s
+      # Retry on recoverable errors
+      retry_on_http_429: true
+    # Send metric metadata to Mimir for better query experience
+    metadata_config:
+      send: true
+      send_interval: 1m
+      max_samples_per_send: 500
+    # Write-ahead log for durability during restarts
+    # Samples are persisted to disk and replayed on restart
+    write_relabel_configs:
+      # Forward all metrics (no filtering) - ensures complete data in Mimir
+      - source_labels: [__name__]
+        regex: '.*'
+        action: keep
 
 rule_files:
   - '/etc/prometheus/alert.rules.yml'

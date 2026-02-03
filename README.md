@@ -78,7 +78,7 @@ open http://localhost:9009  # Mimir
              │    :3000    │
              │             │
              │4 Datasources│ ← Prometheus, Mimir, Loki, Tempo
-             │7 Dashboards │
+             │5 Folders    │
              └─────────────┘
 ```
 
@@ -86,54 +86,48 @@ open http://localhost:9009  # Mimir
 
 | Service | Port | Purpose | Status |
 |---------|------|---------|--------|
-| **Grafana 11.5.2** | 3000 | Visualization & dashboards | ✅ 7 production dashboards |
-| **Prometheus 3.2.1** | 9090 | Metrics collection | ✅ 6 scrape jobs |
+| **Grafana 11.5.2** | 3000 | Visualization & dashboards | ✅ 5 dashboard folders |
+| **Prometheus 3.2.1** | 9090 | Metrics collection + alerting | ✅ 6 scrape jobs |
 | **Mimir 2.11.0** | 9009, 9095 | Long-term metrics storage | ✅ 30-day retention |
 | **Loki 3.4** | 3100 | Log aggregation | ✅ 30-day retention |
 | **Tempo** | 3200, 4317, 4318 | Distributed tracing | ✅ OTLP endpoints |
 | **Redis Exporter** | 9121 | Redis metrics | ✅ Integrated |
-| **Alertmanager** | 9093 | Alert routing | ✅ Email configured |
 
 ---
 
-## 🎯 Production Dashboards
+## 🎯 Dashboard Folders
 
 All dashboards use **real API endpoints** with live data from Prometheus/Mimir - no mock data.
 
-| Dashboard | Folder | Panels | Refresh | Key Metrics | Status |
-|-----------|--------|--------|---------|-------------|--------|
-| **Executive Overview** | Executive | 10 | 30s | KPIs, Golden Signals, Request Volume | ✅ Ready |
-| **Four Golden Signals** | Executive | 17 | 30s | Latency (P50/P95/P99), Traffic, Errors, Saturation | ✅ Ready |
-| **Backend Services** | Backend | 14 | 10s | Redis Cache, API Performance, Health Status | ✅ Ready |
-| **Gateway Comparison** | Gateway | 9 | 60s | Provider Health Grid (17 providers) | ✅ Ready |
-| **Model Analytics** | Models | 8 | 60s | Top Models, Cost Analysis, Latency | ✅ Ready |
-| **Loki Logs** | Logs | 6 | 10s | Log Search, Real-time Streaming | ✅ Ready |
-| **Tempo Traces** | Traces | 5 | 30s | Distributed Tracing, Service Graph | ✅ Ready |
+| Folder | Purpose | Key Metrics | Status |
+|--------|---------|-------------|--------|
+| **Model Performance** | AI model metrics | Request rates, latency, token usage, error rates | ✅ Ready |
+| **Loki** | Log aggregation | Log search, streaming, volume by level/service | ✅ Ready |
+| **Prometheus** | Short-term metrics | Scrape targets, query stats, self-monitoring | ✅ Ready |
+| **Tempo** | Distributed tracing | Service graph, span metrics, trace search | ✅ Ready |
+| **Mimir** | Long-term metrics | Historical queries, retention stats | ✅ Ready |
 
 ### Dashboard Features
 
-#### Executive Overview
-- **Golden Signals**: Latency, Traffic, Errors, Saturation
-- **KPI Cards**: Active Requests, Avg Response Time, Daily Cost, Error Rate
-- **Time Series**: Request volume trends, error distribution
-- **Alerts Table**: Critical anomalies and active alerts
-
-#### Backend Services (Prometheus/Mimir)
-- **Redis Monitoring**: 6 panels (Status, Hit Rate, Memory, Clients, Keys, Ops/sec)
-- **API Performance**: Total Requests, Request Rate, Error Rate %, Avg Latency
-- **Trend Charts**: Cache hit rate, operations rate, memory usage, latency percentiles
+#### Model Performance
+- **AI Provider Metrics**: Request rates by provider/model
+- **Latency Analysis**: P50/P95/P99 percentiles
+- **Token Usage**: Input/output token tracking
+- **Error Rates**: By provider, model, and error type
 
 #### Loki Logs Dashboard
 - **Pure log data** from Loki datasource
-- **NO Prometheus/Mimir panels** (separated for clarity)
 - **Log Search**: Real-time filtering and search
 - **Log Volume**: Count by level, service, severity
 
 #### Tempo Traces Dashboard
 - **Pure trace data** from Tempo datasource
-- **NO Prometheus/Mimir panels** (separated for clarity)
 - **Service Graph**: Distributed tracing visualization
 - **Span Metrics**: Request duration, error rates by service
+
+#### Mimir Long-term Storage
+- **Historical Queries**: 30-day retention for trend analysis
+- **Consistent Results**: No data loss on Prometheus restarts
 
 ---
 
@@ -354,6 +348,54 @@ open http://localhost:9090/targets
 
 3. Check environment variables in `docker-compose.yml`
 
+### Issue: Mimir Not Receiving Data from Prometheus
+
+**Symptom:** Prometheus is scraping metrics but Mimir shows no data, or Grafana's Mimir datasource returns empty results.
+
+**Root Cause:** Missing `X-Scope-OrgID` header in Prometheus remote_write or Grafana datasource configuration.
+
+**Why This Happens:** Even with `multitenancy_enabled: false` in Mimir, both writes (from Prometheus) and reads (from Grafana) require the `X-Scope-OrgID` header. When multi-tenancy is disabled, Mimir uses `anonymous` as the default tenant.
+
+**Solution:**
+
+1. **Verify Prometheus remote_write has the header** (`prometheus/prometheus.yml`):
+   ```yaml
+   remote_write:
+     - url: http://mimir:9009/api/v1/push
+       headers:
+         X-Scope-OrgID: anonymous
+   ```
+
+2. **Verify Grafana Mimir datasource has the header** (`grafana/datasources/datasources.yml`):
+   ```yaml
+   - name: Mimir
+     type: prometheus
+     url: ${MIMIR_INTERNAL_URL}/prometheus
+     jsonData:
+       httpHeaderName1: X-Scope-OrgID
+     secureJsonData:
+       httpHeaderValue1: anonymous
+   ```
+
+3. **Restart services after configuration changes:**
+   ```bash
+   docker compose restart prometheus grafana
+   ```
+
+4. **Verify Mimir is receiving data:**
+   ```bash
+   # Check Mimir ingester status
+   curl http://localhost:9009/ingester/ring
+
+   # Check remote write metrics in Prometheus
+   curl http://localhost:9090/api/v1/query?query=prometheus_remote_storage_samples_total
+
+   # Test Mimir query directly
+   curl -H "X-Scope-OrgID: anonymous" "http://localhost:9009/prometheus/api/v1/query?query=up"
+   ```
+
+**📖 More Solutions:** [docs/troubleshooting/REMOTE_WRITE_DEBUG.md](docs/troubleshooting/REMOTE_WRITE_DEBUG.md)
+
 ---
 
 ## ✨ Key Features
@@ -379,6 +421,195 @@ open http://localhost:9090/targets
 - **Alerting**: Email notifications for health scores and SLO breaches.
 - **Testing**: Comprehensive integration test suite (90+ tests).
 - **Security**: No hardcoded credentials; fully environment-variable driven.
+
+---
+
+## 📊 Mimir Long-term Storage Setup
+
+Mimir provides **30-day metric retention** with horizontal scaling. This is critical for:
+- Historical trend analysis
+- Consistent query results across page refreshes
+- No data loss on Prometheus restarts
+
+### How Prometheus → Mimir Works
+
+```
+┌────────────┐    remote_write     ┌─────────────┐
+│ Prometheus │ ────────────────────▶│    Mimir    │
+│   :9090    │   /api/v1/push      │   :9009     │
+│            │   X-Scope-OrgID:    │             │
+│  (15d)     │   anonymous         │  (30d)      │
+└────────────┘                     └─────────────┘
+      │                                   │
+      │ scrapes                           │ stores
+      ▼                                   ▼
+ ┌──────────┐                     ┌──────────────┐
+ │ Backend  │                     │ /data/mimir/ │
+ │ /metrics │                     │   blocks/    │
+ └──────────┘                     │   tsdb/      │
+                                  └──────────────┘
+```
+
+### Verifying Mimir is Working
+
+```bash
+# 1. Check Mimir is ready
+curl http://localhost:9009/ready
+# Expected: "ready"
+
+# 2. Check Mimir ingester ring (must show ACTIVE)
+curl http://localhost:9009/ingester/ring | jq '.shards[].state'
+# Expected: "ACTIVE"
+
+# 3. Check Prometheus remote_write metrics
+curl -s http://localhost:9090/api/v1/query?query=prometheus_remote_storage_samples_total | jq '.data.result[].value[1]'
+# Expected: increasing number (samples sent)
+
+# 4. Check for remote_write failures
+curl -s http://localhost:9090/api/v1/query?query=prometheus_remote_storage_samples_failed_total | jq '.data.result[].value[1]'
+# Expected: 0 or very low
+
+# 5. Query Mimir directly
+curl -H "X-Scope-OrgID: anonymous" \
+  "http://localhost:9009/prometheus/api/v1/query?query=up"
+# Expected: JSON with metric data
+
+# 6. Check Mimir logs for write activity
+docker compose logs mimir 2>&1 | grep -i "push" | tail -5
+```
+
+### Key Configuration Files
+
+| File | Purpose |
+|------|---------|
+| `prometheus/prometheus.yml` | `remote_write` config with `X-Scope-OrgID: anonymous` header |
+| `mimir/mimir.yml` | Local development config (30d retention) |
+| `mimir/mimir-railway.yml` | Railway production config |
+| `grafana/datasources/datasources.yml` | Mimir datasource with `X-Scope-OrgID` header |
+
+### Mimir Configuration (mimir.yml)
+
+```yaml
+# Key settings for 30-day retention
+multitenancy_enabled: false  # Uses "anonymous" tenant
+limits:
+  compactor_blocks_retention_period: 720h  # 30 days
+  max_query_lookback: 720h                 # 30 days
+  ingestion_rate: 50000                    # samples/sec
+  max_global_series_per_user: 500000       # total series
+```
+
+---
+
+## 🔔 Alerting Setup
+
+GatewayZ uses **Grafana Alerting** (not Alertmanager) for notifications. Alerts are provisioned via YAML files and sent via email.
+
+### Alert Categories
+
+| Category | Severity | Description | Contact Point |
+|----------|----------|-------------|---------------|
+| **Traffic Anomalies** | Critical/Warning | Traffic spikes (3x+/2x baseline) | observatory-pool-critical/warning |
+| **Error Rate Spikes** | Critical/Warning | Elevated error rates | observatory-pool-critical/warning |
+| **Latency Anomalies** | Critical/Warning | P99 > 5s, degraded response times | observatory-pool-critical/warning |
+| **Availability Drops** | Critical/Warning | Provider/service unavailability | observatory-pool-critical/warning |
+| **Redis Issues** | Critical/Warning | Cache failures, memory issues | critical-email / ops-email |
+| **SLO Burn Rate** | Critical/Warning | Error budget consumption | critical-email / ops-email |
+
+### Contact Points Configuration
+
+**File:** `grafana/provisioning/alerting/contact_points.yml`
+
+```yaml
+contactPoints:
+  - name: ops-email
+    receivers:
+      - type: email
+        settings:
+          addresses: your-team@company.com
+          singleEmail: false
+
+  - name: critical-email
+    receivers:
+      - type: email
+        settings:
+          addresses: oncall@company.com
+          singleEmail: false
+
+  - name: observatory-pool-critical
+    receivers:
+      - type: email
+        settings:
+          addresses: alerts@company.com
+```
+
+### Notification Policies
+
+**File:** `grafana/provisioning/alerting/notification_policies.yml`
+
+Routes alerts to appropriate contact points based on labels:
+
+| Matcher | Contact Point | Group Interval |
+|---------|---------------|----------------|
+| `severity=critical` | critical-email | 5m |
+| `category=traffic_spike, severity=critical` | observatory-pool-critical | 5m |
+| `category=error_rate_spike` | observatory-pool-critical/warning | 3-5m |
+| `component=redis, severity=critical` | critical-email | 2m |
+| `component=slo` | critical-email | 5m |
+
+### Alert Rules
+
+**Directory:** `grafana/provisioning/alerting/rules/`
+
+| File | Alerts |
+|------|--------|
+| `traffic_anomalies.yml` | Traffic spikes, drops |
+| `error_rate_anomalies.yml` | Error rate spikes by provider |
+| `latency_anomalies.yml` | P99 latency spikes |
+| `availability_anomalies.yml` | Provider availability drops |
+| `redis_alerts.yml` | Redis cache issues |
+| `slo_burn_rate_alerts.yml` | SLO violation alerts |
+| `backend_alerts.yml` | Backend service health |
+| `model_alerts.yml` | Model-specific issues |
+
+### Setting Up Email Alerts
+
+1. **Configure SMTP in docker-compose.yml:**
+   ```yaml
+   grafana:
+     environment:
+       - GF_SMTP_ENABLED=true
+       - GF_SMTP_HOST=smtp.gmail.com:587
+       - GF_SMTP_USER=your-email@gmail.com
+       - GF_SMTP_PASSWORD=your-app-password
+       - GF_SMTP_FROM_ADDRESS=grafana@gatewayz.ai
+   ```
+
+2. **Update contact_points.yml with your email addresses:**
+   ```yaml
+   contactPoints:
+     - name: ops-email
+       receivers:
+         - type: email
+           settings:
+             addresses: your-team@company.com
+   ```
+
+3. **Test email delivery:**
+   - Go to Grafana → Alerting → Contact points
+   - Click "Test" on any contact point
+   - Verify email is received
+
+### Viewing Alerts
+
+- **Grafana UI:** Alerting → Alert rules
+- **Prometheus UI:** http://localhost:9090/alerts
+- **API:**
+  ```bash
+  # List firing alerts
+  curl http://localhost:3000/api/alertmanager/grafana/api/v2/alerts \
+    -H "Authorization: Bearer $GRAFANA_API_KEY"
+  ```
 
 ---
 
@@ -480,14 +711,13 @@ railway-grafana-stack/
 ├── grafana/
 │   ├── Dockerfile
 │   ├── dashboards/
-│   │   ├── executive/       # Executive dashboards
-│   │   ├── backend/         # Backend Services dashboard
-│   │   ├── gateway/         # Gateway comparison
-│   │   ├── models/          # Model analytics
-│   │   ├── logs/            # Loki logs (pure logs, no Prometheus)
-│   │   └── traces/          # Tempo traces (pure traces, no Prometheus)
+│   │   ├── model_performance/  # Model Performance metrics
+│   │   ├── loki/               # Loki logs (pure logs)
+│   │   ├── prometheus/         # Prometheus metrics
+│   │   ├── tempo/              # Tempo traces (pure traces)
+│   │   └── mimir/              # Mimir long-term metrics
 │   ├── datasources/
-│   │   └── datasources.yml  # Prometheus, Mimir, Loki, Tempo
+│   │   └── datasources.yml     # Prometheus, Mimir, Loki, Tempo
 │   └── provisioning/
 │       ├── dashboards/
 │       │   └── dashboards.yml
@@ -497,21 +727,23 @@ railway-grafana-stack/
 │           └── notification_policies.yml
 ├── prometheus/
 │   ├── Dockerfile
-│   ├── prometheus.yml       # Scrape jobs (FASTAPI_TARGET here)
-│   └── alert.rules.yml      # Alert rules
+│   ├── entrypoint.sh         # Environment-based configuration
+│   ├── prometheus.yml        # Scrape jobs + remote_write to Mimir
+│   └── alert.rules.yml       # Alert rules
 ├── mimir/
 │   ├── Dockerfile
-│   └── mimir.yml            # Mimir configuration
+│   └── mimir.yml             # Mimir configuration (30d retention)
 ├── loki/
 │   ├── Dockerfile
-│   └── loki.yml             # Loki configuration
+│   └── loki.yml              # Loki configuration
 ├── tempo/
 │   ├── Dockerfile
-│   └── tempo.yml            # Tempo configuration
-├── alertmanager/
-│   └── alertmanager.yml     # Alertmanager configuration
+│   ├── entrypoint.sh         # Environment-based configuration
+│   └── tempo.yml             # Tempo configuration
+├── scripts/
+│   ├── pre-build-cleanup.sh  # Railway pre-deploy cleanup
+│   └── ...                   # Other validation scripts
 ├── tests/                    # Pytest test suite
-├── scripts/                  # Validation and setup scripts
 ├── docs/                     # Documentation
 ├── railway.toml              # Railway deployment configuration
 ├── docker-compose.yml        # Local development
