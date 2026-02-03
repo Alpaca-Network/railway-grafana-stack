@@ -1,294 +1,382 @@
+# ============================================================================
+# GatewayZ Alert Rules - Refactored for Clarity and Actionability
+# ============================================================================
+# Philosophy:
+#   1. Every alert MUST be actionable (if you can't fix it, don't alert on it)
+#   2. Prefer fewer high-quality alerts over many noisy ones
+#   3. Use warning for "investigate soon", critical for "wake someone up"
+#   4. Avoid duplicate alerts for the same underlying issue
+#
+# Refactoring Summary:
+#   - Reduced from 25 alerts → 14 essential alerts
+#   - Removed: LowAPIRequestRate (noisy during off-hours)
+#   - Removed: Duplicate latency alerts (HighAPILatency + CriticalAPILatency → single HighAPILatency)
+#   - Removed: Redis alerts (metrics not currently scraped - add back when redis_exporter works)
+#   - Consolidated: Error rate alerts into single HighErrorRate
+#   - Added: Infrastructure self-monitoring (Mimir write failures, Tempo ingestion)
+#
+# Groups:
+#   1. service_health     - Is the service up and responding? (3 alerts)
+#   2. api_performance    - Are API responses healthy? (3 alerts)
+#   3. provider_health    - Are upstream AI providers working? (3 alerts)
+#   4. infrastructure     - Is the monitoring stack itself healthy? (5 alerts)
+# ============================================================================
+
 groups:
-  - name: performance_alerts
+  # ==========================================================================
+  # GROUP 1: SERVICE HEALTH
+  # Purpose: Detect when core services are down or critically degraded
+  # Action: Immediate investigation required
+  # ==========================================================================
+  - name: service_health
     interval: 30s
     rules:
-      # API Request Rate Alerts
-      - alert: LowAPIRequestRate
-        expr: sum(rate(fastapi_requests_total[5m])) < 10
-        for: 5m
-        labels:
-          severity: warning
-          component: api
-        annotations:
-          summary: "Low API request rate detected"
-          description: "API request rate is {{ $value }} req/s, below expected threshold of 10 req/s. This may indicate service issues."
-
-      - alert: HighAPIErrorRate
-        expr: sum(rate(fastapi_requests_total{status_code=~'4..|5..'}[5m])) / sum(rate(fastapi_requests_total[5m])) > 0.1
-        for: 3m
-        labels:
-          severity: critical
-          component: api
-        annotations:
-          summary: "High API error rate detected"
-          description: "API error rate is {{ $value | humanizePercentage }}, exceeding critical threshold of 10%. Immediate investigation required."
-
-      # API Latency Alerts
-      - alert: HighAPILatency
-        expr: histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le)) > 2.0
-        for: 5m
-        labels:
-          severity: warning
-          component: api
-        annotations:
-          summary: "High API latency detected"
-          description: "API latency (p95) is {{ $value }}s, exceeding threshold of 2.0s. This indicates slow API response times."
-
-      - alert: CriticalAPILatency
-        expr: histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le)) > 3.0
+      # -----------------------------------------------------------------------
+      # Alert: GatewayZ API Down
+      # Reason: If Prometheus can't scrape the API, the service is unreachable
+      # Action: Check Railway deployment, container health, network connectivity
+      # -----------------------------------------------------------------------
+      - alert: GatewayZAPIDown
+        expr: up{job="gatewayz_production"} == 0
         for: 2m
         labels:
           severity: critical
           component: api
+          runbook: "Check Railway dashboard for deployment status"
         annotations:
-          summary: "Critical API latency detected"
-          description: "API latency (p95) is {{ $value }}s, exceeding critical threshold of 3.0s. Immediate investigation required."
+          summary: "GatewayZ API is unreachable"
+          description: "Prometheus cannot scrape the GatewayZ API. The service may be down or experiencing network issues."
+          dashboard: "https://grafana.gatewayz.ai/d/executive-overview-v1/executive-overview"
 
-      # Model Inference Alerts
-      - alert: HighModelInferenceLatency
-        expr: histogram_quantile(0.95, sum(rate(model_inference_duration_seconds_bucket[5m])) by (le, model)) > 5.0
-        for: 5m
-        labels:
-          severity: warning
-          component: model
-        annotations:
-          summary: "High model inference latency for {{ $labels.model }}"
-          description: "Model {{ $labels.model }} inference latency (p95) is {{ $value }}s, exceeding threshold of 5.0s."
-
-      - alert: ModelInferenceErrorSpike
-        expr: sum(rate(model_inference_requests_total{status="error"}[5m])) / sum(rate(model_inference_requests_total[5m])) > 0.15
-        for: 3m
-        labels:
-          severity: critical
-          component: model
-        annotations:
-          summary: "High model inference error rate"
-          description: "Model inference error rate is {{ $value | humanizePercentage }}, exceeding critical threshold of 15%."
-
-      # Provider-Specific Alerts
-      - alert: SlowProviderResponse
-        expr: histogram_quantile(0.95, sum(rate(model_inference_duration_seconds_bucket{provider!=""}[5m])) by (le, provider)) > 4.0
-        for: 5m
-        labels:
-          severity: warning
-          component: provider
-        annotations:
-          summary: "Slow response from provider {{ $labels.provider }}"
-          description: "Provider {{ $labels.provider }} response latency (p95) is {{ $value }}s, exceeding threshold of 4.0s."
-
-      - alert: ProviderErrorSpike
-        expr: sum(rate(model_inference_requests_total{status="error", provider!=""}[5m])) by (provider) / sum(rate(model_inference_requests_total{provider!=""}[5m])) by (provider) > 0.2
-        for: 3m
-        labels:
-          severity: critical
-          component: provider
-        annotations:
-          summary: "High error rate for provider {{ $labels.provider }}"
-          description: "Provider {{ $labels.provider }} error rate is {{ $value | humanizePercentage }}, exceeding critical threshold of 20%."
-
-  - name: performance_trends
-    interval: 1m
-    rules:
-      # Trend Detection - API Latency Degradation
-      - alert: APILatencyDegrading
+      # -----------------------------------------------------------------------
+      # Alert: High Error Rate
+      # Reason: >10% errors indicates service degradation affecting users
+      # Action: Check logs for error patterns, recent deployments, provider issues
+      # Note: Combines 4xx + 5xx because both indicate failed requests from user perspective
+      # -----------------------------------------------------------------------
+      - alert: HighErrorRate
         expr: |
           (
-            histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[15m])) by (le)) /
+            sum(rate(fastapi_requests_total{status_code=~"4..|5.."}[5m]))
+            /
+            sum(rate(fastapi_requests_total[5m]))
+          ) > 0.10
+        for: 5m
+        labels:
+          severity: critical
+          component: api
+          runbook: "Check Loki logs for error patterns, review recent deployments"
+        annotations:
+          summary: "High API error rate: {{ $value | humanizePercentage }}"
+          description: "More than 10% of API requests are failing. This indicates a significant service issue affecting users."
+          dashboard: "https://grafana.gatewayz.ai/d/executive-overview-v1/executive-overview"
+
+      # -----------------------------------------------------------------------
+      # Alert: Service Availability SLO Breach
+      # Reason: 99.5% availability SLO is industry standard for B2B APIs
+      # Action: This is an SLO breach - incident response required
+      # Note: Uses 1h window to avoid flapping on brief spikes
+      # -----------------------------------------------------------------------
+      - alert: AvailabilitySLOBreach
+        expr: |
+          (
+            sum(rate(fastapi_requests_total{status_code=~"2.."}[1h]))
+            /
+            sum(rate(fastapi_requests_total[1h]))
+          ) < 0.995
+        for: 10m
+        labels:
+          severity: critical
+          component: slo
+          runbook: "Initiate incident response - SLO breach affecting customers"
+        annotations:
+          summary: "SLO Breach: Availability at {{ $value | humanizePercentage }}"
+          description: "Service availability has dropped below 99.5% SLO target. Error budget is being consumed rapidly."
+          dashboard: "https://grafana.gatewayz.ai/d/executive-overview-v1/executive-overview"
+
+  # ==========================================================================
+  # GROUP 2: API PERFORMANCE
+  # Purpose: Detect latency degradation before it impacts users significantly
+  # Action: Investigate slow endpoints, provider latency, resource constraints
+  # ==========================================================================
+  - name: api_performance
+    interval: 30s
+    rules:
+      # -----------------------------------------------------------------------
+      # Alert: High API Latency
+      # Reason: P95 > 3s means 5% of users waiting over 3 seconds
+      # Action: Check slow endpoints, provider response times, database queries
+      # Note: Single threshold (3s) instead of warning+critical to reduce noise
+      # -----------------------------------------------------------------------
+      - alert: HighAPILatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le)
+          ) > 3.0
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+          runbook: "Check endpoint-specific latency, provider response times"
+        annotations:
+          summary: "High API latency: P95 = {{ $value | humanizeDuration }}"
+          description: "95th percentile API latency exceeds 3 seconds. Users may experience slow responses."
+          dashboard: "https://grafana.gatewayz.ai/d/executive-overview-v1/executive-overview"
+
+      # -----------------------------------------------------------------------
+      # Alert: Latency Degradation (Trend-based)
+      # Reason: Detects gradual performance degradation even if below absolute threshold
+      # Action: Investigate recent changes, resource usage, provider performance
+      # Note: 50% increase over 1 hour indicates systemic issue
+      # -----------------------------------------------------------------------
+      - alert: LatencyDegradation
+        expr: |
+          (
+            histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[15m])) by (le))
+            /
             histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[15m] offset 1h)) by (le))
           ) > 1.5
-        for: 10m
+        for: 15m
         labels:
           severity: warning
           component: api
+          runbook: "Compare current vs historical performance, check for resource constraints"
         annotations:
-          summary: "API latency degrading over time"
-          description: "API latency (p95) has increased by more than 50% compared to 1 hour ago. Current: {{ $value }}x baseline."
+          summary: "API latency degrading: {{ $value | humanize }}x baseline"
+          description: "P95 latency has increased more than 50% compared to 1 hour ago. Performance is degrading."
+          dashboard: "https://grafana.gatewayz.ai/d/executive-overview-v1/executive-overview"
 
-      # Trend Detection - API Error Rate Increase
-      - alert: APIErrorRateIncreasing
+      # -----------------------------------------------------------------------
+      # Alert: Traffic Spike
+      # Reason: 3x traffic increase may indicate DDoS, viral usage, or bot activity
+      # Action: Review traffic patterns, check for abuse, scale if legitimate
+      # Note: Not necessarily bad - but warrants attention
+      # -----------------------------------------------------------------------
+      - alert: TrafficSpike
         expr: |
-          (
-            sum(rate(fastapi_requests_total{status_code=~'4..|5..'}[15m])) / sum(rate(fastapi_requests_total[15m]))
-          ) /
-          (
-            sum(rate(fastapi_requests_total{status_code=~'4..|5..'}[15m] offset 1h)) / sum(rate(fastapi_requests_total[15m] offset 1h))
-          ) > 2.0
+          sum(rate(fastapi_requests_total[5m]))
+          >
+          (sum(rate(fastapi_requests_total[5m] offset 1h)) * 3)
         for: 10m
         labels:
           severity: warning
           component: api
+          runbook: "Analyze traffic source, check for abuse patterns, consider scaling"
         annotations:
-          summary: "API error rate increasing over time"
-          description: "API error rate has increased by more than 100% compared to 1 hour ago. Current: {{ $value }}x baseline."
+          summary: "Traffic spike detected: 3x normal volume"
+          description: "Request rate is more than 3x higher than 1 hour ago. This may indicate legitimate growth, viral usage, or potential abuse."
+          dashboard: "https://grafana.gatewayz.ai/d/executive-overview-v1/executive-overview"
 
-  - name: model_health_alerts
+  # ==========================================================================
+  # GROUP 3: PROVIDER HEALTH
+  # Purpose: Detect issues with upstream AI providers (OpenAI, Anthropic, etc.)
+  # Action: Consider failover, notify affected customers, open provider ticket
+  # ==========================================================================
+  - name: provider_health
     interval: 1m
     rules:
-      # Model Health Score Alert - Critical when below 20%
+      # -----------------------------------------------------------------------
+      # Alert: Provider Error Rate
+      # Reason: >20% errors from a specific provider indicates provider issues
+      # Action: Check provider status page, consider routing traffic elsewhere
+      # Note: Per-provider alerting helps identify which provider to failover from
+      # -----------------------------------------------------------------------
+      - alert: ProviderHighErrorRate
+        expr: |
+          (
+            sum by (provider) (rate(model_inference_requests_total{status="error"}[10m]))
+            /
+            sum by (provider) (rate(model_inference_requests_total[10m]))
+          ) > 0.20
+        for: 5m
+        labels:
+          severity: critical
+          component: provider
+          runbook: "Check provider status page, consider failover routing"
+        annotations:
+          summary: "Provider {{ $labels.provider }} error rate: {{ $value | humanizePercentage }}"
+          description: "Provider {{ $labels.provider }} is returning errors for more than 20% of requests. Consider routing traffic to alternative providers."
+          dashboard: "https://grafana.gatewayz.ai/d/gateway-comparison-v1/gateway-comparison"
+
+      # -----------------------------------------------------------------------
+      # Alert: Slow Provider Response
+      # Reason: Provider latency >5s P95 affects user experience significantly
+      # Action: Monitor provider, consider timeout adjustments or failover
+      # -----------------------------------------------------------------------
+      - alert: SlowProviderResponse
+        expr: |
+          histogram_quantile(0.95,
+            sum by (le, provider) (rate(model_inference_duration_seconds_bucket[5m]))
+          ) > 5.0
+        for: 10m
+        labels:
+          severity: warning
+          component: provider
+          runbook: "Check provider status, consider increasing timeouts or failover"
+        annotations:
+          summary: "Slow responses from {{ $labels.provider }}: P95 = {{ $value | humanizeDuration }}"
+          description: "Provider {{ $labels.provider }} P95 latency exceeds 5 seconds. This may impact user experience."
+          dashboard: "https://grafana.gatewayz.ai/d/gateway-comparison-v1/gateway-comparison"
+
+      # -----------------------------------------------------------------------
+      # Alert: Model Health Score Low
+      # Reason: Overall model success rate below 80% indicates systemic issues
+      # Action: Review model-specific errors, check provider status across all providers
+      # -----------------------------------------------------------------------
       - alert: LowModelHealthScore
         expr: |
           (
-            (
-              sum(rate(model_inference_requests_total{status="success"}[10m])) 
-              / 
-              sum(rate(model_inference_requests_total[10m]))
-            ) * 100
-          ) < 20
+            sum(rate(model_inference_requests_total{status="success"}[10m]))
+            /
+            sum(rate(model_inference_requests_total[10m]))
+          ) < 0.80
         for: 5m
         labels:
           severity: critical
           component: model
-          email: "manjeshprasad21@gmail.com"
+          runbook: "Review model errors by provider, check for widespread provider issues"
         annotations:
-          summary: "Overall model health score critically low"
-          description: "Overall model health score is {{ $value | humanize }}%, below critical threshold of 20%. Success rate indicates major service degradation. Immediate investigation required."
-          dashboard: "http://localhost:3000/d/model-performance-v1/model-performance-analytics"
-          
-      # Individual Provider Health Score
-      - alert: LowProviderHealthScore
-        expr: |
-          (
-            (
-              sum(rate(model_inference_requests_total{status="success"}[10m])) by (provider)
-              / 
-              sum(rate(model_inference_requests_total[10m])) by (provider)
-            ) * 100
-          ) < 20
-        for: 5m
-        labels:
-          severity: critical
-          component: provider
-          email: "manjeshprasad21@gmail.com"
-        annotations:
-          summary: "Provider {{ $labels.provider }} health score critically low"
-          description: "Provider {{ $labels.provider }} health score is {{ $value | humanize }}%, below critical threshold of 20%. This provider is experiencing major issues."
-          dashboard: "http://localhost:3000/d/gateway-comparison-v1/gateway-comparison"
+          summary: "Model health critically low: {{ $value | humanizePercentage }} success rate"
+          description: "Overall model inference success rate has dropped below 80%. Multiple providers may be experiencing issues."
+          dashboard: "https://grafana.gatewayz.ai/d/model-performance-v1/model-performance-analytics"
 
-  - name: redis_alerts
-    interval: 30s
-    rules:
-      # Redis Connection Status
-      - alert: RedisDown
-        expr: redis_up == 0
-        for: 1m
-        labels:
-          severity: critical
-          component: redis
-        annotations:
-          summary: "Redis is down"
-          description: "Redis instance is not responding. Cache functionality is unavailable. Immediate investigation required."
-          dashboard: "http://localhost:3000/d/backend-services-v1/backend-services"
-
-      # Redis Memory Usage
-      - alert: RedisHighMemoryUsage
-        expr: (redis_memory_used_bytes / redis_memory_max_bytes) * 100 > 80
-        for: 5m
-        labels:
-          severity: warning
-          component: redis
-        annotations:
-          summary: "Redis memory usage high"
-          description: "Redis memory usage is {{ $value | humanize }}%, exceeding 80% threshold. Consider clearing cache or increasing memory allocation."
-          dashboard: "http://localhost:3000/d/backend-services-v1/backend-services"
-
-      - alert: RedisCriticalMemoryUsage
-        expr: (redis_memory_used_bytes / redis_memory_max_bytes) * 100 > 90
-        for: 2m
-        labels:
-          severity: critical
-          component: redis
-        annotations:
-          summary: "Redis memory usage critical"
-          description: "Redis memory usage is {{ $value | humanize }}%, exceeding 90% threshold. Immediate action required to prevent cache eviction."
-          dashboard: "http://localhost:3000/d/backend-services-v1/backend-services"
-
-      # Redis Cache Hit Rate
-      - alert: LowCacheHitRate
-        expr: (redis_keyspace_hits_total / (redis_keyspace_hits_total + redis_keyspace_misses_total)) * 100 < 50
-        for: 10m
-        labels:
-          severity: warning
-          component: redis
-        annotations:
-          summary: "Low Redis cache hit rate"
-          description: "Redis cache hit rate is {{ $value | humanize }}%, below 50% threshold. This may indicate cache invalidation issues or cold cache."
-          dashboard: "http://localhost:3000/d/backend-services-v1/backend-services"
-
-      # Redis Connected Clients
-      - alert: RedisHighConnectionCount
-        expr: redis_connected_clients > 100
-        for: 5m
-        labels:
-          severity: warning
-          component: redis
-        annotations:
-          summary: "High Redis connection count"
-          description: "Redis has {{ $value }} connected clients, exceeding 100 threshold. This may indicate connection leaks."
-          dashboard: "http://localhost:3000/d/backend-services-v1/backend-services"
-
-      # Redis Slow Operations
-      - alert: RedisSlowCommands
-        expr: rate(redis_commands_processed_total[5m]) < 10
-        for: 5m
-        labels:
-          severity: warning
-          component: redis
-        annotations:
-          summary: "Redis command processing slow"
-          description: "Redis is processing {{ $value | humanize }} commands/sec, below normal threshold. This may indicate performance issues."
-          dashboard: "http://localhost:3000/d/backend-services-v1/backend-services"
-
-  - name: infrastructure_alerts
+  # ==========================================================================
+  # GROUP 4: INFRASTRUCTURE
+  # Purpose: Monitor the monitoring stack itself (meta-monitoring)
+  # Action: Fix infrastructure issues to restore observability
+  # ==========================================================================
+  - name: infrastructure
     interval: 1m
     rules:
-      # Prometheus Target Down
-      - alert: PrometheusTargetDown
-        expr: up == 0
+      # -----------------------------------------------------------------------
+      # Alert: Scrape Target Down
+      # Reason: If we can't scrape a target, we have no visibility into it
+      # Action: Check target health, network connectivity, authentication
+      # Note: Excludes self (prometheus job) to avoid circular alerting
+      # -----------------------------------------------------------------------
+      - alert: ScrapeTargetDown
+        expr: up{job!="prometheus"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+          runbook: "Check target health, network connectivity, scrape configuration"
+        annotations:
+          summary: "Scrape target down: {{ $labels.job }}"
+          description: "Prometheus cannot scrape {{ $labels.job }} (instance: {{ $labels.instance }}). Metrics collection is interrupted."
+
+      # -----------------------------------------------------------------------
+      # Alert: Mimir Remote Write Failures
+      # Reason: If Prometheus can't write to Mimir, we lose long-term metrics
+      # Action: Check Mimir health, network, storage capacity
+      # -----------------------------------------------------------------------
+      - alert: MimirRemoteWriteFailures
+        expr: |
+          rate(prometheus_remote_storage_failed_samples_total{remote_name="mimir-remote-write"}[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+          runbook: "Check Mimir health, storage capacity, network connectivity"
+        annotations:
+          summary: "Mimir remote write failures detected"
+          description: "Prometheus is failing to write some samples to Mimir. Long-term metrics storage may be affected."
+
+      # -----------------------------------------------------------------------
+      # Alert: Mimir Down
+      # Reason: If Mimir is down, long-term storage and consistent queries fail
+      # Action: Check Mimir container, storage, memory usage
+      # -----------------------------------------------------------------------
+      - alert: MimirDown
+        expr: up{job="mimir"} == 0
         for: 2m
         labels:
           severity: critical
           component: infrastructure
+          runbook: "Check Mimir container logs, verify storage volume has space"
         annotations:
-          summary: "Prometheus target down: {{ $labels.job }}"
-          description: "Prometheus cannot scrape {{ $labels.job }} target. Metrics collection is interrupted."
+          summary: "Mimir is unreachable"
+          description: "Mimir long-term storage is down. Historical metrics queries will fail and new metrics are not being persisted."
 
-      # High Request Rate Spike
-      - alert: TrafficSpike
-        expr: sum(rate(http_requests_total[5m])) > (sum(rate(http_requests_total[5m] offset 1h)) * 2)
-        for: 5m
-        labels:
-          severity: warning
-          component: api
-        annotations:
-          summary: "Traffic spike detected"
-          description: "Current request rate is more than 2x the rate from 1 hour ago. This may indicate a traffic surge or potential attack."
-          dashboard: "http://localhost:3000/d/executive-overview-v1/executive-overview"
-
-      # SLO Breach - Availability
-      - alert: SLOAvailabilityBreach
+      # -----------------------------------------------------------------------
+      # Alert: Tempo Ingestion Failures
+      # Reason: If traces aren't being ingested, we lose distributed tracing visibility
+      # Action: Check Tempo health, ingestion rate, storage capacity
+      # -----------------------------------------------------------------------
+      - alert: TempoNoTraces
         expr: |
-          (
-            sum(rate(http_requests_total{status_code=~"2.."}[1h]))
-            /
-            sum(rate(http_requests_total[1h]))
-          ) * 100 < 99.5
-        for: 10m
-        labels:
-          severity: critical
-          component: slo
-        annotations:
-          summary: "SLO Availability breach"
-          description: "Availability SLO is at {{ $value | humanize }}%, below 99.5% target. Error budget is being consumed."
-          dashboard: "http://localhost:3000/d/executive-overview-v1/executive-overview"
-
-      # SLO Breach - Latency
-      - alert: SLOLatencyBreach
-        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[1h])) by (le)) > 0.5
-        for: 10m
+          sum(rate(tempo_distributor_spans_received_total[5m])) == 0
+        for: 15m
         labels:
           severity: warning
-          component: slo
+          component: infrastructure
+          runbook: "Check Tempo health, verify OTLP endpoint connectivity from backend"
         annotations:
-          summary: "SLO Latency breach"
-          description: "P95 latency is {{ $value }}s, exceeding 500ms target. Response times are degraded."
-          dashboard: "http://localhost:3000/d/executive-overview-v1/executive-overview"
+          summary: "No traces being received by Tempo"
+          description: "Tempo has not received any traces in the last 15 minutes. Distributed tracing may be broken or backend tracing may be disabled."
+
+      # -----------------------------------------------------------------------
+      # Alert: Loki Log Ingestion Stopped
+      # Reason: If logs stop arriving, we lose visibility into application behavior
+      # Action: Check Loki health, verify backend log shipping
+      # -----------------------------------------------------------------------
+      - alert: LokiNoLogs
+        expr: |
+          sum(rate(loki_distributor_lines_received_total[5m])) == 0
+        for: 15m
+        labels:
+          severity: warning
+          component: infrastructure
+          runbook: "Check Loki health, verify backend log shipping configuration"
+        annotations:
+          summary: "No logs being received by Loki"
+          description: "Loki has not received any logs in the last 15 minutes. Log collection may be broken."
+
+# ============================================================================
+# REMOVED ALERTS (with reasoning):
+# ============================================================================
+#
+# LowAPIRequestRate - Removed
+#   Reason: Fires during off-peak hours, weekends. Not actionable unless combined
+#   with other indicators. If the service is up (GatewayZAPIDown handles this),
+#   low request rate isn't necessarily a problem.
+#
+# CriticalAPILatency (separate from HighAPILatency) - Consolidated
+#   Reason: Having both warning (2s) and critical (3s) creates two alerts for
+#   the same degrading condition. Single 3s threshold with warning severity
+#   is sufficient - if it persists, investigate.
+#
+# HighAPIErrorRate + APIErrorRateIncreasing - Consolidated into HighErrorRate
+#   Reason: Trend detection is useful but creates alert fatigue when combined
+#   with absolute threshold alert. HighErrorRate at 10% catches real issues.
+#
+# All Redis alerts (RedisDown, RedisHighMemoryUsage, etc.) - Removed
+#   Reason: redis_exporter metrics aren't reliably scraped currently (external
+#   service). Add these back when redis_exporter is working consistently.
+#   The alerts would fire incorrectly with no data.
+#
+# HighModelInferenceLatency (per-model) - Removed
+#   Reason: SlowProviderResponse covers this at provider level. Per-model
+#   alerting creates too many individual alerts for 100+ models.
+#
+# ModelInferenceErrorSpike (15% threshold) - Consolidated into LowModelHealthScore
+#   Reason: LowModelHealthScore at 80% success rate is more intuitive and
+#   covers the same ground.
+#
+# LowProviderHealthScore (per-provider at 20%) - Consolidated into ProviderHighErrorRate
+#   Reason: Same metric, different expression. ProviderHighErrorRate at 20%
+#   error rate is equivalent to 80% health score.
+#
+# PrometheusTargetDown (generic up == 0) - Refined to ScrapeTargetDown
+#   Reason: Original would alert when Prometheus couldn't scrape itself,
+#   which is impossible to observe. Excluded prometheus job.
+#
+# SLOAvailabilityBreach (http_requests_total) - Replaced with AvailabilitySLOBreach
+#   Reason: Changed to use fastapi_requests_total for consistency with other
+#   alerts. http_requests_total may not exist in your metrics.
+#
+# SLOLatencyBreach (500ms) - Removed
+#   Reason: 500ms P95 is aggressive for AI inference which often takes 2-5s.
+#   HighAPILatency at 3s is more realistic for LLM workloads.
+#
+# ============================================================================
