@@ -43,44 +43,70 @@ open http://localhost:9009  # Mimir
 
 ## 📊 Architecture Overview
 
+### Data Flow Diagram
+
 ```
-┌──────────────────────────────────────────────────────────┐
-│              GatewayZ Backend API                         │
-│  (FastAPI: api.gatewayz.ai)                             │
-└───────┬─────────────┬──────────────┬────────────────────┘
-        │             │              │
-  Metrics (Pull)  Logs (Push)   Traces (Push)
-   /metrics      :3100/loki    :4317/:4318
-        │             │              │
-  ┌─────▼─────┐ ┌─────▼─────┐ ┌──────▼──────┐
-  │Prometheus │ │   Loki    │ │   Tempo     │
-  │  :9090    │ │  :3100    │ │:3200/:4317/ │
-  │           │ │           │ │    :4318    │
-  │ Scrapes   │ │Log Storage│ │Trace Storage│
-  │every 15-30s│ │30d Retain │ │Span Metrics │
-  └─────┬─────┘ └─────┬─────┘ └──────┬──────┘
-        │             │              │
-        │Remote Write │              │
-        ↓             │              │
-  ┌──────────────┐   │              │
-  │    Mimir     │   │              │
-  │   :9009      │◄──┘              │
-  │              │                  │
-  │Horizontal    │                  │
-  │Scaling       │                  │
-  │30d Retention │                  │
-  └──────┬───────┘                  │
-         │                          │
-         └──────────────────────────┘
-                    │
-             ┌──────▼──────┐
-             │   Grafana   │
-             │    :3000    │
-             │             │
-             │4 Datasources│ ← Prometheus, Mimir, Loki, Tempo
-             │5 Folders    │
-             └─────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         GatewayZ Backend API                                 │
+│                      (FastAPI: api.gatewayz.ai)                             │
+└───────────┬─────────────────────┬─────────────────────┬─────────────────────┘
+            │                     │                     │
+      Metrics (Pull)        Logs (Push)           Traces (Push)
+        /metrics           :3100/loki/push         :4317 (gRPC)
+                                                   :4318 (HTTP)
+            │                     │                     │
+            ▼                     ▼                     ▼
+    ┌───────────────┐     ┌───────────────┐     ┌───────────────┐
+    │  Prometheus   │     │     Loki      │     │    Tempo      │
+    │    :9090      │     │    :3100      │     │    :3200      │
+    │               │     │               │     │               │
+    │ Scrapes every │     │  Log Storage  │     │ Trace Storage │
+    │   15-30s      │     │  30d Retain   │     │  48h Retain   │
+    └───────┬───────┘     └───────────────┘     └───────┬───────┘
+            │                     │                     │
+            │ remote_write        │ (no connection)     │ metrics_generator
+            │ /api/v1/push        │                     │ remote_write
+            ▼                     │                     ▼
+    ┌───────────────┐             │             ┌───────────────┐
+    │               │◄────────────┘             │               │
+    │     Mimir     │         (Loki stores      │     Mimir     │
+    │    :9009      │          LOGS, not        │  (span metrics│
+    │               │          metrics - this   │   from traces)│
+    │  Long-term    │          is BY DESIGN)    │               │
+    │  30d Retain   │                           │               │
+    └───────┬───────┘                           └───────┬───────┘
+            │                                           │
+            └─────────────────────┬─────────────────────┘
+                                  │
+                                  ▼
+                          ┌───────────────┐
+                          │    Grafana    │
+                          │     :3000     │
+                          │               │
+                          │ Queries each  │
+                          │ source for    │
+                          │ its data type │
+                          └───────────────┘
+                                  │
+                    ┌─────────────┼─────────────┐─────────────┐
+                    ▼             ▼             ▼             ▼
+              ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
+              │Prometheus│ │  Mimir   │ │   Loki   │ │  Tempo   │
+              │(metrics) │ │(metrics) │ │  (logs)  │ │ (traces) │
+              │short-term│ │long-term │ │          │ │          │
+              └──────────┘ └──────────┘ └──────────┘ └──────────┘
 ```
+
+### Important: Data Type Separation
+
+| Component | Stores | Writes To | Notes |
+|-----------|--------|-----------|-------|
+| **Prometheus** | Metrics (time-series) | **Mimir** via remote_write | Short-term storage, scrapes every 15-30s |
+| **Mimir** | Metrics (time-series) | Local filesystem | Long-term storage, 30-day retention |
+| **Loki** | Logs (text lines) | Local filesystem | **Does NOT write to Mimir** - logs ≠ metrics |
+| **Tempo** | Traces (spans) | Local filesystem + **Mimir** (span metrics only) | Traces stored locally, derived metrics to Mimir |
+
+> **Why Loki doesn't write to Mimir:** Loki stores **log lines** (text data), while Mimir stores **metrics** (numeric time-series). These are fundamentally different data types. Grafana queries Loki directly for logs.
 
 ### Key Components
 
@@ -503,18 +529,68 @@ limits:
 
 ## 🔔 Alerting Setup
 
-GatewayZ uses **Grafana Alerting** (not Alertmanager) for notifications. Alerts are provisioned via YAML files and sent via email.
+GatewayZ uses **Prometheus Alert Rules** with Grafana for visualization. Alerts are defined in `prometheus/alert.rules.yml` with a focus on actionability and reducing alert fatigue.
 
-### Alert Categories
+### Alert Philosophy
 
-| Category | Severity | Description | Contact Point |
-|----------|----------|-------------|---------------|
-| **Traffic Anomalies** | Critical/Warning | Traffic spikes (3x+/2x baseline) | observatory-pool-critical/warning |
-| **Error Rate Spikes** | Critical/Warning | Elevated error rates | observatory-pool-critical/warning |
-| **Latency Anomalies** | Critical/Warning | P99 > 5s, degraded response times | observatory-pool-critical/warning |
-| **Availability Drops** | Critical/Warning | Provider/service unavailability | observatory-pool-critical/warning |
-| **Redis Issues** | Critical/Warning | Cache failures, memory issues | critical-email / ops-email |
-| **SLO Burn Rate** | Critical/Warning | Error budget consumption | critical-email / ops-email |
+1. **Every alert MUST be actionable** - if you can't fix it, don't alert on it
+2. **Fewer high-quality alerts** - 14 essential alerts instead of 25+ noisy ones
+3. **Warning vs Critical** - warning = investigate soon, critical = wake someone up
+4. **No duplicates** - consolidated overlapping alerts into single actionable items
+
+### Alert Groups (14 Total)
+
+| Group | Alerts | Purpose |
+|-------|--------|---------|
+| **service_health** | 3 | Is the service up and responding? |
+| **api_performance** | 3 | Are API responses healthy? |
+| **provider_health** | 3 | Are upstream AI providers working? |
+| **infrastructure** | 5 | Is the monitoring stack itself healthy? |
+
+### Current Alerts
+
+#### Service Health (Critical)
+| Alert | Trigger | Action |
+|-------|---------|--------|
+| `GatewayZAPIDown` | Prometheus can't scrape API for 2m | Check Railway deployment |
+| `HighErrorRate` | >10% error rate for 5m | Check Loki logs, recent deployments |
+| `AvailabilitySLOBreach` | <99.5% success rate over 1h | Initiate incident response |
+
+#### API Performance (Warning)
+| Alert | Trigger | Action |
+|-------|---------|--------|
+| `HighAPILatency` | P95 > 3s for 5m | Check slow endpoints, providers |
+| `LatencyDegradation` | 50% latency increase vs 1h ago | Check recent changes, resources |
+| `TrafficSpike` | 3x traffic increase for 10m | Analyze traffic, check for abuse |
+
+#### Provider Health (Critical/Warning)
+| Alert | Trigger | Action |
+|-------|---------|--------|
+| `ProviderHighErrorRate` | >20% errors per provider for 5m | Check provider status, failover |
+| `SlowProviderResponse` | P95 > 5s per provider for 10m | Monitor provider, adjust timeouts |
+| `LowModelHealthScore` | <80% success rate for 5m | Review errors across providers |
+
+#### Infrastructure (Critical/Warning)
+| Alert | Trigger | Action |
+|-------|---------|--------|
+| `ScrapeTargetDown` | Any scrape target down for 5m | Check target health, network |
+| `MimirRemoteWriteFailures` | Failed samples to Mimir | Check Mimir health, storage |
+| `MimirDown` | Mimir unreachable for 2m | Check container, storage volume |
+| `TempoNoTraces` | No traces for 15m | Check OTLP endpoint, backend config |
+| `LokiNoLogs` | No logs for 15m | Check Loki health, log shipping |
+
+### Removed Alerts (Noise Reduction)
+
+The following alerts were removed to reduce alert fatigue:
+
+| Removed Alert | Reason |
+|---------------|--------|
+| `LowAPIRequestRate` | Fires during off-hours/weekends, not actionable |
+| `CriticalAPILatency` | Duplicate of HighAPILatency (consolidated) |
+| `APIErrorRateIncreasing` | Trend detection causes fatigue with absolute threshold |
+| Redis alerts (6) | redis_exporter not reliably scraped; re-add when fixed |
+| `HighModelInferenceLatency` | Per-model alerting too noisy for 100+ models |
+| `SLOLatencyBreach` (500ms) | Too aggressive for AI inference (2-5s typical) |
 
 ### Contact Points Configuration
 
