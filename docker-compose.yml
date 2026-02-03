@@ -240,7 +240,8 @@ services:
       - GF_SMTP_HOST=${GF_SMTP_HOST:-smtp.gmail.com:465}
       - GF_SMTP_USER=${GF_SMTP_USER}
       - GF_SMTP_PASSWORD=${GF_SMTP_PASSWORD}
-      - GF_SMTP_FROM_ADDRESS=${GF_SMTP_FROM_ADDRESS:-alerts@gatewayz.ai}
+      # IMPORTANT: From address must match Gmail account or be a configured alias
+      - GF_SMTP_FROM_ADDRESS=${GF_SMTP_FROM_ADDRESS}
       - GF_SMTP_FROM_NAME=${GF_SMTP_FROM_NAME:-GatewayZ Monitoring}
       - GF_SMTP_STARTTLS_POLICY=${GF_SMTP_STARTTLS_POLICY:-NoStartTLS}
 

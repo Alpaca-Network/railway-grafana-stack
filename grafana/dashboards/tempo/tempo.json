@@ -1,124 +1,299 @@
 {
   "annotations": {
-    "list": []
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
   },
-  "description": "Distributed tracing dashboard for GatewayZ",
+  "description": "GatewayZ Distributed Tracing - Trace analysis, error investigation, and latency breakdown via OpenTelemetry and Tempo",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
   "id": null,
-  "links": [],
+  "links": [
+    {
+      "asDropdown": true,
+      "icon": "doc",
+      "includeVars": true,
+      "tags": ["gatewayz"],
+      "targetBlank": false,
+      "title": "Related Dashboards",
+      "type": "dashboards"
+    }
+  ],
   "panels": [
     {
-      "datasource": {
-        "type": "tempo",
-        "uid": "grafana_tempo"
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 2, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "options": {
+        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false },
+        "content": "# GatewayZ Distributed Tracing\nEnd-to-end visibility into request flows across services. Use this dashboard to investigate errors, analyze latency, and trace AI model inference calls.",
+        "mode": "markdown"
       },
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 20,
-        "w": 24,
-        "x": 0,
-        "y": 0
-      },
-      "id": 1,
-      "options": {},
-      "targets": [
-        {
-          "datasource": {
-            "type": "tempo",
-            "uid": "grafana_tempo"
-          },
-          "queryType": "traceql",
-          "query": "{}",
-          "limit": 100,
-          "refId": "A"
-        }
-      ],
-      "title": "All Traces",
-      "type": "table"
+      "pluginVersion": "11.5.2",
+      "title": "",
+      "transparent": true,
+      "type": "text"
     },
     {
-      "datasource": {
-        "type": "tempo",
-        "uid": "grafana_tempo"
-      },
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 12,
-        "w": 12,
-        "x": 0,
-        "y": 20
-      },
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 2 },
+      "id": 1,
+      "panels": [],
+      "title": "Trace Overview",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "tempo", "uid": "grafana_tempo" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 3 },
       "id": 2,
       "options": {},
       "targets": [
         {
-          "datasource": {
-            "type": "tempo",
-            "uid": "grafana_tempo"
-          },
+          "datasource": { "type": "tempo", "uid": "grafana_tempo" },
           "queryType": "traceql",
-          "query": "{status=error}",
+          "query": "{status=error || duration > 1s}",
           "limit": 50,
           "refId": "A"
         }
       ],
-      "title": "Error Traces",
+      "title": "Attention Required: Errors & Slow Requests (>1s)",
       "type": "table"
     },
     {
-      "datasource": {
-        "type": "tempo",
-        "uid": "grafana_tempo"
-      },
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 12,
-        "w": 12,
-        "x": 12,
-        "y": 20
-      },
-      "id": 3,
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 15 },
+      "id": 10,
+      "panels": [],
+      "title": "Error Investigation",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "tempo", "uid": "grafana_tempo" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 16 },
+      "id": 11,
       "options": {},
       "targets": [
         {
-          "datasource": {
-            "type": "tempo",
-            "uid": "grafana_tempo"
-          },
+          "datasource": { "type": "tempo", "uid": "grafana_tempo" },
           "queryType": "traceql",
-          "query": "{duration > 1s}",
-          "limit": 50,
+          "query": "{status=error}",
+          "limit": 30,
           "refId": "A"
         }
       ],
-      "title": "Slow Traces (>1s)",
+      "title": "All Error Traces",
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "tempo", "uid": "grafana_tempo" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 16 },
+      "id": 12,
+      "options": {},
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "grafana_tempo" },
+          "queryType": "traceql",
+          "query": "{span.http.status_code >= 500}",
+          "limit": 30,
+          "refId": "A"
+        }
+      ],
+      "title": "5xx Server Error Traces",
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 26 },
+      "id": 20,
+      "panels": [],
+      "title": "Latency Breakdown",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "tempo", "uid": "grafana_tempo" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 10, "w": 8, "x": 0, "y": 27 },
+      "id": 21,
+      "options": {},
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "grafana_tempo" },
+          "queryType": "traceql",
+          "query": "{duration > 5s}",
+          "limit": 20,
+          "refId": "A"
+        }
+      ],
+      "title": "Critical: Very Slow (>5s)",
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "tempo", "uid": "grafana_tempo" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 10, "w": 8, "x": 8, "y": 27 },
+      "id": 22,
+      "options": {},
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "grafana_tempo" },
+          "queryType": "traceql",
+          "query": "{duration > 2s && duration <= 5s}",
+          "limit": 20,
+          "refId": "A"
+        }
+      ],
+      "title": "Warning: Slow (2-5s)",
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "tempo", "uid": "grafana_tempo" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 10, "w": 8, "x": 16, "y": 27 },
+      "id": 23,
+      "options": {},
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "grafana_tempo" },
+          "queryType": "traceql",
+          "query": "{duration > 1s && duration <= 2s}",
+          "limit": 20,
+          "refId": "A"
+        }
+      ],
+      "title": "Monitor: Moderate (1-2s)",
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 37 },
+      "id": 30,
+      "panels": [],
+      "title": "AI Model Inference Traces",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "tempo", "uid": "grafana_tempo" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 38 },
+      "id": 31,
+      "options": {},
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "grafana_tempo" },
+          "queryType": "traceql",
+          "query": "{name =~ \"stream_completion.*\"}",
+          "limit": 30,
+          "refId": "A"
+        }
+      ],
+      "title": "Chat/Stream Completions",
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "tempo", "uid": "grafana_tempo" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 38 },
+      "id": 32,
+      "options": {},
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "grafana_tempo" },
+          "queryType": "traceql",
+          "query": "{name =~ \"unified_handler.*\"}",
+          "limit": 30,
+          "refId": "A"
+        }
+      ],
+      "title": "Unified Handler Requests",
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "tempo", "uid": "grafana_tempo" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 48 },
+      "id": 33,
+      "options": {},
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "grafana_tempo" },
+          "queryType": "traceql",
+          "query": "{span.gen_ai.system != \"\" || span.gen_ai.request.model != \"\"}",
+          "limit": 30,
+          "refId": "A"
+        }
+      ],
+      "title": "All GenAI/LLM Traces",
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 58 },
+      "id": 40,
+      "panels": [],
+      "title": "Service Dependencies",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "tempo", "uid": "grafana_tempo" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 59 },
+      "id": 41,
+      "options": {},
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "grafana_tempo" },
+          "queryType": "traceql",
+          "query": "{span.db.system != \"\" || name =~ \".*supabase.*\" || name =~ \".*postgres.*\"}",
+          "limit": 30,
+          "refId": "A"
+        }
+      ],
+      "title": "Database Operations",
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "tempo", "uid": "grafana_tempo" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 59 },
+      "id": 42,
+      "options": {},
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "grafana_tempo" },
+          "queryType": "traceql",
+          "query": "{name =~ \".*redis.*\" || name =~ \".*cache.*\"}",
+          "limit": 30,
+          "refId": "A"
+        }
+      ],
+      "title": "Redis/Cache Operations",
       "type": "table"
     }
   ],
+  "preload": false,
   "refresh": "30s",
-  "schemaVersion": 39,
-  "tags": ["gatewayz", "traces", "tempo"],
-  "templating": {
-    "list": []
+  "schemaVersion": 40,
+  "tags": ["gatewayz", "tempo", "tracing", "opentelemetry", "distributed"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h"]
   },
-  "time": {
-    "from": "now-1h",
-    "to": "now"
-  },
-  "timepicker": {},
   "timezone": "browser",
-  "title": "GatewayZ Traces - Tempo",
-  "uid": "gatewayz-traces-tempo-v1",
-  "version": 5
+  "title": "GatewayZ Distributed Tracing",
+  "uid": "gatewayz-distributed-tracing",
+  "version": 1,
+  "weekStart": ""
 }
