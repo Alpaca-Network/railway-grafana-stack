@@ -13,6 +13,9 @@ ENV PROMETHEUS_INTERNAL_URL=http://prometheus.railway.internal:9090
 ENV TEMPO_INTERNAL_URL=http://tempo.railway.internal:3200
 ENV MIMIR_INTERNAL_URL=http://mimir.railway.internal:9009
 
+# Copy custom grafana.ini for SMTP configuration
+COPY grafana.ini /etc/grafana/grafana.ini
+
 # Copy the datasources provisioning config
 COPY datasources /etc/grafana/provisioning/datasources
 
