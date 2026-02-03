@@ -33,10 +33,6 @@ remote_write:
     # "anonymous" is the default tenant used when multi-tenancy is disabled
     headers:
       X-Scope-OrgID: anonymous
-    # Retry on rate limiting (HTTP 429) - critical for reliability
-    retry_on_http_429: true
-    # Send metric metadata (HELP, TYPE) to Mimir
-    send_exemplars: true
     queue_config:
       capacity: 10000
       max_shards: 50
@@ -44,20 +40,10 @@ remote_write:
       batch_send_deadline: 5s
       min_backoff: 30ms
       max_backoff: 5s
-      # Retry on recoverable errors
-      retry_on_http_429: true
     # Send metric metadata to Mimir for better query experience
     metadata_config:
       send: true
       send_interval: 1m
-      max_samples_per_send: 500
-    # Write-ahead log for durability during restarts
-    # Samples are persisted to disk and replayed on restart
-    write_relabel_configs:
-      # Forward all metrics (no filtering) - ensures complete data in Mimir
-      - source_labels: [__name__]
-        regex: '.*'
-        action: keep
 
 rule_files:
   - '/etc/prometheus/alert.rules.yml'
