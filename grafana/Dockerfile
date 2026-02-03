@@ -13,10 +13,6 @@ ENV PROMETHEUS_INTERNAL_URL=http://prometheus.railway.internal:9090
 ENV TEMPO_INTERNAL_URL=http://tempo.railway.internal:3200
 ENV MIMIR_INTERNAL_URL=http://mimir.railway.internal:9009
 
-# Copy entrypoint script for SMTP configuration
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
 # Copy the datasources provisioning config
 COPY datasources /etc/grafana/provisioning/datasources
 
@@ -38,6 +34,3 @@ COPY provisioning/alerting /etc/grafana/provisioning/alerting
 
 # Expose Grafana port
 EXPOSE 3000
-
-# Use custom entrypoint to generate grafana.ini from env vars
-ENTRYPOINT ["/entrypoint.sh"]
