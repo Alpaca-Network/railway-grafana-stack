@@ -235,13 +235,14 @@ services:
       - MIMIR_INTERNAL_URL=${MIMIR_INTERNAL_URL:-http://mimir:9009}
       - API_BASE_URL=${API_BASE_URL:-https://api.gatewayz.ai}
       # Email/SMTP Configuration for Alerts
+      # Use port 465 (SSL) for cloud platforms, 587 (STARTTLS) for local
       - GF_SMTP_ENABLED=true
-      - GF_SMTP_HOST=${GF_SMTP_HOST:-smtp.gmail.com:587}
-      - GF_SMTP_USER=${GF_SMTP_USER:-your-email@gmail.com}
-      - GF_SMTP_PASSWORD=${GF_SMTP_PASSWORD:-your-app-password}
-      - GF_SMTP_FROM_ADDRESS=${GF_SMTP_FROM_ADDRESS:-grafana@gatewayz.ai}
+      - GF_SMTP_HOST=${GF_SMTP_HOST:-smtp.gmail.com:465}
+      - GF_SMTP_USER=${GF_SMTP_USER}
+      - GF_SMTP_PASSWORD=${GF_SMTP_PASSWORD}
+      - GF_SMTP_FROM_ADDRESS=${GF_SMTP_FROM_ADDRESS:-alerts@gatewayz.ai}
       - GF_SMTP_FROM_NAME=${GF_SMTP_FROM_NAME:-GatewayZ Monitoring}
-      - GF_SMTP_SKIP_VERIFY=true
+      - GF_SMTP_STARTTLS_POLICY=${GF_SMTP_STARTTLS_POLICY:-NoStartTLS}
 
     # Railway-focused resource guidance.
     # NOTE: compose `deploy:` limits are ignored by plain `docker compose` (non-swarm),
