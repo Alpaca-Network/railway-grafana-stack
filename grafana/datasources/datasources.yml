@@ -1,6 +1,25 @@
-# Configuration file version
-# See here fore more information on configuration:
-# https://grafana.com/docs/grafana/latest/administration/provisioning/#example-data-source-configuration-file
+# ============================================================
+# Grafana Datasources Configuration
+# ============================================================
+# Purpose: Configure connections to observability backends
+# Documentation: /docs/architecture/TRANSPARENT_TELEMETRY_INGESTION.md
+# Updated: 2026-02-03 - Enhanced for transparent telemetry ingestion
+#
+# Datasource UIDs (used in dashboards and correlation):
+# - grafana_loki: Logs (Loki)
+# - grafana_prometheus: Short-term metrics (Prometheus, 15 days)
+# - grafana_mimir: Long-term metrics (Mimir, 30+ days)
+# - grafana_tempo: Distributed traces (Tempo)
+# - grafana_sentry: Error tracking (Sentry)
+# - grafana_json_api: Custom JSON API
+#
+# Correlation Features:
+# - Traces → Logs: Derived fields extract trace_id from logs
+# - Traces → Metrics: Exemplars link traces to metric data points
+# - Metrics → Traces: Exemplars in histograms link back to traces
+# - Logs → Traces: trace_id field creates clickable links
+# ============================================================
+
 apiVersion: 1
 
 # Mark provisioned data sources for deletion if they are no longer in a provisioning file.
@@ -8,6 +27,19 @@ prune: false
 
 # List of data sources to insert/update depending on what's available.
 datasources:
+  # --------------------------------------------------------
+  # Loki - Log Aggregation
+  # --------------------------------------------------------
+  # Purpose: Query structured logs from backend application
+  # URL: Internal DNS within same Railway project
+  # Default: Set as default datasource for Explore
+  #
+  # Correlation: Logs → Traces
+  # - Extracts trace_id from log lines via derived fields
+  # - Creates clickable links to view related traces in Tempo
+  #
+  # Example log format:
+  # {"timestamp":"2026-02-03T10:30:00Z","level":"info","message":"Request completed","trace_id":"abc123..."}
   - name: Loki
     type: loki
     access: direct
@@ -21,11 +53,30 @@ datasources:
     withCredentials:
     isDefault: true
     jsonData:
+      # Derived fields extract trace_id from logs for correlation
       derivedFields:
         - datasourceUid: grafana_tempo
           matcherRegex: "trace_id=(\\w+)"
           name: TraceID
           url: '$${__value.raw}'
+          # Alternative regex patterns for different log formats:
+          # matcherRegex: "\"trace_id\":\"([^\"]+)\""  # JSON logs
+          # matcherRegex: "traceID=([0-9a-f]+)"        # Key-value logs
+  # --------------------------------------------------------
+  # Prometheus - Short-term Metrics Storage
+  # --------------------------------------------------------
+  # Purpose: Query recent metrics (last 15 days)
+  # URL: Internal DNS within same Railway project
+  # Use case: Real-time monitoring, alerting, recent data queries
+  #
+  # Retention: 15 days local storage
+  # Remote Write: All metrics forwarded to Mimir for long-term storage
+  #
+  # Correlation: Metrics → Traces
+  # - Exemplars link histogram data points to trace IDs
+  # - Click on a metric spike to see related traces
+  #
+  # Note: For historical queries (>15 days), use Mimir datasource instead
   - name: Prometheus
     type: prometheus
     access: proxy
@@ -39,18 +90,41 @@ datasources:
     withCredentials:
     isDefault: false
     jsonData:
+      # Exemplars enable metrics → traces correlation
+      # When querying histograms, exemplars link data points to trace IDs
       exemplarTraceIdDestinations:
         - datasourceUid: grafana_tempo
           name: trace_id
+      httpMethod: POST
+      timeInterval: 15s
+  # --------------------------------------------------------
+  # Tempo - Distributed Tracing
+  # --------------------------------------------------------
+  # Purpose: Query traces for request flow analysis and debugging
+  # URL: Internal DNS within same Railway project
+  # Port: 3200 (query API, not 4318 which is for OTLP ingestion)
+  #
+  # Trace Storage: vParquet4 format for efficient TraceQL queries
+  # Retention: 48 hours
+  #
+  # Correlation Features:
+  # 1. Traces → Logs: Link to related logs by trace_id
+  # 2. Traces → Metrics: View metrics for the same time window
+  # 3. Service Map: Visualize service dependencies
+  # 4. Node Graph: View request flow between services
+  #
+  # Query Examples:
+  # - {service.name="gatewayz-api"} - All traces for service
+  # - {gen_ai.request.model="gpt-4"} - Traces for specific model
+  # - {http.response.status_code=500} - Error traces
+  # - {duration > 5s} - Slow requests
+  #
+  # NOTE: TEMPO_INTERNAL_URL is set in Dockerfile to http://tempo.railway.internal:3200
   - name: Tempo
     type: tempo
     access: proxy
     orgId: 1
     uid: grafana_tempo
-    # Tempo URL - Internal DNS for same-project access
-    # Grafana and Tempo are in the same Railway project (railway-grafana-stack)
-    # Port 3200 is Tempo's query API (not 4318 which is for ingestion)
-    # NOTE: TEMPO_INTERNAL_URL is set in Dockerfile to http://tempo.railway.internal:3200
     url: ${TEMPO_INTERNAL_URL}
     user:
     database:
@@ -59,26 +133,54 @@ datasources:
     withCredentials:
     isDefault: false
     jsonData:
+      # Traces → Logs correlation
+      # Enables "Logs for this span" button in trace view
       tracesToLogsV2:
         datasourceUid: 'grafana_loki'
-        spanStartTimeShift: '-1h'
-        spanEndTimeShift: '1h'
+        spanStartTimeShift: '-1h'  # Look for logs 1h before span start
+        spanEndTimeShift: '1h'     # Look for logs 1h after span end
         tags: ['service_name', 'compose_service']
-        filterByTraceID: true
+        filterByTraceID: true      # Filter logs by trace_id
         filterBySpanID: false
+        customQuery: true
+        query: '{service_name="$${__span.tags["service.name"]}"} |= "$${__span.traceId}"'
+
+      # Traces → Metrics correlation
+      # Enables "Metrics" tab in trace view showing related metrics
       tracesToMetrics:
-        datasourceUid: 'grafana_prometheus'
+        datasourceUid: 'grafana_mimir'  # Use Mimir for span metrics
         spanStartTimeShift: '-1h'
         spanEndTimeShift: '1h'
         tags:
           - key: 'service.name'
             value: 'service_name'
+          - key: 'gen_ai.request.model'
+            value: 'gen_ai_request_model'
+          - key: 'gatewayz.provider.name'
+            value: 'gatewayz_provider_name'
+        # Query span metrics for this trace's attributes
+        queries:
+          - name: 'Request Rate'
+            query: 'rate(traces_spanmetrics_calls_total{service_name="$${__span.tags["service.name"]}"}[5m])'
+          - name: 'Error Rate'
+            query: 'rate(traces_spanmetrics_calls_total{service_name="$${__span.tags["service.name"]}",status_code="ERROR"}[5m])'
+          - name: 'Duration'
+            query: 'histogram_quantile(0.95, rate(traces_spanmetrics_duration_seconds_bucket{service_name="$${__span.tags["service.name"]}"}[5m]))'
+
+      # Service Map: Visualize service dependencies
+      # Uses service graph metrics from Tempo's metrics generator
       serviceMap:
         datasourceUid: 'grafana_prometheus'
+
+      # Node Graph: Visualize request flow
       nodeGraph:
         enabled: true
+
+      # Search configuration
       search:
         hide: false
+
+      # Loki search integration
       lokiSearch:
         datasourceUid: 'grafana_loki'
   - name: Sentry
@@ -110,11 +212,35 @@ datasources:
     withCredentials:
     isDefault: false
 
-  # Mimir - Long-term metrics storage (Prometheus-compatible)
-  # Use this datasource for:
-  # - Historical queries (longer than Prometheus retention)
-  # - Consistent query results across page refreshes
-  # - Aggregated metrics from multiple Prometheus instances
+  # --------------------------------------------------------
+  # Mimir - Long-term Metrics Storage (PRIMARY FOR DASHBOARDS)
+  # --------------------------------------------------------
+  # Purpose: Query historical metrics and span metrics from traces
+  # URL: Internal DNS within same Railway project
+  # Retention: 30+ days (configurable)
+  #
+  # Use Mimir for:
+  # ✅ Historical queries (>15 days)
+  # ✅ Span metrics (traces_spanmetrics_*) from Tempo
+  # ✅ Model popularity dashboards
+  # ✅ Consistent query results across page refreshes
+  # ✅ High cardinality metrics
+  #
+  # Key Metrics Available:
+  # - traces_spanmetrics_calls_total: Request counts by model/provider
+  # - traces_spanmetrics_duration_seconds: Latency histograms
+  # - All Prometheus metrics (via remote write)
+  #
+  # Correlation: Metrics → Traces
+  # - Exemplars in histograms link back to trace IDs
+  # - Click on a latency spike to see the slow trace
+  #
+  # Why use Mimir instead of Prometheus:
+  # 1. Longer retention (30 days vs 15 days)
+  # 2. Receives span metrics directly from Tempo
+  # 3. Better performance for high cardinality queries
+  # 4. Consistent results (no local cache issues)
+  #
   # NOTE: MIMIR_INTERNAL_URL is set in Dockerfile to http://mimir.railway.internal:9009
   - name: Mimir
     type: prometheus
@@ -134,12 +260,22 @@ datasources:
       prometheusType: Mimir
       prometheusVersion: 2.11.0
       timeout: 60
+      timeInterval: 15s
       # REQUIRED: X-Scope-OrgID header for Mimir tenant identification
       # Even with multitenancy_enabled: false, Mimir requires this header
       # "anonymous" is the default tenant used when multi-tenancy is disabled
       httpHeaderName1: X-Scope-OrgID
+
+      # Exemplars enable metrics → traces correlation
       exemplarTraceIdDestinations:
         - datasourceUid: grafana_tempo
           name: traceId
+          # Also try these field names for exemplar trace IDs
+        - datasourceUid: grafana_tempo
+          name: trace_id
+
+      # Custom query hints for better UX
+      incrementalQuerying: true
+      incrementalQueryOverlapWindow: 10m
     secureJsonData:
       httpHeaderValue1: anonymous

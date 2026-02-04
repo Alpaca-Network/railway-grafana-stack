@@ -2,12 +2,20 @@
 
 This document provides **everything** the backend team needs to implement for full observability stack integration.
 
+## 🎯 Quick Start
+
+**NEW:** We've refactored the observability stack for transparent telemetry ingestion!
+
+- **For OpenTelemetry tracing integration**: See [OTLP Integration Guide](OTLP_INTEGRATION_GUIDE.md) ⭐ **START HERE**
+- **For architecture overview**: See [Transparent Telemetry Ingestion Architecture](../architecture/TRANSPARENT_TELEMETRY_INGESTION.md)
+- **For comprehensive backend requirements**: Continue reading this document
+
 ## 📋 Table of Contents
 
 1. [Required Endpoints](#required-endpoints)
 2. [Metrics to Export](#metrics-to-export)
 3. [Logging Integration](#logging-integration)
-4. [Tracing Integration](#tracing-integration)
+4. [Tracing Integration](#tracing-integration) - **See [OTLP_INTEGRATION_GUIDE.md](OTLP_INTEGRATION_GUIDE.md)**
 5. [Redis Integration](#redis-integration)
 6. [Provider Health Monitoring](#provider-health-monitoring)
 7. [Implementation Checklist](#implementation-checklist)
@@ -701,82 +709,122 @@ except ProviderError as e:
 
 ## 4. Tracing Integration
 
-### 4.1 Send Traces to Tempo
+### ⭐ NEW: Transparent Telemetry Ingestion
 
-**Tempo URL (HTTP):** `http://tempo.railway.internal:4318/v1/traces`
-**Tempo URL (gRPC):** `http://tempo.railway.internal:4317`
+We've completely refactored our tracing stack to provide transparent ingestion with automatic metrics generation!
 
-**Use OpenTelemetry for distributed tracing**
+**👉 [Read the complete OTLP Integration Guide](OTLP_INTEGRATION_GUIDE.md)**
+
+### Key Changes:
+
+1. **Semantic Conventions**: Now using OpenTelemetry Gen AI semantic conventions
+2. **Automatic Metrics**: Traces are automatically converted to metrics (no manual instrumentation needed)
+3. **Clear Attribute Requirements**: Documented required vs. optional trace attributes
+4. **Validation**: Built-in validation and monitoring for missing attributes
+5. **Better Documentation**: Step-by-step integration guide with examples
+
+### Quick Summary
+
+**Tempo Endpoints:**
+- **HTTP (recommended):** `http://tempo.railway.internal:4318/v1/traces`
+- **gRPC:** `http://tempo.railway.internal:4317`
+
+**Required Trace Attributes:**
+```python
+span.set_attribute("gen_ai.system", "openai")           # AI provider
+span.set_attribute("gen_ai.request.model", "gpt-4")     # Model name
+span.set_attribute("gen_ai.operation.name", "chat")     # Operation type
+span.set_attribute("http.response.status_code", 200)    # HTTP status
+```
+
+**What You Get Automatically:**
+- Request counts by model/provider
+- Latency percentiles (P50, P95, P99)
+- Error rates by model
+- Model popularity metrics
+- Provider health tracking
 
 ### 4.2 Implementation (Python FastAPI)
 
+**See [OTLP_INTEGRATION_GUIDE.md](OTLP_INTEGRATION_GUIDE.md) for complete implementation details.**
+
+Quick install:
 ```bash
-pip install opentelemetry-api opentelemetry-sdk opentelemetry-instrumentation-fastapi opentelemetry-exporter-otlp
+pip install opentelemetry-api opentelemetry-sdk opentelemetry-instrumentation-fastapi opentelemetry-exporter-otlp-proto-http
 ```
 
+Minimal example (see full guide for complete implementation):
 ```python
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.resources import Resource, SERVICE_NAME
 
-# Configure OpenTelemetry
-resource = Resource.create({"service.name": "gatewayz-api"})
-trace.set_tracer_provider(TracerProvider(resource=resource))
+# Configure with service name
+resource = Resource.create({SERVICE_NAME: "gatewayz-api"})
+provider = TracerProvider(resource=resource)
+trace.set_tracer_provider(provider)
 
-# Configure OTLP exporter to send to Tempo
+# OTLP exporter to Tempo
 otlp_exporter = OTLPSpanExporter(
     endpoint="http://tempo.railway.internal:4318/v1/traces"
 )
-
-# Add span processor
-trace.get_tracer_provider().add_span_processor(
-    BatchSpanProcessor(otlp_exporter)
-)
+provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
 
 # Auto-instrument FastAPI
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 app = FastAPI()
 FastAPIInstrumentor.instrument_app(app)
 
-# Get tracer for manual spans
-tracer = trace.get_tracer(__name__)
-
-# Manual span example
+# Set required attributes on spans
 @app.post("/v1/chat/completions")
 async def chat_completion(request: ChatRequest):
-    with tracer.start_as_current_span("model_inference") as span:
-        span.set_attribute("model", request.model)
-        span.set_attribute("provider", "openrouter")
+    span = trace.get_current_span()
 
-        with tracer.start_as_current_span("provider_api_call"):
-            result = await call_provider_api(request)
+    # REQUIRED attributes (following OpenTelemetry semantic conventions)
+    span.set_attribute("gen_ai.system", "openai")
+    span.set_attribute("gen_ai.request.model", request.model)
+    span.set_attribute("gen_ai.operation.name", "chat")
+    span.set_attribute("http.response.status_code", 200)
 
-        span.set_attribute("tokens_used", result.usage.total_tokens)
-        return result
+    # GatewayZ-specific attributes
+    span.set_attribute("gatewayz.provider.name", "openrouter")
+    span.set_attribute("gatewayz.customer.id", request.customer_id)
+
+    result = await call_provider_api(request)
+    return result
 ```
 
 ### 4.3 What to Trace
 
-**Trace these operations:**
-- HTTP requests (auto-instrumented)
+**Automatically traced (via auto-instrumentation):**
+- ✅ HTTP requests (FastAPI)
+- ✅ Database queries (if using supported ORM)
+- ✅ HTTP client calls (if using supported client)
+
+**Manually trace these operations:**
 - Model inference calls
 - Provider API calls
-- Database queries
 - Cache operations
-- External API calls
+- Business logic spans
 
-**Span Attributes to Include:**
+**Required Span Attributes (OpenTelemetry Gen AI Conventions):**
 ```python
-span.set_attribute("user_id", user_id)
-span.set_attribute("model", model_name)
-span.set_attribute("provider", provider_name)
-span.set_attribute("tokens_input", input_tokens)
-span.set_attribute("tokens_output", output_tokens)
-span.set_attribute("cost_usd", cost)
-span.set_attribute("cache_hit", cache_hit)
+# Required for automatic metrics generation
+span.set_attribute("gen_ai.system", "openai")              # AI provider
+span.set_attribute("gen_ai.request.model", "gpt-4")        # Model requested
+span.set_attribute("gen_ai.operation.name", "chat")        # Operation type
+span.set_attribute("http.response.status_code", 200)       # HTTP status
+
+# Recommended
+span.set_attribute("gen_ai.response.model", "gpt-4-0613")  # Actual model
+span.set_attribute("gen_ai.usage.input_tokens", 450)       # Input tokens
+span.set_attribute("gen_ai.usage.output_tokens", 123)      # Output tokens
+span.set_attribute("server.address", "api.openai.com")     # Provider endpoint
 ```
+
+**📚 Complete attribute reference**: See [OTLP_INTEGRATION_GUIDE.md](OTLP_INTEGRATION_GUIDE.md#required-trace-attributes)
 
 ---
 

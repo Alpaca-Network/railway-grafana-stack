@@ -1,5 +1,14 @@
+# ============================================================
+# Prometheus Configuration - Transparent Metrics Ingestion
+# ============================================================
+# Purpose: Scrape metrics from services and remote write to Mimir
+# Documentation: /docs/architecture/TRANSPARENT_TELEMETRY_INGESTION.md
+# Updated: 2026-02-03 - Refactored for transparency
+
 global:
-  scrape_interval: 15s # Default scrape interval
+  scrape_interval: 15s # Default scrape interval (can be overridden per job)
+  scrape_timeout: 10s
+  evaluation_interval: 15s # How often to evaluate recording/alerting rules
   external_labels:
     cluster: gatewayz-monitoring
     environment: ${ENVIRONMENT:-production}
@@ -18,45 +27,94 @@ global:
 #       timeout: 10s
 #       api_version: v2
 
-# Remote write to Mimir for long-term storage and consistent queries
-# This ensures metrics are not lost on Prometheus restart and provides
-# consistent data across page refreshes
+# ============================================================
+# Remote Write Configuration - Send Metrics to Mimir
+# ============================================================
+# Purpose: Forward all scraped metrics to Mimir for long-term storage
+# Why: Ensures metrics persist across Prometheus restarts and provides
+#      consistent query results in Grafana dashboards
+#
+# Mimir is a horizontally scalable Prometheus backend that:
+# - Stores metrics for 30+ days (vs Prometheus 15 days)
+# - Provides consistent query results across page refreshes
+# - Handles high cardinality metrics efficiently
+# - Supports query federation across multiple Prometheus instances
+#
 # NOTE: MIMIR_URL is substituted by entrypoint.sh at runtime
-# - Railway: Uses mimir.railway.internal:9009
-# - Local: Uses mimir:9009 (Docker Compose network)
+# - Railway: http://mimir.railway.internal:9009
+# - Local: http://mimir:9009 (Docker Compose network)
 remote_write:
   - url: MIMIR_URL/api/v1/push
     name: mimir-remote-write
     remote_timeout: 30s
+
     # REQUIRED: X-Scope-OrgID header for Mimir tenant identification
     # Even with multitenancy_enabled: false, Mimir requires this header
     # "anonymous" is the default tenant used when multi-tenancy is disabled
     headers:
       X-Scope-OrgID: anonymous
+
+    # Queue configuration for batching and reliability
     queue_config:
-      capacity: 10000
-      max_shards: 50
-      max_samples_per_send: 2000
-      batch_send_deadline: 5s
-      min_backoff: 30ms
-      max_backoff: 5s
+      capacity: 10000              # Max samples in queue before blocking
+      max_shards: 50               # Max concurrent shards for parallelism
+      max_samples_per_send: 2000   # Batch size per remote write request
+      batch_send_deadline: 5s      # Max time to wait before sending batch
+      min_backoff: 30ms            # Initial retry delay on failure
+      max_backoff: 5s              # Max retry delay on failure
+
     # Send metric metadata to Mimir for better query experience
+    # Metadata includes metric type (counter/gauge), help text, and units
     metadata_config:
       send: true
       send_interval: 1m
+
+    # Write relabeling (optional) - can be used to drop or rename metrics
+    # write_relabel_configs:
+    #   - source_labels: [__name__]
+    #     regex: 'expensive_metric_.*'
+    #     action: drop
 
 rule_files:
   - '/etc/prometheus/alert.rules.yml'
   - '/etc/prometheus/recording_rules_baselines.yml'
 
+# ============================================================
+# Scrape Configurations - Define Metric Collection Jobs
+# ============================================================
+# Each job defines a service to scrape metrics from
+# Metrics are collected at the scrape_interval and sent to Mimir via remote_write
+
 scrape_configs:
+  # --------------------------------------------------------
+  # Job: prometheus (self-monitoring)
+  # --------------------------------------------------------
+  # Scrapes Prometheus's own internal metrics for monitoring health
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+    metric_relabel_configs:
+      - source_labels: []
+        target_label: component
+        replacement: prometheus
 
-  # MERGED: Combined gatewayz_api and fastapi_backend (were duplicates)
-  # Production GatewayZ Backend API
+  # --------------------------------------------------------
+  # Job: gatewayz_production (Backend API Metrics)
+  # --------------------------------------------------------
+  # Scrapes application metrics from GatewayZ backend API
+  # Endpoint: /metrics (Prometheus format via prometheus-client)
+  #
+  # Expected Metrics:
+  # - fastapi_requests_total: Request counts by method, path, status
+  # - fastapi_requests_duration_seconds: Request latency histogram
+  # - model_inference_requests_total: AI model usage by model/provider
+  # - model_inference_duration_seconds: Model inference latency
+  # - tokens_used_total: Token consumption tracking
+  # - cache_hits_total / cache_misses_total: Cache effectiveness
+  #
   # NOTE: FASTAPI_TARGET and FASTAPI_SCHEME are substituted by entrypoint.sh
+  # - Railway: api.railway.internal:8000 (HTTP)
+  # - Production: api.gatewayz.ai (HTTPS)
   - job_name: 'gatewayz_production'
     scheme: FASTAPI_SCHEME
     metrics_path: '/metrics'
@@ -69,8 +127,21 @@ scrape_configs:
       - source_labels: []
         target_label: env
         replacement: production
+      - source_labels: []
+        target_label: component
+        replacement: backend_api
 
-  # Redis Exporter - scrapes Redis metrics from backend project
+  # --------------------------------------------------------
+  # Job: redis_exporter (Redis Performance Metrics)
+  # --------------------------------------------------------
+  # Scrapes Redis infrastructure metrics via redis_exporter
+  #
+  # Expected Metrics:
+  # - redis_connected_clients: Active client connections
+  # - redis_memory_used_bytes: Memory consumption
+  # - redis_commands_processed_total: Commands executed
+  # - redis_keyspace_hits_total / redis_keyspace_misses_total: Cache hit rate
+  #
   # NOTE: REDIS_EXPORTER_TARGET is substituted by entrypoint.sh at runtime
   # Since Redis Exporter is in a different Railway project (backend),
   # we use the public URL, not internal networking
@@ -85,6 +156,9 @@ scrape_configs:
       - source_labels: []
         target_label: component
         replacement: redis
+      - source_labels: []
+        target_label: env
+        replacement: production
 
   # Health Service Metrics Exporter
   - job_name: 'health_service_exporter'
@@ -94,8 +168,24 @@ scrape_configs:
     scrape_interval: 30s
     scrape_timeout: 10s
 
-  # GatewayZ Prometheus Data Metrics (Provider health, circuit breakers, etc.)
-  # This scrapes /prometheus/data/metrics for Grafana alerting
+  # --------------------------------------------------------
+  # Job: gatewayz_data_metrics_production (Provider Health Metrics)
+  # --------------------------------------------------------
+  # Scrapes provider health and circuit breaker metrics
+  # Endpoint: /prometheus/data/metrics (backend-specific metrics)
+  #
+  # Expected Metrics:
+  # - provider_availability: Provider up/down status (0 or 1)
+  # - provider_error_rate: Error rate per provider (0.0 to 1.0)
+  # - provider_response_time_seconds: Response time histogram by provider
+  # - gatewayz_provider_health_score: Composite health score (0.0 to 1.0)
+  # - gatewayz_circuit_breaker_state: Circuit breaker state by provider
+  #
+  # These metrics are used for:
+  # - Provider health dashboards
+  # - Alerting on provider failures
+  # - Automatic failover decisions
+  #
   # NOTE: FASTAPI_TARGET and FASTAPI_SCHEME are substituted by entrypoint.sh
   - job_name: 'gatewayz_data_metrics_production'
     scheme: FASTAPI_SCHEME
@@ -109,6 +199,9 @@ scrape_configs:
       - source_labels: []
         target_label: env
         replacement: production
+      - source_labels: []
+        target_label: component
+        replacement: backend_api
       - source_labels: []
         target_label: source
         replacement: prometheus_data
@@ -128,11 +221,36 @@ scrape_configs:
         target_label: component
         replacement: mimir
 
-  # Tempo - Distributed tracing with span metrics
-  # Scrapes span metrics generated from traces (model popularity, latency, etc.)
+  # --------------------------------------------------------
+  # Job: tempo (Span Metrics from Traces)
+  # --------------------------------------------------------
+  # Scrapes automatically-generated span metrics from Tempo
+  # These metrics are extracted from trace spans by Tempo's metrics_generator
+  #
+  # Generated Metrics (from traces):
+  # - traces_spanmetrics_calls_total: Request counts with full dimensions
+  #   Labels: service_name, span_name, gen_ai_request_model, gen_ai_system,
+  #           gatewayz_provider_name, http_response_status_code, etc.
+  #
+  # - traces_spanmetrics_duration_seconds: Latency histogram with full dimensions
+  #   Enables P50, P95, P99 latency queries per model/provider/customer
+  #
+  # - tempo_distributor_spans_received_total: Traces ingested (monitoring)
+  # - tempo_metrics_generator_spans_processed_total: Spans converted to metrics
+  # - tempo_metrics_generator_spans_discarded_total: Validation failures
+  #
+  # Why this matters:
+  # - Enables "Model Popularity" dashboard queries
+  # - Provides latency percentiles without querying raw traces
+  # - Automatically aggregates trace data into queryable metrics
+  # - Lower query latency than TraceQL for aggregate queries
+  #
+  # Configuration: See /tempo/tempo.yml metrics_generator section
+  # Documentation: /docs/architecture/TRANSPARENT_TELEMETRY_INGESTION.md
+  #
   # NOTE: TEMPO_TARGET is substituted by entrypoint.sh at runtime
-  # - Railway: Uses tempo.railway.internal:3200
-  # - Local: Uses tempo:3200 (Docker Compose network)
+  # - Railway: tempo.railway.internal:3200
+  # - Local: tempo:3200 (Docker Compose network)
   - job_name: 'tempo'
     scheme: http
     static_configs:
@@ -143,3 +261,6 @@ scrape_configs:
       - source_labels: []
         target_label: component
         replacement: tempo
+      - source_labels: []
+        target_label: env
+        replacement: production

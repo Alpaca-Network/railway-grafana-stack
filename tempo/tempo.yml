@@ -1,5 +1,8 @@
-# Tempo 2.6.1 - Configuration optimized for Railway
-# Updated: OpenLLMetry/Traceloop integration with span metrics
+# Tempo 2.6.1 - Transparent Telemetry Ingestion Configuration
+# Purpose: Ingest OTLP traces and automatically generate metrics for AI/ML workloads
+# Documentation: /docs/architecture/TRANSPARENT_TELEMETRY_INGESTION.md
+# Updated: 2026-02-03 - Refactored for transparency and semantic conventions
+
 stream_over_http_enabled: true
 
 server:
@@ -7,8 +10,15 @@ server:
   grpc_listen_port: 9095
   http_listen_address: "0.0.0.0"
   grpc_listen_address: "0.0.0.0"
+  log_level: info
 
-# OTLP receivers for trace ingestion
+# ============================================================
+# OTLP Receivers - Trace Ingestion Endpoints
+# ============================================================
+# Receives traces from backend via OpenTelemetry OTLP protocol
+# - gRPC endpoint: 0.0.0.0:4317 (binary protocol, lower latency)
+# - HTTP endpoint: 0.0.0.0:4318 (JSON/protobuf, easier debugging)
+# Backend should use: http://tempo.railway.internal:4318/v1/traces
 distributor:
   receivers:
     otlp:
@@ -17,7 +27,14 @@ distributor:
           endpoint: "0.0.0.0:4317"
         http:
           endpoint: "0.0.0.0:4318"
+  log_received_spans:
+    enabled: false  # Set to true for debugging trace ingestion
+    include_all_attributes: false
 
+# ============================================================
+# Ingester - Trace Storage
+# ============================================================
+# Temporarily stores traces before writing to long-term storage
 ingester:
   # Shorter block duration for faster trace visibility
   max_block_duration: 1m
@@ -26,9 +43,12 @@ ingester:
   # Complete blocks faster for search availability
   complete_block_timeout: 30s
 
-# Metrics Generator - Creates span metrics for Prometheus
-# This enables the traces_spanmetrics_* metrics for "most popular models" queries
-# Remote writes metrics to Mimir for long-term storage and querying
+# ============================================================
+# Metrics Generator - Automatic Span-to-Metrics Conversion
+# ============================================================
+# Extracts metrics from trace spans for model popularity, latency, and errors
+# Generated metrics: traces_spanmetrics_calls_total, traces_spanmetrics_duration_seconds
+# Remote writes to Mimir for long-term storage and querying
 metrics_generator:
   # Ring configuration for metrics generator (required for Tempo 2.6.1)
   ring:
@@ -38,6 +58,7 @@ metrics_generator:
     external_labels:
       source: tempo
       cluster: gatewayz
+      environment: production
     stale_duration: 15m
   storage:
     path: /var/tempo/generator/wal
@@ -46,30 +67,82 @@ metrics_generator:
       # Railway: http://mimir.railway.internal:9009/api/v1/push
       # Local: http://mimir:9009/api/v1/push
       - url: MIMIR_REMOTE_WRITE_URL
-        send_exemplars: true
+        send_exemplars: true  # Links metrics back to traces
+        queue_config:
+          capacity: 10000
+          max_shards: 20
+          batch_send_deadline: 5s
     remote_write_flush_deadline: 1m
   traces_storage:
     path: /var/tempo/generator/traces
   processor:
+    # --------------------------------------------------------
+    # Span Metrics Processor - Extract Dimensions from Traces
+    # --------------------------------------------------------
+    # Converts trace spans into Prometheus metrics with labels
+    # Each unique combination of dimensions creates a new time series
     span_metrics:
-      # Include LLM-specific dimensions for model popularity tracking
+      # ===== OpenTelemetry Semantic Convention Dimensions =====
+      # Standard attributes following OpenTelemetry Gen AI conventions
+      # Docs: https://opentelemetry.io/docs/specs/semconv/gen-ai/
       dimensions:
-        - service.name
-        - span_name
-        - gen_ai.request.model
-        - gen_ai.system
-        - ai.provider
-        - ai.model_id
-        - customer.id
-        - http.status_code
-      # Enable histogram for latency analysis
+        # Core service identification
+        - service.name                    # Service identifier (e.g., "gatewayz-api")
+        - span.name                       # Operation name (auto-captured)
+        - span.kind                       # Span type: CLIENT, SERVER, etc. (auto-captured)
+        - status.code                     # Span status: OK, ERROR (auto-captured)
+
+        # OpenTelemetry Gen AI attributes (REQUIRED)
+        - gen_ai.system                   # AI provider: openai, anthropic, vertex_ai
+        - gen_ai.request.model            # Requested model name
+        - gen_ai.response.model           # Actual model used (may differ)
+        - gen_ai.operation.name           # Operation: chat, completion, embedding
+
+        # HTTP attributes for error tracking
+        - http.response.status_code       # HTTP status: 200, 429, 500, etc.
+
+        # Server attributes for provider identification
+        - server.address                  # Provider API endpoint
+
+        # ===== GatewayZ-Specific Dimensions =====
+        # Custom attributes for GatewayZ business logic
+        - gatewayz.provider.name          # GatewayZ provider: openrouter, cerebras
+        - gatewayz.customer.id            # Customer/tenant identifier
+        - gatewayz.request.type           # Detailed request type: chat_completion, etc.
+
+        # Legacy compatibility (DEPRECATED - use gen_ai.* instead)
+        - ai.provider                     # Legacy: map to gatewayz.provider.name
+        - ai.model_id                     # Legacy: map to gen_ai.request.model
+
+      # Histogram configuration for latency percentiles (P50, P95, P99)
+      # Buckets optimized for AI/ML latency ranges (10ms to 60s)
+      histogram_buckets: [0.01, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30, 60]
+
+      # Enable target_info metric for metadata queries
       enable_target_info: true
-      histogram_buckets: [0.01, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
-    # Service graphs for dependency mapping
+
+      # Dimensions cache to improve performance with high cardinality
+      dimensions_cache_size: 5000
+
+      # Filter spans before processing (optional)
+      # filter_policies:
+      #   - include:
+      #       match_type: strict
+      #       attributes:
+      #         - key: gen_ai.operation.name
+      #           value: chat
+
+    # --------------------------------------------------------
+    # Service Graphs Processor - Dependency Mapping
+    # --------------------------------------------------------
+    # Creates service-to-service dependency metrics
     service_graphs:
       dimensions:
         - service.name
         - gen_ai.system
+        - gatewayz.provider.name
+      max_items: 10000
+      wait: 10s
 
 # Overrides for high-cardinality attributes
 overrides:
