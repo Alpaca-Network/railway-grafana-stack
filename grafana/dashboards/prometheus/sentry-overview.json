@@ -476,6 +476,269 @@
                 "type": "prometheus",
                 "uid": "grafana_prometheus"
             },
+            "description": "Detects backend deadlock/down state: HIGH when traffic exists but requests are timing out (499s). This indicates the backend is receiving requests but not responding (deadlock, resource exhaustion, or complete failure).\n\nSignal interpretation:\n- HEALTHY (green): Normal operation, low 499 rate\n- WARNING (yellow): Elevated 499 rate (>5%), potential issues\n- CRITICAL (red): High 499 rate (>20%) with traffic = backend likely deadlocked/down",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "mappings": [
+                        {
+                            "options": {
+                                "from": 0,
+                                "to": 0.05,
+                                "result": {
+                                    "color": "green",
+                                    "index": 0,
+                                    "text": "HEALTHY"
+                                }
+                            },
+                            "type": "range"
+                        },
+                        {
+                            "options": {
+                                "from": 0.05,
+                                "to": 0.2,
+                                "result": {
+                                    "color": "yellow",
+                                    "index": 1,
+                                    "text": "WARNING"
+                                }
+                            },
+                            "type": "range"
+                        },
+                        {
+                            "options": {
+                                "from": 0.2,
+                                "to": 1,
+                                "result": {
+                                    "color": "red",
+                                    "index": 2,
+                                    "text": "CRITICAL"
+                                }
+                            },
+                            "type": "range"
+                        }
+                    ],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 0.05
+                            },
+                            {
+                                "color": "red",
+                                "value": 0.2
+                            }
+                        ]
+                    },
+                    "unit": "percentunit",
+                    "min": 0,
+                    "max": 1
+                }
+            },
+            "gridPos": {
+                "h": 4,
+                "w": 6,
+                "x": 0,
+                "y": 5
+            },
+            "id": 82,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "area",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": true,
+                "textMode": "auto",
+                "wideLayout": true
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "grafana_prometheus"
+                    },
+                    "expr": "(\n  sum(rate(fastapi_requests_total{status_code=\"499\"}[5m])) \n  / \n  clamp_min(sum(rate(fastapi_requests_total[5m])), 0.001)\n) or vector(0)",
+                    "legendFormat": "499 Rate",
+                    "refId": "A"
+                }
+            ],
+            "title": "Backend Health Signal (499 Rate)",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "grafana_prometheus"
+            },
+            "description": "Time series showing the correlation between incoming traffic volume and 499 errors. When traffic is HIGH but 499s spike, it indicates backend deadlock or unresponsiveness.\n\nPattern to watch for:\n- Traffic (blue) increasing or steady\n- 499 Rate (red) spiking simultaneously\n= Backend is receiving requests but failing to respond",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 20,
+                        "gradientMode": "opacity",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "smooth",
+                        "lineWidth": 2,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "line+area"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "transparent",
+                                "value": null
+                            },
+                            {
+                                "color": "red",
+                                "value": 0.1
+                            }
+                        ]
+                    },
+                    "unit": "percentunit",
+                    "min": 0,
+                    "max": 1
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Traffic (normalized)"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "blue",
+                                    "mode": "fixed"
+                                }
+                            },
+                            {
+                                "id": "custom.axisPlacement",
+                                "value": "right"
+                            },
+                            {
+                                "id": "unit",
+                                "value": "reqps"
+                            },
+                            {
+                                "id": "custom.thresholdsStyle",
+                                "value": {
+                                    "mode": "off"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "499 Error Rate"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "red",
+                                    "mode": "fixed"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "gridPos": {
+                "h": 4,
+                "w": 6,
+                "x": 6,
+                "y": 5
+            },
+            "id": 83,
+            "options": {
+                "legend": {
+                    "calcs": [
+                        "mean",
+                        "max"
+                    ],
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "desc"
+                }
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "grafana_prometheus"
+                    },
+                    "expr": "(\n  sum(rate(fastapi_requests_total{status_code=\"499\"}[5m])) \n  / \n  clamp_min(sum(rate(fastapi_requests_total[5m])), 0.001)\n) or vector(0)",
+                    "legendFormat": "499 Error Rate",
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "grafana_prometheus"
+                    },
+                    "expr": "sum(rate(fastapi_requests_total[5m]))",
+                    "legendFormat": "Traffic (normalized)",
+                    "refId": "B"
+                }
+            ],
+            "title": "Traffic vs 499 Errors (Deadlock Detection)",
+            "type": "timeseries"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "grafana_prometheus"
+            },
             "fieldConfig": {
                 "defaults": {
                     "color": {
@@ -549,7 +812,7 @@
                 "h": 6,
                 "w": 12,
                 "x": 0,
-                "y": 5
+                "y": 9
             },
             "id": 8,
             "options": {
