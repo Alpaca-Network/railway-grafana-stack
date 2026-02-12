@@ -70,13 +70,12 @@ scrape_configs:
         target_label: env
         replacement: production
 
-  # Redis Exporter - scrapes Redis metrics from backend project
-  # NOTE: REDIS_EXPORTER_TARGET is substituted by entrypoint.sh at runtime
-  # Since Redis Exporter is in a different Railway project (backend),
-  # we use the public URL, not internal networking
-  # Set REDIS_EXPORTER_URL environment variable in Railway to the public URL
+  # Redis Exporter - scrapes Redis metrics
+  # NOTE: REDIS_EXPORTER_TARGET and REDIS_EXPORTER_SCHEME are substituted by entrypoint.sh
+  # Local: uses redis-exporter:9121 (Docker Compose service) with http
+  # Railway: uses public URL with https (set REDIS_EXPORTER_URL env var)
   - job_name: 'redis_exporter'
-    scheme: https
+    scheme: REDIS_EXPORTER_SCHEME
     static_configs:
       - targets: ['REDIS_EXPORTER_TARGET']
     scrape_interval: 30s

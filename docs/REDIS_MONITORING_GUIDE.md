@@ -5,7 +5,7 @@
 Your infrastructure has TWO Redis configurations in Prometheus:
 
 ### 1. Local Redis Exporter (Docker Compose)
-**Job Name:** `redis_exporter` (renamed from `redis`)
+**Job Name:** `redis_exporter`
 **Target:** `redis-exporter:9121`
 **Purpose:** Monitors a Redis instance via the `oliver006/redis_exporter` container
 
@@ -17,11 +17,23 @@ redis-exporter:
   ports:
     - "9121:9121"
   environment:
-    REDIS_ADDR: ${REDIS_ADDR:-redis-production-bb6d.up.railway.app:6379}
+    # Set REDIS_ADDR and REDIS_PASSWORD in your .env file
+    REDIS_ADDR: ${REDIS_ADDR:-redis:6379}
     REDIS_PASSWORD: ${REDIS_PASSWORD:-}
 ```
 
-**Status:** ✅ Working if Redis instance is accessible
+**Required .env Variables:**
+```bash
+# For Railway Redis
+REDIS_ADDR=redis-production-bb6d.up.railway.app:6379
+REDIS_PASSWORD=your_redis_password
+
+# For local Redis
+REDIS_ADDR=redis:6379
+# or for host machine: host.docker.internal:6379
+```
+
+**Status:** ✅ Working if Redis instance is accessible and env vars are set
 
 ---
 
@@ -331,11 +343,12 @@ Create sections in the dashboard:
 ### What Works Now:
 ✅ `redis-exporter` container is configured in docker-compose.yml
 ✅ Prometheus scrapes `redis_exporter` job at `:9121`
-✅ Your backend exports cache metrics (`cache_hits_total`, `cache_misses_total`, `cache_size_bytes`)
+✅ Redis-Cache.json dashboard has comprehensive panels for both Redis and application cache metrics
+✅ Entrypoint.sh auto-configures local vs Railway environments
 
-### What's Broken:
-❌ `redis_gateway` job tries to scrape Redis directly (commented out - won't work)
-❌ `gatewayz-redis-services.json` dashboard queries FastAPI instead of Redis
+### Prerequisites:
+⚠️ Set `REDIS_ADDR` and `REDIS_PASSWORD` in your `.env` file
+⚠️ For Railway: Set `REDIS_EXPORTER_URL` to your Redis Exporter's public URL
 
 ### Recommendations:
 
