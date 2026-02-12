@@ -202,40 +202,6 @@ services:
           cpus: '0.05'
           memory: 64M
 
-  # --------------------------------------------------------------------------
-  # Redis Exporter - Prometheus metrics for Redis monitoring
-  # --------------------------------------------------------------------------
-  # Connects to your Redis instance and exposes metrics at :9121/metrics
-  # Required for Redis Cache dashboard panels (redis_up, redis_memory_*, etc.)
-  redis-exporter:
-    image: oliver006/redis_exporter:latest
-    ports:
-      - "9121:9121"
-    environment:
-      # Redis connection - set these in your .env file
-      # For Railway Redis: redis-production-bb6d.up.railway.app:6379
-      # For local Redis: redis:6379 or host.docker.internal:6379
-      REDIS_ADDR: ${REDIS_ADDR:-redis:6379}
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:9121/metrics"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: 128M
-        reservations:
-          cpus: '0.05'
-          memory: 32M
-
   grafana:
     build:
       context: ./grafana
