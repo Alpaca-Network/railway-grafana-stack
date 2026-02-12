@@ -143,3 +143,34 @@ datasources:
           name: traceId
     secureJsonData:
       httpHeaderValue1: anonymous
+
+  # Redis - Direct Redis connection for cache monitoring
+  # Uses the Grafana Redis datasource plugin for direct queries
+  # Provides: INFO, SLOWLOG, CLIENT LIST, memory stats, key analysis
+  # Connection: shuttle.proxy.rlwy.net:10900 (Railway Redis)
+  - name: Redis
+    type: redis-datasource
+    access: proxy
+    orgId: 1
+    uid: grafana_redis
+    url: redis://${REDIS_HOST:-shuttle.proxy.rlwy.net}:${REDIS_PORT:-10900}
+    user:
+    database:
+    basicAuth: false
+    basicAuthUser:
+    withCredentials: false
+    isDefault: false
+    jsonData:
+      # Client name shown in Redis CLIENT LIST
+      client: grafana
+      # Connection timeout in seconds
+      timeout: 10
+      # Connection pool size
+      poolSize: 5
+      # Ping interval for keepalive (seconds)
+      pingInterval: 0
+      # Use TLS for connection (Railway Redis typically uses TLS)
+      tlsAuth: false
+    secureJsonData:
+      # Redis password - set REDIS_PASSWORD in environment
+      password: ${REDIS_PASSWORD:-}

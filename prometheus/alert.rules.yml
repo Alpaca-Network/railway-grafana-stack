@@ -94,6 +94,36 @@ groups:
           description: "Service availability has dropped below 99.5% SLO target. Error budget is being consumed rapidly."
           dashboard: "https://grafana.gatewayz.ai/d/executive-overview-v1/executive-overview"
 
+      # -----------------------------------------------------------------------
+      # Alert: Backend Deadlock / Unresponsive
+      # Reason: High 499 rate with traffic indicates backend is receiving requests
+      #         but not responding (deadlock, resource exhaustion, thread starvation)
+      # Action: Immediately restart backend, check for deadlocks, memory/CPU issues
+      # Note: 499 = client closed connection before server responded (timeout)
+      # -----------------------------------------------------------------------
+      - alert: BackendDeadlock
+        expr: |
+          (
+            (
+              sum(rate(fastapi_requests_total{status_code="499"}[5m]))
+              /
+              clamp_min(sum(rate(fastapi_requests_total[5m])), 0.001)
+            ) > 0.2
+          )
+          and
+          (
+            sum(rate(fastapi_requests_total[5m])) > 0.1
+          )
+        for: 2m
+        labels:
+          severity: critical
+          component: api
+          runbook: "Backend unresponsive - restart immediately, check for deadlocks"
+        annotations:
+          summary: "Backend Deadlock Detected: {{ $value | humanizePercentage }} requests timing out"
+          description: "More than 20% of requests are returning 499 (client timeout) while traffic is present. This indicates the backend is receiving requests but not responding - likely deadlocked, out of memory, or experiencing thread starvation. Immediate restart recommended."
+          dashboard: "https://grafana.gatewayz.ai/d/sentry_ptl_v1/sentry-monitoring-p-t-l-replacement"
+
   # ==========================================================================
   # GROUP 2: API PERFORMANCE
   # Purpose: Detect latency degradation before it impacts users significantly

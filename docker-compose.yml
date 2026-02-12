@@ -225,7 +225,7 @@ services:
       - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD:-yourpassword123}
       - GF_DEFAULT_INSTANCE_NAME=Grafana
-      - GF_INSTALL_PLUGINS=grafana-simple-json-datasource,grafana-piechart-panel,grafana-worldmap-panel,grafana-clock-panel,grafana-sentry-datasource
+      - GF_INSTALL_PLUGINS=grafana-simple-json-datasource,grafana-piechart-panel,grafana-worldmap-panel,grafana-clock-panel,grafana-sentry-datasource,redis-datasource
       # Datasource internal URLs
       # Local: uses Docker service names (docker-compose network)
       # Railway: set these to *.railway.internal in Railway environment variables
@@ -234,6 +234,10 @@ services:
       - TEMPO_INTERNAL_URL=${TEMPO_INTERNAL_URL:-http://tempo:3200}
       - MIMIR_INTERNAL_URL=${MIMIR_INTERNAL_URL:-http://mimir:9009}
       - API_BASE_URL=${API_BASE_URL:-https://api.gatewayz.ai}
+      # Redis connection for direct Grafana queries
+      - REDIS_HOST=${REDIS_HOST:-shuttle.proxy.rlwy.net}
+      - REDIS_PORT=${REDIS_PORT:-10900}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
       # Email/SMTP Configuration for Alerts
       # Use port 465 (SSL) for cloud platforms, 587 (STARTTLS) for local
       - GF_SMTP_ENABLED=true
