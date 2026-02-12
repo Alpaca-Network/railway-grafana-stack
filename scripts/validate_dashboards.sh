@@ -160,7 +160,7 @@ validate_datasource_uids() {
     local datasources=$(jq -r '.panels[]?.datasource?.uid // empty' "$file" 2>/dev/null | sort | uniq)
 
     # Must match provisioned datasource UIDs in grafana/datasources/datasources.yml
-    local valid_uids=("grafana_prometheus" "grafana_loki" "grafana_tempo" "-- Grafana --" "grafana")
+    local valid_uids=("grafana_prometheus" "grafana_loki" "grafana_tempo" "grafana_mimir" "-- Grafana --" "grafana")
 
     if [[ -n "$datasources" ]]; then
         while IFS= read -r ds_uid; do
