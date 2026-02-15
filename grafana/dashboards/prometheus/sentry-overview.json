@@ -33,7 +33,7 @@
             "url": "/d/redis-cache-monitoring/redis-cache-monitoring"
         }
     ],
-    "liveNow": false,
+    "liveNow": true,
     "panels": [
         {
             "collapsed": false,
@@ -1034,7 +1034,7 @@
                         "type": "loki",
                         "uid": "grafana_loki"
                     },
-                    "expr": "{compose_service=\"fastapi-backend\"} |~ \"(?i)(error|exception|traceback|critical|fatal)\" !~ \"(?i)(healthcheck|metrics|favicon)\"",
+                    "expr": "{service=\"gatewayz-api\"} |~ \"(?i)(error|exception|traceback|critical|fatal)\" !~ \"(?i)(healthcheck|metrics|favicon)\"",
                     "legendFormat": "",
                     "refId": "A"
                 }
@@ -3265,6 +3265,222 @@
             ],
             "title": "Provider Response Time P95",
             "type": "timeseries"
+        },
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 89
+            },
+            "id": 90,
+            "panels": [],
+            "title": "HTTP Logs & Live Telemetry",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "loki",
+                "uid": "grafana_loki"
+            },
+            "description": "Live HTTP request volume from application logs, broken down by log level. Gradient fill shows traffic intensity over time — essential for real-time telemetry visibility.",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "Log Volume",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 45,
+                        "gradientMode": "scheme",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "smooth",
+                        "lineWidth": 2,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "normal"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 50
+                            },
+                            {
+                                "color": "red",
+                                "value": 200
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "INFO"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "semi-dark-green",
+                                    "mode": "fixed"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "WARNING"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "semi-dark-yellow",
+                                    "mode": "fixed"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "ERROR"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "semi-dark-red",
+                                    "mode": "fixed"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "DEBUG"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "semi-dark-blue",
+                                    "mode": "fixed"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 24,
+                "x": 0,
+                "y": 90
+            },
+            "id": 91,
+            "options": {
+                "legend": {
+                    "calcs": [
+                        "sum",
+                        "mean"
+                    ],
+                    "displayMode": "table",
+                    "placement": "right",
+                    "showLegend": true,
+                    "sortBy": "Total",
+                    "sortDesc": true
+                },
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "desc"
+                }
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "loki",
+                        "uid": "grafana_loki"
+                    },
+                    "expr": "sum by (level) (count_over_time({service=\"gatewayz-api\"} |~ \"(GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD)\\\\s+\" [$__auto]))",
+                    "legendFormat": "{{level}}",
+                    "refId": "A"
+                }
+            ],
+            "title": "HTTP Request Log Volume by Level (Live)",
+            "type": "timeseries"
+        },
+        {
+            "datasource": {
+                "type": "loki",
+                "uid": "grafana_loki"
+            },
+            "description": "Live stream of HTTP request logs from the GatewayZ API. Shows method, path, status code, and response time in real-time.",
+            "gridPos": {
+                "h": 10,
+                "w": 24,
+                "x": 0,
+                "y": 98
+            },
+            "id": 92,
+            "options": {
+                "dedupStrategy": "none",
+                "enableLogDetails": true,
+                "prettifyLogMessage": true,
+                "showCommonLabels": false,
+                "showLabels": true,
+                "showTime": true,
+                "sortOrder": "Descending",
+                "wrapLogMessage": true
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "loki",
+                        "uid": "grafana_loki"
+                    },
+                    "expr": "{service=\"gatewayz-api\"} |~ \"(GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD)\\\\s+\" !~ \"(?i)(healthcheck|metrics|favicon|/health|/ready)\"",
+                    "legendFormat": "",
+                    "refId": "A"
+                }
+            ],
+            "title": "Live HTTP Request Logs",
+            "type": "logs"
         }
     ],
     "refresh": "30s",
