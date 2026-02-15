@@ -46,581 +46,6 @@
     {
       "collapsed": false,
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 2 },
-      "id": 400,
-      "panels": [],
-      "title": "Backend Uptime & Ecosystem Health",
-      "type": "row"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-      "description": "Current status of the GatewayZ backend service. GREEN = UP, RED = DOWN.",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [
-            {
-              "options": {
-                "0": { "color": "red", "index": 1, "text": "DOWN" },
-                "1": { "color": "green", "index": 0, "text": "UP" }
-              },
-              "type": "value"
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "red", "value": null },
-              { "color": "green", "value": 1 }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 3 },
-      "id": 401,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-          "expr": "up{job=\"gatewayz_production\"}",
-          "legendFormat": "Backend",
-          "refId": "A"
-        }
-      ],
-      "title": "Backend Status",
-      "type": "stat"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-      "description": "Current status of Prometheus metrics collection.",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [
-            {
-              "options": {
-                "0": { "color": "red", "index": 1, "text": "DOWN" },
-                "1": { "color": "green", "index": 0, "text": "UP" }
-              },
-              "type": "value"
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "red", "value": null },
-              { "color": "green", "value": 1 }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 3 },
-      "id": 402,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-          "expr": "up{job=\"prometheus\"}",
-          "legendFormat": "Prometheus",
-          "refId": "A"
-        }
-      ],
-      "title": "Prometheus",
-      "type": "stat"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-      "description": "Current status of Mimir long-term metrics storage.",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [
-            {
-              "options": {
-                "0": { "color": "red", "index": 1, "text": "DOWN" },
-                "1": { "color": "green", "index": 0, "text": "UP" }
-              },
-              "type": "value"
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "red", "value": null },
-              { "color": "green", "value": 1 }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 3 },
-      "id": 403,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-          "expr": "up{job=\"mimir\"}",
-          "legendFormat": "Mimir",
-          "refId": "A"
-        }
-      ],
-      "title": "Mimir",
-      "type": "stat"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-      "description": "Current status of Tempo distributed tracing service.",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [
-            {
-              "options": {
-                "0": { "color": "red", "index": 1, "text": "DOWN" },
-                "1": { "color": "green", "index": 0, "text": "UP" }
-              },
-              "type": "value"
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "red", "value": null },
-              { "color": "green", "value": 1 }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 3 },
-      "id": 404,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-          "expr": "up{job=\"tempo\"}",
-          "legendFormat": "Tempo",
-          "refId": "A"
-        }
-      ],
-      "title": "Tempo",
-      "type": "stat"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-      "description": "Current status of Redis cache.",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [
-            {
-              "options": {
-                "0": { "color": "red", "index": 1, "text": "DOWN" },
-                "1": { "color": "green", "index": 0, "text": "UP" }
-              },
-              "type": "value"
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "red", "value": null },
-              { "color": "green", "value": 1 }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 3 },
-      "id": 405,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-          "expr": "redis_up",
-          "legendFormat": "Redis",
-          "refId": "A"
-        }
-      ],
-      "title": "Redis",
-      "type": "stat"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-      "description": "Backend uptime percentage over the last 24 hours.",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "red", "value": null },
-              { "color": "yellow", "value": 95 },
-              { "color": "green", "value": 99 }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 3 },
-      "id": 406,
-      "options": {
-        "minVizHeight": 75,
-        "minVizWidth": 75,
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["mean"], "fields": "", "values": false },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "sizing": "auto"
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-          "expr": "avg_over_time(up{job=\"gatewayz_production\"}[24h]) * 100",
-          "legendFormat": "Uptime %",
-          "refId": "A"
-        }
-      ],
-      "title": "Backend Uptime (24h)",
-      "type": "gauge"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-      "description": "Backend and observability stack uptime over time. Shows when services were up (1) or down (0).",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "Status",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 30,
-            "gradientMode": "opacity",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-            "insertNulls": false,
-            "lineInterpolation": "stepAfter",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
-          },
-          "mappings": [
-            {
-              "options": {
-                "0": { "color": "red", "index": 1, "text": "DOWN" },
-                "1": { "color": "green", "index": 0, "text": "UP" }
-              },
-              "type": "value"
-            }
-          ],
-          "max": 1,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "red", "value": null },
-              { "color": "green", "value": 1 }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": { "id": "byName", "options": "Backend" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Prometheus" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Mimir" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Tempo" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "purple", "mode": "fixed" } }]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Redis" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
-          }
-        ]
-      },
-      "gridPos": { "h": 8, "w": 16, "x": 0, "y": 7 },
-      "id": 407,
-      "options": {
-        "legend": { "calcs": ["mean", "min"], "displayMode": "table", "placement": "right", "showLegend": true },
-        "tooltip": { "mode": "multi", "sort": "desc" }
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-          "expr": "up{job=\"gatewayz_production\"}",
-          "legendFormat": "Backend",
-          "refId": "A"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-          "expr": "up{job=\"prometheus\"}",
-          "legendFormat": "Prometheus",
-          "refId": "B"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-          "expr": "up{job=\"mimir\"}",
-          "legendFormat": "Mimir",
-          "refId": "C"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-          "expr": "up{job=\"tempo\"}",
-          "legendFormat": "Tempo",
-          "refId": "D"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-          "expr": "redis_up",
-          "legendFormat": "Redis",
-          "refId": "E"
-        }
-      ],
-      "title": "Ecosystem Uptime Over Time",
-      "type": "timeseries"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-      "description": "Downtime incidents detected - periods where backend was unreachable.",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 1 },
-              { "color": "red", "value": 5 }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 7 },
-      "id": 408,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-          "expr": "count_over_time((up{job=\"gatewayz_production\"} == 0)[24h:1m])",
-          "legendFormat": "Downtime Minutes",
-          "refId": "A"
-        }
-      ],
-      "title": "Downtime (24h)",
-      "type": "stat"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-      "description": "Number of successful scrapes from the backend in the last hour.",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "red", "value": null },
-              { "color": "yellow", "value": 100 },
-              { "color": "green", "value": 200 }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 7 },
-      "id": 409,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-          "expr": "increase(up{job=\"gatewayz_production\"}[1h])",
-          "legendFormat": "Scrapes",
-          "refId": "A"
-        }
-      ],
-      "title": "Health Checks (1h)",
-      "type": "stat"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-      "description": "Backend error rate (5xx responses) - key indicator of backend health issues.",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 0.01 },
-              { "color": "red", "value": 0.05 }
-            ]
-          },
-          "unit": "percentunit"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 11 },
-      "id": 410,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "showPercentChange": true,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-          "expr": "sum(rate(fastapi_requests_total{status_code=~\"5..\"}[5m])) / sum(rate(fastapi_requests_total[5m])) or vector(0)",
-          "legendFormat": "Error Rate",
-          "refId": "A"
-        }
-      ],
-      "title": "Backend Error Rate",
-      "type": "stat"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-      "description": "Current request throughput - indicates backend is actively serving requests.",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "red", "value": null },
-              { "color": "yellow", "value": 0.1 },
-              { "color": "green", "value": 1 }
-            ]
-          },
-          "unit": "reqps"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 11 },
-      "id": 411,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "showPercentChange": true,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-          "expr": "sum(rate(fastapi_requests_total[5m]))",
-          "legendFormat": "Throughput",
-          "refId": "A"
-        }
-      ],
-      "title": "Request Rate",
-      "type": "stat"
-    },
-    {
-      "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 15 },
       "id": 200,
       "panels": [],
       "title": "Span Metrics Overview (RED)",
@@ -643,7 +68,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 16 },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 3 },
       "id": 201,
       "options": {
         "colorMode": "background",
@@ -683,7 +108,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 16 },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 3 },
       "id": 202,
       "options": {
         "colorMode": "value",
@@ -726,7 +151,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 16 },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 3 },
       "id": 203,
       "options": {
         "colorMode": "value",
@@ -769,7 +194,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 16 },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 3 },
       "id": 204,
       "options": {
         "colorMode": "value",
@@ -831,7 +256,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 7 },
       "id": 205,
       "options": {
         "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right", "showLegend": true },
@@ -887,7 +312,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 7 },
       "id": 206,
       "options": {
         "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right", "showLegend": true },
@@ -943,7 +368,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 28 },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 15 },
       "id": 207,
       "options": {
         "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right", "showLegend": true },
@@ -964,7 +389,7 @@
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 36 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
       "id": 300,
       "panels": [],
       "title": "AI Provider & Model Performance (from Span Metrics)",
@@ -1007,7 +432,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 37 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
       "id": 301,
       "options": {
         "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right", "showLegend": true },
@@ -1063,7 +488,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 37 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
       "id": 302,
       "options": {
         "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right", "showLegend": true },
@@ -1119,7 +544,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 45 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 32 },
       "id": 303,
       "options": {
         "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right", "showLegend": true },
@@ -1175,7 +600,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 45 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 32 },
       "id": 304,
       "options": {
         "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right", "showLegend": true },
@@ -1231,7 +656,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 53 },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 40 },
       "id": 305,
       "options": {
         "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right", "showLegend": true },
@@ -1252,7 +677,7 @@
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 61 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 48 },
       "id": 1,
       "panels": [],
       "title": "Trace Investigation",
@@ -1261,7 +686,7 @@
     {
       "datasource": { "type": "tempo", "uid": "grafana_tempo" },
       "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 62 },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 49 },
       "id": 2,
       "options": {},
       "targets": [
@@ -1278,7 +703,7 @@
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 72 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 59 },
       "id": 10,
       "panels": [],
       "title": "Error Investigation",
@@ -1287,7 +712,7 @@
     {
       "datasource": { "type": "tempo", "uid": "grafana_tempo" },
       "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 73 },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 60 },
       "id": 11,
       "options": {},
       "targets": [
@@ -1305,7 +730,7 @@
     {
       "datasource": { "type": "tempo", "uid": "grafana_tempo" },
       "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 73 },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 60 },
       "id": 12,
       "options": {},
       "targets": [
@@ -1322,7 +747,7 @@
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 83 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 70 },
       "id": 20,
       "panels": [],
       "title": "Latency Breakdown",
@@ -1331,7 +756,7 @@
     {
       "datasource": { "type": "tempo", "uid": "grafana_tempo" },
       "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 10, "w": 8, "x": 0, "y": 84 },
+      "gridPos": { "h": 10, "w": 8, "x": 0, "y": 71 },
       "id": 21,
       "options": {},
       "targets": [
@@ -1349,7 +774,7 @@
     {
       "datasource": { "type": "tempo", "uid": "grafana_tempo" },
       "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 10, "w": 8, "x": 8, "y": 84 },
+      "gridPos": { "h": 10, "w": 8, "x": 8, "y": 71 },
       "id": 22,
       "options": {},
       "targets": [
@@ -1367,7 +792,7 @@
     {
       "datasource": { "type": "tempo", "uid": "grafana_tempo" },
       "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 10, "w": 8, "x": 16, "y": 84 },
+      "gridPos": { "h": 10, "w": 8, "x": 16, "y": 71 },
       "id": 23,
       "options": {},
       "targets": [
@@ -1384,7 +809,7 @@
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 94 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 81 },
       "id": 30,
       "panels": [],
       "title": "AI Model Inference Traces",
@@ -1393,7 +818,7 @@
     {
       "datasource": { "type": "tempo", "uid": "grafana_tempo" },
       "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 95 },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 82 },
       "id": 31,
       "options": {},
       "targets": [
@@ -1411,7 +836,7 @@
     {
       "datasource": { "type": "tempo", "uid": "grafana_tempo" },
       "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 95 },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 82 },
       "id": 32,
       "options": {},
       "targets": [
@@ -1429,7 +854,7 @@
     {
       "datasource": { "type": "tempo", "uid": "grafana_tempo" },
       "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 105 },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 92 },
       "id": 33,
       "options": {},
       "targets": [
@@ -1446,7 +871,7 @@
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 115 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 102 },
       "id": 40,
       "panels": [],
       "title": "Service Dependencies",
@@ -1455,7 +880,7 @@
     {
       "datasource": { "type": "tempo", "uid": "grafana_tempo" },
       "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 116 },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 103 },
       "id": 41,
       "options": {},
       "targets": [
@@ -1473,7 +898,7 @@
     {
       "datasource": { "type": "tempo", "uid": "grafana_tempo" },
       "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 116 },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 103 },
       "id": 42,
       "options": {},
       "targets": [
