@@ -12,7 +12,7 @@
       }
     ]
   },
-  "description": "Grafana Mimir - Long-term metrics storage for GatewayZ. Monitors ingestion, storage, queries, and component health.",
+  "description": "Grafana Mimir - Long-term metrics storage for GatewayZ. Monitors ingestion pipeline health, storage capacity, query performance, and Tempo span metrics.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -43,134 +43,46 @@
   ],
   "panels": [
     {
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
-      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
-      "id": 100,
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 2, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
       "options": {
         "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false },
-        "content": "# Grafana Mimir - Long-term Metrics Storage\nMonitors ingestion rates, storage capacity, query performance, and component health. Prometheus and Tempo both remote-write metrics to Mimir for 30-day retention with consistent query results.",
+        "content": "# Grafana Mimir - Long-term Metrics Storage\nMonitors the full data pipeline: **Prometheus** scrapes metrics -> **remote writes** to Mimir -> **Tempo** generates span metrics -> writes to Mimir. 30-day retention with consistent query results.",
         "mode": "markdown"
       },
       "pluginVersion": "11.5.2",
       "title": "",
+      "transparent": true,
       "type": "text"
     },
+
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 3 },
-      "id": 1,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 2 },
+      "id": 10,
       "panels": [],
-      "title": "Overview",
+      "title": "Pipeline Health",
       "type": "row"
     },
     {
       "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "red", "value": 80 }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
-      "id": 104,
-      "options": {
-        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
-        "tooltip": { "hideZeros": false, "mode": "single", "sort": "none" }
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-          "editorMode": "code",
-          "expr": "avg(traffic:requests_per_second:rate7d{})",
-          "interval": "",
-          "legendFormat": "Requests/s (7d avg)",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Traffic - Requests per Second (7 Day Average)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-      "fieldConfig": {
-        "defaults": {
           "color": { "mode": "thresholds" },
           "mappings": [
-            {
-              "options": {
-                "0": { "color": "red", "index": 0, "text": "DOWN" },
-                "1": { "color": "green", "index": 1, "text": "UP" }
-              },
-              "type": "value"
-            }
+            { "options": { "0": { "color": "red", "text": "DOWN" }, "1": { "color": "green", "text": "UP" } }, "type": "value" }
           ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "red", "value": null },
-              { "color": "green", "value": 1 }
-            ]
-          }
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 4 },
-      "id": 61,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 3 },
+      "id": 11,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true },
       "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "expr": "up{job=\"prometheus\"}",
-          "legendFormat": "Prometheus",
-          "refId": "A"
-        }
-      ],
-      "title": "Prometheus Status",
+      "targets": [{ "expr": "up{job=\"prometheus\"}", "legendFormat": "Prometheus", "refId": "A" }],
+      "title": "Prometheus",
       "type": "stat"
     },
     {
@@ -179,46 +91,18 @@
         "defaults": {
           "color": { "mode": "thresholds" },
           "mappings": [
-            {
-              "options": {
-                "0": { "color": "red", "index": 0, "text": "DOWN" },
-                "1": { "color": "green", "index": 1, "text": "UP" }
-              },
-              "type": "value"
-            }
+            { "options": { "0": { "color": "red", "text": "DOWN" }, "1": { "color": "green", "text": "UP" } }, "type": "value" }
           ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "red", "value": null },
-              { "color": "green", "value": 1 }
-            ]
-          }
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 4 },
-      "id": 66,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 3 },
+      "id": 12,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true },
       "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "expr": "up{job=\"mimir\"}",
-          "legendFormat": "Mimir",
-          "refId": "A"
-        }
-      ],
-      "title": "Mimir Status",
+      "targets": [{ "expr": "up{job=\"mimir\"}", "legendFormat": "Mimir", "refId": "A" }],
+      "title": "Mimir",
       "type": "stat"
     },
     {
@@ -227,37 +111,55 @@
         "defaults": {
           "color": { "mode": "thresholds" },
           "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null }
-            ]
-          },
+          "max": 1, "min": 0,
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 0.95 }, { "color": "green", "value": 0.99 }] },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 3 },
+      "id": 13,
+      "options": { "colorMode": "background", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showPercentChange": true, "textMode": "auto", "wideLayout": true },
+      "pluginVersion": "11.5.2",
+      "targets": [{ "expr": "1 - (sum(rate(prometheus_remote_storage_samples_failed_total{remote_name=\"mimir-remote-write\"}[5m])) / sum(rate(prometheus_remote_storage_samples_total{remote_name=\"mimir-remote-write\"}[5m]))) or vector(1)", "legendFormat": "Success Rate", "refId": "A" }],
+      "title": "Ingestion Success Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 50000 }, { "color": "red", "value": 100000 }] },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 4 },
-      "id": 64,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 3 },
+      "id": 14,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showPercentChange": true, "textMode": "auto", "wideLayout": true },
       "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "expr": "sum(prometheus_remote_storage_shards{remote_name=\"mimir-remote-write\"})",
-          "legendFormat": "Active Shards",
-          "refId": "A"
-        }
-      ],
+      "targets": [{ "expr": "sum(cortex_ingester_active_series{job=\"mimir\"}) or vector(0)", "legendFormat": "Active Series", "refId": "A" }],
+      "title": "Active Series",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 3 },
+      "id": 15,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true },
+      "pluginVersion": "11.5.2",
+      "targets": [{ "expr": "sum(prometheus_remote_storage_shards{remote_name=\"mimir-remote-write\"})", "legendFormat": "Shards", "refId": "A" }],
       "title": "Remote Write Shards",
       "type": "stat"
     },
@@ -267,634 +169,354 @@
         "defaults": {
           "color": { "mode": "thresholds" },
           "mappings": [],
-          "max": 1,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 0.01 },
-              { "color": "red", "value": 0.1 }
-            ]
-          },
-          "unit": "percentunit"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 8 },
-      "id": 62,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "expr": "sum(rate(prometheus_remote_storage_samples_failed_total{remote_name=\"mimir-remote-write\"}[5m])) / sum(rate(prometheus_remote_storage_samples_total{remote_name=\"mimir-remote-write\"}[5m])) or vector(0)",
-          "legendFormat": "Failure Rate",
-          "refId": "A"
-        }
-      ],
-      "title": "Remote Write Failure Rate",
-      "type": "stat"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 50000 },
-              { "color": "red", "value": 100000 }
-            ]
-          },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 8 },
-      "id": 67,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 3 },
+      "id": 16,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true },
       "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "expr": "sum(cortex_ingester_active_series{job=\"mimir\"}) or vector(0)",
-          "legendFormat": "Active Series",
-          "refId": "A"
-        }
-      ],
-      "title": "Active Series",
+      "targets": [{ "expr": "sum(cortex_bucket_blocks_count{job=\"mimir\"}) or vector(0)", "legendFormat": "Blocks", "refId": "A" }],
+      "title": "Storage Blocks",
       "type": "stat"
     },
+
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 12 },
-      "id": 50,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 7 },
+      "id": 100,
       "panels": [],
-      "title": "Mimir Ingestion Pipeline",
+      "title": "Ingestion Pipeline",
       "type": "row"
     },
     {
       "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-      "description": "Rate of samples being ingested into Mimir from all sources (Prometheus remote write + Tempo span metrics)",
+      "description": "Samples received by Mimir's distributor vs successfully ingested. A gap indicates dropped samples.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "samples/s",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 20,
-            "gradientMode": "none",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-            "insertNulls": false,
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [{ "color": "green", "value": null }]
-          },
+          "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisLabel": "samples/s", "drawStyle": "line", "fillOpacity": 20, "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never", "stacking": { "group": "A", "mode": "none" } },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 13 },
-      "id": 51,
-      "options": {
-        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "hideZeros": false, "mode": "multi", "sort": "desc" }
-      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 101,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "pluginVersion": "11.5.2",
       "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-          "expr": "sum(rate(cortex_distributor_received_samples_total{job=\"mimir\"}[5m]))",
-          "legendFormat": "Samples Received",
-          "refId": "A"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-          "expr": "sum(rate(cortex_ingester_ingested_samples_total{job=\"mimir\"}[5m]))",
-          "legendFormat": "Samples Ingested",
-          "refId": "B"
-        }
+        { "expr": "sum(rate(cortex_distributor_received_samples_total{job=\"mimir\"}[5m]))", "legendFormat": "Received", "refId": "A" },
+        { "expr": "sum(rate(cortex_ingester_ingested_samples_total{job=\"mimir\"}[5m]))", "legendFormat": "Ingested", "refId": "B" }
       ],
-      "title": "Distributor: Samples Received vs Ingested",
+      "title": "Samples: Received vs Ingested",
       "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-      "description": "Active time series currently being tracked by the Mimir ingester. A growing count may indicate cardinality issues.",
+      "description": "Prometheus remote write throughput to Mimir, including retries and failures.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "series",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-            "insertNulls": false,
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [{ "color": "green", "value": null }]
-          },
+          "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisLabel": "samples/s", "drawStyle": "line", "fillOpacity": 20, "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never" },
+          "unit": "short"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Failed" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "Retried" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 102,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        { "expr": "sum(rate(prometheus_remote_storage_samples_total{remote_name=\"mimir-remote-write\"}[5m]))", "legendFormat": "Sent", "refId": "A" },
+        { "expr": "sum(rate(prometheus_remote_storage_samples_failed_total{remote_name=\"mimir-remote-write\"}[5m]))", "legendFormat": "Failed", "refId": "B" },
+        { "expr": "sum(rate(prometheus_remote_storage_samples_retried_total{remote_name=\"mimir-remote-write\"}[5m]))", "legendFormat": "Retried", "refId": "C" }
+      ],
+      "title": "Remote Write Throughput",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "description": "Active time series in Mimir. Rapid growth may signal cardinality explosion.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisLabel": "series", "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never" },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 13 },
-      "id": 52,
-      "options": {
-        "legend": { "calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "hideZeros": false, "mode": "multi", "sort": "desc" }
-      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "id": 103,
+      "options": { "legend": { "calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-          "expr": "sum(cortex_ingester_active_series{job=\"mimir\"})",
-          "legendFormat": "Active Series",
-          "refId": "A"
-        }
-      ],
+      "targets": [{ "expr": "sum(cortex_ingester_active_series{job=\"mimir\"})", "legendFormat": "Active Series", "refId": "A" }],
       "title": "Active Series Over Time",
       "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-      "description": "Rate of Mimir HTTP API requests by status code. Helps identify ingestion or query errors.",
+      "description": "Mimir HTTP API requests by status code. Stacked view shows the ratio of successes to errors.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "req/s",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 20,
-            "gradientMode": "none",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-            "insertNulls": false,
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": { "group": "A", "mode": "normal" },
-            "thresholdsStyle": { "mode": "off" }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [{ "color": "green", "value": null }]
-          },
+          "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisLabel": "req/s", "drawStyle": "line", "fillOpacity": 20, "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never", "stacking": { "group": "A", "mode": "normal" } },
           "unit": "reqps"
         },
         "overrides": [
-          {
-            "matcher": { "id": "byRegexp", "options": ".*2xx.*" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }]
-          },
-          {
-            "matcher": { "id": "byRegexp", "options": ".*4xx.*" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }]
-          },
-          {
-            "matcher": { "id": "byRegexp", "options": ".*5xx.*" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
-          }
+          { "matcher": { "id": "byRegexp", "options": ".*2xx.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*4xx.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*5xx.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }
         ]
       },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 21 },
-      "id": 105,
-      "options": {
-        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right", "showLegend": true },
-        "tooltip": { "hideZeros": false, "mode": "multi", "sort": "desc" }
-      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "id": 104,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "pluginVersion": "11.5.2",
       "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-          "expr": "sum(rate(cortex_request_duration_seconds_count{job=\"mimir\", status_code=~\"2..\"}[5m]))",
-          "legendFormat": "2xx Success",
-          "refId": "A"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-          "expr": "sum(rate(cortex_request_duration_seconds_count{job=\"mimir\", status_code=~\"4..\"}[5m]))",
-          "legendFormat": "4xx Client Errors",
-          "refId": "B"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-          "expr": "sum(rate(cortex_request_duration_seconds_count{job=\"mimir\", status_code=~\"5..\"}[5m]))",
-          "legendFormat": "5xx Server Errors",
-          "refId": "C"
-        }
+        { "expr": "sum(rate(cortex_request_duration_seconds_count{job=\"mimir\", status_code=~\"2..\"}[5m]))", "legendFormat": "2xx", "refId": "A" },
+        { "expr": "sum(rate(cortex_request_duration_seconds_count{job=\"mimir\", status_code=~\"4..\"}[5m]))", "legendFormat": "4xx", "refId": "B" },
+        { "expr": "sum(rate(cortex_request_duration_seconds_count{job=\"mimir\", status_code=~\"5..\"}[5m]))", "legendFormat": "5xx", "refId": "C" }
       ],
-      "title": "Mimir HTTP Request Rate by Status Code",
+      "title": "Mimir API Requests by Status",
       "type": "timeseries"
     },
+
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 29 },
-      "id": 60,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 24 },
+      "id": 200,
       "panels": [],
-      "title": "Prometheus Remote Write",
-      "type": "row"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "samples/s",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 20,
-            "gradientMode": "none",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-            "insertNulls": false,
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [{ "color": "green", "value": null }]
-          },
-          "unit": "short"
-        },
-        "overrides": [
-          {
-            "matcher": { "id": "byName", "options": "Failed" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Retried" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }]
-          }
-        ]
-      },
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 30 },
-      "id": 65,
-      "options": {
-        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "hideZeros": false, "mode": "multi", "sort": "desc" }
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "expr": "sum(rate(prometheus_remote_storage_samples_total{remote_name=\"mimir-remote-write\"}[5m]))",
-          "legendFormat": "Sent to Mimir",
-          "refId": "A"
-        },
-        {
-          "expr": "sum(rate(prometheus_remote_storage_samples_failed_total{remote_name=\"mimir-remote-write\"}[5m]))",
-          "legendFormat": "Failed",
-          "refId": "B"
-        },
-        {
-          "expr": "sum(rate(prometheus_remote_storage_samples_retried_total{remote_name=\"mimir-remote-write\"}[5m]))",
-          "legendFormat": "Retried",
-          "refId": "C"
-        }
-      ],
-      "title": "Prometheus Remote Write to Mimir",
-      "type": "timeseries"
-    },
-    {
-      "collapsed": true,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 40 },
-      "id": 10,
-      "panels": [
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
-          "description": "Rate of span metric latency observations being written to Mimir from Tempo's metrics generator. This confirms the Tempo -> Mimir span metrics pipeline is working.",
-          "fieldConfig": {
-            "defaults": {
-              "color": { "mode": "palette-classic" },
-              "custom": {
-                "axisBorderShow": false,
-                "axisCenteredZero": false,
-                "axisColorMode": "text",
-                "axisLabel": "observations/s",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "barWidthFactor": 0.6,
-                "drawStyle": "line",
-                "fillOpacity": 10,
-                "gradientMode": "none",
-                "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-                "insertNulls": false,
-                "lineInterpolation": "smooth",
-                "lineWidth": 2,
-                "pointSize": 5,
-                "scaleDistribution": { "type": "linear" },
-                "showPoints": "auto",
-                "spanNulls": false,
-                "stacking": { "group": "A", "mode": "none" },
-                "thresholdsStyle": { "mode": "off" }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  { "color": "green" },
-                  { "color": "red", "value": 80 }
-                ]
-              }
-            },
-            "overrides": []
-          },
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 41 },
-          "id": 101,
-          "options": {
-            "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-            "tooltip": { "hideZeros": false, "mode": "single", "sort": "none" }
-          },
-          "pluginVersion": "11.5.2",
-          "targets": [
-            {
-              "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
-              "expr": "sum(rate(traces_spanmetrics_latency_count[$__rate_interval]))",
-              "interval": "",
-              "legendFormat": "Span Metric Observations/s",
-              "refId": "A"
-            }
-          ],
-          "title": "Span Metrics: Observation Rate (from Tempo)",
-          "type": "timeseries"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
-          "description": "Average span duration as computed from Tempo's span metrics written to Mimir. This is the mean latency across all traced operations.",
-          "fieldConfig": {
-            "defaults": {
-              "color": { "mode": "palette-classic" },
-              "custom": {
-                "axisBorderShow": false,
-                "axisCenteredZero": false,
-                "axisColorMode": "text",
-                "axisLabel": "seconds",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "barWidthFactor": 0.6,
-                "drawStyle": "line",
-                "fillOpacity": 10,
-                "gradientMode": "none",
-                "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-                "insertNulls": false,
-                "lineInterpolation": "smooth",
-                "lineWidth": 2,
-                "pointSize": 5,
-                "scaleDistribution": { "type": "linear" },
-                "showPoints": "auto",
-                "spanNulls": false,
-                "stacking": { "group": "A", "mode": "none" },
-                "thresholdsStyle": { "mode": "off" }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  { "color": "green" },
-                  { "color": "red", "value": 80 }
-                ]
-              },
-              "unit": "s"
-            },
-            "overrides": []
-          },
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 41 },
-          "id": 102,
-          "options": {
-            "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-            "tooltip": { "hideZeros": false, "mode": "single", "sort": "none" }
-          },
-          "pluginVersion": "11.5.2",
-          "targets": [
-            {
-              "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
-              "editorMode": "code",
-              "expr": "sum(rate(traces_spanmetrics_latency_sum[$__rate_interval])) / sum(rate(traces_spanmetrics_latency_count[$__rate_interval]))",
-              "interval": "",
-              "legendFormat": "Average Span Duration",
-              "range": true,
-              "refId": "A"
-            }
-          ],
-          "title": "Span Metrics: Average Latency (from Tempo)",
-          "type": "timeseries"
-        }
-      ],
       "title": "Tempo Span Metrics (via Mimir)",
       "type": "row"
     },
     {
+      "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 25 },
+      "id": 201,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showPercentChange": true, "textMode": "auto", "wideLayout": true },
+      "pluginVersion": "11.5.2",
+      "targets": [{ "expr": "sum(rate(traces_spanmetrics_latency_count[5m]))", "legendFormat": "Observations/s", "refId": "A" }],
+      "title": "Span Observation Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.5 }, { "color": "red", "value": 2 }] },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 25 },
+      "id": 202,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true },
+      "pluginVersion": "11.5.2",
+      "targets": [{ "expr": "sum(rate(traces_spanmetrics_latency_sum[5m])) / sum(rate(traces_spanmetrics_latency_count[5m]))", "legendFormat": "Avg Latency", "refId": "A" }],
+      "title": "Avg Span Duration",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 25 },
+      "id": 203,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showPercentChange": true, "textMode": "auto", "wideLayout": true },
+      "pluginVersion": "11.5.2",
+      "targets": [{ "expr": "sum(rate(traces_spanmetrics_calls_total[5m]))", "legendFormat": "Calls/s", "refId": "A" }],
+      "title": "Span Calls Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "max": 1, "min": 0,
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.01 }, { "color": "red", "value": 0.05 }] },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 25 },
+      "id": 204,
+      "options": { "colorMode": "background", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true },
+      "pluginVersion": "11.5.2",
+      "targets": [{ "expr": "sum(rate(traces_spanmetrics_calls_total{status_code=\"STATUS_CODE_ERROR\"}[5m])) / sum(rate(traces_spanmetrics_calls_total[5m])) or vector(0)", "legendFormat": "Error Rate", "refId": "A" }],
+      "title": "Span Error Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+      "description": "Span metrics observations from Tempo broken down by service. Confirms the Tempo -> Mimir pipeline is working.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisLabel": "observations/s", "drawStyle": "line", "fillOpacity": 15, "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never" },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 29 },
+      "id": 205,
+      "options": { "legend": { "calcs": ["mean", "last"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "pluginVersion": "11.5.2",
+      "targets": [{ "expr": "sum(rate(traces_spanmetrics_calls_total[5m])) by (service)", "legendFormat": "{{service}}", "refId": "A" }],
+      "title": "Span Calls by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+      "description": "P95 span latency broken down by service. Identifies slow services.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisLabel": "seconds", "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never" },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 29 },
+      "id": 206,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "pluginVersion": "11.5.2",
+      "targets": [{ "expr": "histogram_quantile(0.95, sum(rate(traces_spanmetrics_latency_bucket[5m])) by (le, service))", "legendFormat": "{{service}} P95", "refId": "A" }],
+      "title": "Span Latency by Service (P95)",
+      "type": "timeseries"
+    },
+
+    {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 41 },
-      "id": 20,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 37 },
+      "id": 300,
       "panels": [],
       "title": "Query Performance",
       "type": "row"
     },
     {
       "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-      "description": "Rate of Prometheus engine query evaluations. Shows how many queries per second are being processed.",
+      "description": "How many queries per second Prometheus is evaluating.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "queries/s",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "red", "value": 80 }
-            ]
-          },
+          "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisLabel": "queries/s", "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never" },
           "unit": "reqps"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 42 },
-      "id": 103,
-      "options": {
-        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "hideZeros": false, "mode": "single", "sort": "none" }
-      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 38 },
+      "id": 301,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-          "expr": "sum(rate(prometheus_engine_query_duration_seconds_count[$__rate_interval]))",
-          "interval": "",
-          "legendFormat": "Queries/s",
-          "refId": "A"
-        }
-      ],
-      "title": "Prometheus Engine Query Rate",
+      "targets": [{ "expr": "sum(rate(prometheus_engine_query_duration_seconds_count[5m]))", "legendFormat": "Queries/s", "refId": "A" }],
+      "title": "Query Engine Rate",
       "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "description": "Mimir query rate broken down by query type (instant, range, label).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "queries/s",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 20,
-            "gradientMode": "none",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-            "insertNulls": false,
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [{ "color": "green", "value": null }]
-          },
+          "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisLabel": "queries/s", "drawStyle": "line", "fillOpacity": 20, "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never" },
           "unit": "reqps"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 42 },
-      "id": 22,
-      "options": {
-        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "hideZeros": false, "mode": "multi", "sort": "desc" }
-      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 38 },
+      "id": 302,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "pluginVersion": "11.5.2",
       "targets": [
-        {
-          "expr": "sum(rate(cortex_request_duration_seconds_count{job=\"mimir\", route=~\"/prometheus/api/v1/query\"}[5m]))",
-          "legendFormat": "Instant Queries",
-          "refId": "A"
-        },
-        {
-          "expr": "sum(rate(cortex_request_duration_seconds_count{job=\"mimir\", route=~\"/prometheus/api/v1/query_range\"}[5m]))",
-          "legendFormat": "Range Queries",
-          "refId": "B"
-        },
-        {
-          "expr": "sum(rate(cortex_request_duration_seconds_count{job=\"mimir\", route=~\"/prometheus/api/v1/labels.*\"}[5m]))",
-          "legendFormat": "Label Queries",
-          "refId": "C"
-        }
+        { "expr": "sum(rate(cortex_request_duration_seconds_count{job=\"mimir\", route=~\"/prometheus/api/v1/query\"}[5m]))", "legendFormat": "Instant", "refId": "A" },
+        { "expr": "sum(rate(cortex_request_duration_seconds_count{job=\"mimir\", route=~\"/prometheus/api/v1/query_range\"}[5m]))", "legendFormat": "Range", "refId": "B" },
+        { "expr": "sum(rate(cortex_request_duration_seconds_count{job=\"mimir\", route=~\"/prometheus/api/v1/labels.*\"}[5m]))", "legendFormat": "Labels", "refId": "C" }
       ],
       "title": "Mimir Query Rate by Type",
       "type": "timeseries"
     },
     {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "description": "Latency of push (remote write) operations to Mimir at P50, P95, P99.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisLabel": "latency (s)", "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never" },
+          "unit": "s"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "P99" }, "properties": [{ "id": "custom.lineStyle", "value": { "dash": [10, 10], "fill": "dash" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 46 },
+      "id": 303,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum(rate(cortex_request_duration_seconds_bucket{job=\"mimir\", route=~\"/api/v1/push\"}[5m])) by (le))", "legendFormat": "P50", "refId": "A" },
+        { "expr": "histogram_quantile(0.95, sum(rate(cortex_request_duration_seconds_bucket{job=\"mimir\", route=~\"/api/v1/push\"}[5m])) by (le))", "legendFormat": "P95", "refId": "B" },
+        { "expr": "histogram_quantile(0.99, sum(rate(cortex_request_duration_seconds_bucket{job=\"mimir\", route=~\"/api/v1/push\"}[5m])) by (le))", "legendFormat": "P99", "refId": "C" }
+      ],
+      "title": "Push Latency (P50 / P95 / P99)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "description": "Latency of query operations against Mimir at P50, P95, P99.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisLabel": "latency (s)", "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never" },
+          "unit": "s"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "P99" }, "properties": [{ "id": "custom.lineStyle", "value": { "dash": [10, 10], "fill": "dash" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 46 },
+      "id": 304,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum(rate(cortex_request_duration_seconds_bucket{job=\"mimir\", route=~\"/prometheus/api/v1/query.*\"}[5m])) by (le))", "legendFormat": "P50", "refId": "A" },
+        { "expr": "histogram_quantile(0.95, sum(rate(cortex_request_duration_seconds_bucket{job=\"mimir\", route=~\"/prometheus/api/v1/query.*\"}[5m])) by (le))", "legendFormat": "P95", "refId": "B" },
+        { "expr": "histogram_quantile(0.99, sum(rate(cortex_request_duration_seconds_bucket{job=\"mimir\", route=~\"/prometheus/api/v1/query.*\"}[5m])) by (le))", "legendFormat": "P99", "refId": "C" }
+      ],
+      "title": "Query Latency (P50 / P95 / P99)",
+      "type": "timeseries"
+    },
+
+    {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 50 },
-      "id": 30,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 54 },
+      "id": 400,
       "panels": [],
-      "title": "Storage & Compaction",
+      "title": "Storage & Resources",
       "type": "row"
     },
     {
@@ -902,55 +524,18 @@
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "blocks",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 20,
-            "gradientMode": "none",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-            "insertNulls": false,
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [{ "color": "green" }]
-          },
+          "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisLabel": "blocks", "drawStyle": "line", "fillOpacity": 20, "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never" },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 51 },
-      "id": 31,
-      "options": {
-        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "hideZeros": false, "mode": "multi", "sort": "desc" }
-      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 55 },
+      "id": 401,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "pluginVersion": "11.5.2",
       "targets": [
-        {
-          "expr": "sum(cortex_bucket_blocks_count{job=\"mimir\"})",
-          "legendFormat": "Total Blocks",
-          "refId": "A"
-        },
-        {
-          "expr": "sum(cortex_compactor_blocks_marked_for_deletion_total{job=\"mimir\"})",
-          "legendFormat": "Marked for Deletion",
-          "refId": "B"
-        }
+        { "expr": "sum(cortex_bucket_blocks_count{job=\"mimir\"})", "legendFormat": "Total Blocks", "refId": "A" },
+        { "expr": "sum(cortex_compactor_blocks_marked_for_deletion_total{job=\"mimir\"})", "legendFormat": "Marked for Deletion", "refId": "B" }
       ],
       "title": "Storage Blocks",
       "type": "timeseries"
@@ -960,136 +545,20 @@
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "latency (s)",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-            "insertNulls": false,
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [{ "color": "green" }]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 51 },
-      "id": 32,
-      "options": {
-        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "hideZeros": false, "mode": "multi", "sort": "desc" }
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.50, sum(rate(cortex_request_duration_seconds_bucket{job=\"mimir\", route=~\"/api/v1/push\"}[5m])) by (le))",
-          "legendFormat": "Push P50",
-          "refId": "A"
-        },
-        {
-          "expr": "histogram_quantile(0.95, sum(rate(cortex_request_duration_seconds_bucket{job=\"mimir\", route=~\"/api/v1/push\"}[5m])) by (le))",
-          "legendFormat": "Push P95",
-          "refId": "B"
-        },
-        {
-          "expr": "histogram_quantile(0.99, sum(rate(cortex_request_duration_seconds_bucket{job=\"mimir\", route=~\"/api/v1/push\"}[5m])) by (le))",
-          "legendFormat": "Push P99",
-          "refId": "C"
-        }
-      ],
-      "title": "Remote Write (Push) Latency",
-      "type": "timeseries"
-    },
-    {
-      "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 59 },
-      "id": 40,
-      "panels": [],
-      "title": "Resource Usage",
-      "type": "row"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 20,
-            "gradientMode": "none",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-            "insertNulls": false,
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "line" }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green" },
-              { "color": "red", "value": 1073741824 }
-            ]
-          },
+          "custom": { "axisBorderShow": false, "axisCenteredZero": false, "drawStyle": "line", "fillOpacity": 20, "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never", "thresholdsStyle": { "mode": "line" } },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 1073741824 }] },
           "unit": "bytes"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 60 },
-      "id": 41,
-      "options": {
-        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "hideZeros": false, "mode": "multi", "sort": "desc" }
-      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 55 },
+      "id": 402,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "pluginVersion": "11.5.2",
       "targets": [
-        {
-          "expr": "sum(go_memstats_heap_inuse_bytes{job=\"mimir\"})",
-          "legendFormat": "Heap In Use",
-          "refId": "A"
-        },
-        {
-          "editorMode": "code",
-          "expr": "sum(go_memstats_heap_alloc_bytes{job=\"mimir\"})",
-          "legendFormat": "Heap Allocated",
-          "range": true,
-          "refId": "B"
-        },
-        {
-          "expr": "sum(go_memstats_stack_inuse_bytes{job=\"mimir\"})",
-          "legendFormat": "Stack In Use",
-          "refId": "C"
-        }
+        { "expr": "sum(go_memstats_heap_inuse_bytes{job=\"mimir\"})", "legendFormat": "Heap In Use", "refId": "A" },
+        { "expr": "sum(go_memstats_heap_alloc_bytes{job=\"mimir\"})", "legendFormat": "Heap Allocated", "refId": "B" },
+        { "expr": "sum(go_memstats_stack_inuse_bytes{job=\"mimir\"})", "legendFormat": "Stack In Use", "refId": "C" }
       ],
       "title": "Memory Usage",
       "type": "timeseries"
@@ -1099,57 +568,42 @@
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "goroutines",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 20,
-            "gradientMode": "none",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-            "insertNulls": false,
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [{ "color": "green" }]
-          },
+          "custom": { "axisBorderShow": false, "axisCenteredZero": false, "axisLabel": "goroutines", "drawStyle": "line", "fillOpacity": 20, "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never" },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 60 },
-      "id": 42,
-      "options": {
-        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "hideZeros": false, "mode": "multi", "sort": "desc" }
-      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 63 },
+      "id": 403,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "pluginVersion": "11.5.2",
       "targets": [
-        {
-          "expr": "sum(go_goroutines{job=\"mimir\"})",
-          "legendFormat": "Goroutines",
-          "refId": "A"
-        },
-        {
-          "expr": "sum(go_threads{job=\"mimir\"})",
-          "legendFormat": "OS Threads",
-          "refId": "B"
-        }
+        { "expr": "sum(go_goroutines{job=\"mimir\"})", "legendFormat": "Goroutines", "refId": "A" },
+        { "expr": "sum(go_threads{job=\"mimir\"})", "legendFormat": "OS Threads", "refId": "B" }
       ],
       "title": "Goroutines & Threads",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "description": "GC pause duration percentiles — high values indicate memory pressure.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "axisBorderShow": false, "axisCenteredZero": false, "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never" },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 63 },
+      "id": 404,
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        { "expr": "go_gc_duration_seconds{job=\"mimir\", quantile=\"0.5\"}", "legendFormat": "GC P50", "refId": "A" },
+        { "expr": "go_gc_duration_seconds{job=\"mimir\", quantile=\"1\"}", "legendFormat": "GC Max", "refId": "B" }
+      ],
+      "title": "GC Pause Duration",
       "type": "timeseries"
     }
   ],
@@ -1159,12 +613,10 @@
   "tags": ["gatewayz", "mimir", "metrics", "storage", "infrastructure"],
   "templating": { "list": [] },
   "time": { "from": "now-2d", "to": "now" },
-  "timepicker": {
-    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h"]
-  },
+  "timepicker": { "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h"] },
   "timezone": "browser",
   "title": "GatewayZ Metrics - Mimir",
   "uid": "gatewayz-metrics-mimir-v1",
-  "version": 13,
+  "version": 14,
   "weekStart": ""
 }
