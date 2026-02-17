@@ -85,6 +85,11 @@ services:
       interval: 30s
       timeout: 5s
       retries: 5
+    environment:
+      # Use local config for docker-compose (Railway uses mimir-railway.yml by default)
+      # Redis Exporter Config (runs as sidecar in Prometheus container)
+      - REDIS_ADDR=${REDIS_ADDR:-redis://redis:6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
     depends_on:
       mimir:
         condition: service_healthy
@@ -168,8 +173,6 @@ services:
         reservations:
           cpus: '0.10'
           memory: 128M
-
-
 
   json-api-proxy:
     build:
