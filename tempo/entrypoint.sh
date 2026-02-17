@@ -76,7 +76,7 @@ fi
 # Ensure directories exist with correct permissions
 # IMPORTANT: /var/tempo/generator/* directories are required for metrics_generator
 mkdir -p /var/tempo/traces /var/tempo/wal /var/tempo/generator/wal /var/tempo/generator/traces
-chmod -R 777 /var/tempo
+chmod -R 777 /var/tempo || true
 
 echo "Created directories:"
 ls -la /var/tempo/
