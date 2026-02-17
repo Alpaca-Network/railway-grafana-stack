@@ -201,12 +201,14 @@ if [ -n "$REDIS_ADDR" ]; then
     # Run with debug logging to help diagnose connection issues
     # Explicitly pass address and password to avoid environment variable ambiguity
     # Pass -skip-tls-verification in case TLS is auto-detected
-    /usr/local/bin/redis_exporter \
-        -redis.addr="$REDIS_ADDR" \
-        -redis.password="$REDIS_PASSWORD" \
-        -debug \
-        -log-format=json \
-        -skip-tls-verification &
+    CMD_ARGS="-redis.addr=$REDIS_ADDR -redis.password=$REDIS_PASSWORD -debug -log-format=json -skip-tls-verification"
+    
+    if [ -n "$REDIS_USER" ]; then
+        echo "  Using Redis User: $REDIS_USER"
+        CMD_ARGS="$CMD_ARGS -redis.user=$REDIS_USER"
+    fi
+
+    /usr/local/bin/redis_exporter $CMD_ARGS &
         
     EXPORTER_PID=$!
     echo "  ✅ redis_exporter started (pid $EXPORTER_PID)"
