@@ -124,7 +124,7 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "redis_up or up{job=\"redis_exporter\"}",
+          "expr": "redis_up{job=\"gatewayz_production\"}",
           "legendFormat": "Redis Status",
           "refId": "A"
         }
@@ -195,7 +195,7 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "(redis_memory_used_bytes / redis_memory_max_bytes) * 100",
+          "expr": "(redis_memory_used_bytes{job=\"gatewayz_production\"} / clamp_min(redis_memory_max_bytes{job=\"gatewayz_production\"}, 1)) * 100",
           "legendFormat": "Memory Usage",
           "refId": "A"
         }
@@ -266,7 +266,7 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "redis_connected_clients",
+          "expr": "redis_connected_clients{job=\"gatewayz_production\"}",
           "legendFormat": "Clients",
           "refId": "A"
         }
@@ -329,7 +329,7 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "redis_memory_used_bytes",
+          "expr": "redis_memory_used_bytes{job=\"gatewayz_production\"}",
           "legendFormat": "Used Memory",
           "refId": "A"
         }
@@ -392,7 +392,7 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "rate(redis_commands_processed_total[5m])",
+          "expr": "rate(redis_commands_processed_total{job=\"gatewayz_production\"}[5m])",
           "legendFormat": "Commands/sec",
           "refId": "A"
         }
@@ -455,7 +455,7 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "redis_uptime_in_seconds",
+          "expr": "redis_uptime_in_seconds{job=\"gatewayz_production\"}",
           "legendFormat": "Uptime",
           "refId": "A"
         }
@@ -464,12 +464,138 @@
       "type": "stat"
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 5
+      },
+      "id": 8,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "redis_total_connections_received_total{job=\"gatewayz_production\"}",
+          "legendFormat": "Total Connections",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Connections",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 5
+      },
+      "id": 9,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "sum(redis_db_keys{job=\"gatewayz_production\"})",
+          "legendFormat": "Total Keys",
+          "refId": "A"
+        }
+      ],
+      "title": "Database Keys",
+      "type": "stat"
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 9
       },
       "id": 10,
       "panels": [],
@@ -539,7 +665,7 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "(rate(redis_keyspace_hits_total[5m]) / (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]))) * 100",
+          "expr": "(rate(redis_keyspace_hits_total{job=\"gatewayz_production\"}[5m]) / clamp_min(rate(redis_keyspace_hits_total{job=\"gatewayz_production\"}[5m]) + rate(redis_keyspace_misses_total{job=\"gatewayz_production\"}[5m]), 0.001)) * 100",
           "legendFormat": "Hit Rate",
           "refId": "A"
         }
@@ -664,7 +790,7 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "rate(redis_keyspace_hits_total[5m])",
+          "expr": "rate(redis_keyspace_hits_total{job=\"gatewayz_production\"}[5m])",
           "legendFormat": "Hits",
           "refId": "A"
         },
@@ -673,7 +799,7 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "rate(redis_keyspace_misses_total[5m])",
+          "expr": "rate(redis_keyspace_misses_total{job=\"gatewayz_production\"}[5m])",
           "legendFormat": "Misses",
           "refId": "B"
         }
@@ -774,7 +900,7 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "(rate(redis_keyspace_hits_total[5m]) / (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]))) * 100",
+          "expr": "(rate(redis_keyspace_hits_total{job=\"gatewayz_production\"}[5m]) / clamp_min(rate(redis_keyspace_hits_total{job=\"gatewayz_production\"}[5m]) + rate(redis_keyspace_misses_total{job=\"gatewayz_production\"}[5m]), 0.001)) * 100",
           "legendFormat": "Hit Rate %",
           "refId": "A"
         }
@@ -1200,7 +1326,7 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "redis_memory_used_bytes",
+          "expr": "redis_memory_used_bytes{job=\"gatewayz_production\"}",
           "legendFormat": "Used Memory",
           "refId": "A"
         },
@@ -1209,7 +1335,7 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "redis_memory_max_bytes",
+          "expr": "redis_memory_max_bytes{job=\"gatewayz_production\"} > 0",
           "legendFormat": "Max Memory",
           "refId": "B"
         }
@@ -1334,7 +1460,7 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "rate(redis_expired_keys_total[5m])",
+          "expr": "rate(redis_expired_keys_total{job=\"gatewayz_production\"}[5m])",
           "legendFormat": "Expired",
           "refId": "A"
         },
@@ -1343,7 +1469,7 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "rate(redis_evicted_keys_total[5m])",
+          "expr": "rate(redis_evicted_keys_total{job=\"gatewayz_production\"}[5m])",
           "legendFormat": "Evicted",
           "refId": "B"
         }
