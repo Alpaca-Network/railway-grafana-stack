@@ -188,7 +188,7 @@ if [ -n "$REDIS_ADDR" ]; then
     echo "  Redis Address: $REDIS_ADDR"
     
     # Run with debug logging to help diagnose connection issues
-    /usr/local/bin/redis_exporter -debug -log-format=json &
+    /usr/local/bin/redis_exporter -debug -log-format=json -skip-tls-verification &
     EXPORTER_PID=$!
     echo "  ✅ redis_exporter started (pid $EXPORTER_PID)"
 
