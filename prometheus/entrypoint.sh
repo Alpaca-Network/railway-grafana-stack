@@ -113,7 +113,6 @@ sed -e "s|FASTAPI_TARGET|${TARGET}|g" \
     -e "s|MIMIR_URL|${MIMIR_URL}|g" \
     -e "s|MIMIR_TARGET|${MIMIR_TARGET}|g" \
     -e "s|ALERTMANAGER_TARGET|${ALERTMANAGER_TARGET}|g" \
-
     -e "s|TEMPO_TARGET|${TEMPO_TARGET}|g" \
     /tmp/prometheus.yml.tmp > /etc/prometheus/prometheus.yml
 
@@ -187,9 +186,25 @@ fi
 if [ -n "$REDIS_ADDR" ]; then
     echo "Starting redis_exporter sidecar..."
     echo "  Redis Address: $REDIS_ADDR"
-    # Run in background
-    /usr/local/bin/redis_exporter &
-    echo "  ✅ redis_exporter started (pid $!)"
+    
+    # Run with debug logging to help diagnose connection issues
+    /usr/local/bin/redis_exporter -debug -log-format=json &
+    EXPORTER_PID=$!
+    echo "  ✅ redis_exporter started (pid $EXPORTER_PID)"
+
+    # Wait a moment and check if it's still running
+    sleep 2
+    if kill -0 $EXPORTER_PID 2>/dev/null; then
+         echo "  ✅ redis_exporter is running"
+         # Optional: Try to scrape metrics to verify connection (requires wget)
+         if wget -qO- http://localhost:9121/metrics | grep -q "redis_up"; then
+             echo "  ✅ redis_exporter is serving metrics"
+         else
+             echo "  ⚠️  redis_exporter is running but metrics check failed (might be starting up)"
+         fi
+    else
+         echo "  ❌ redis_exporter crashed! Check logs above."
+    fi
 else
     echo "  ℹ️  REDIS_ADDR not set, skipping redis_exporter sidecar"
 fi
