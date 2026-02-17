@@ -72,19 +72,34 @@ fi
 
 # ============================================================
 # Redis Exporter Configuration
-# Redis Exporter runs in the backend project (separate Railway project)
-# So we need to use the public URL, not internal networking
+# Local: Uses redis-exporter Docker service (http)
+# Railway: Uses public URL (https) - set REDIS_EXPORTER_URL env var
 # ============================================================
 
 if [ -n "$REDIS_EXPORTER_URL" ]; then
-    # Use explicitly set REDIS_EXPORTER_URL (public URL from backend project)
-    # Remove https:// prefix if present for the target
+    # Use explicitly set REDIS_EXPORTER_URL (public URL from Railway or external)
+    # Remove https:// or http:// prefix for the target
     REDIS_EXPORTER_TARGET=$(echo "$REDIS_EXPORTER_URL" | sed 's|https://||' | sed 's|http://||')
-else
-    # Default/placeholder - must be set in Railway environment variables
+    # Detect scheme based on URL
+    case "$REDIS_EXPORTER_URL" in
+        https://*)
+            REDIS_EXPORTER_SCHEME="https"
+            ;;
+        *)
+            REDIS_EXPORTER_SCHEME="http"
+            ;;
+    esac
+elif [ -n "$RAILWAY_ENVIRONMENT" ]; then
+    # Railway production - must set REDIS_EXPORTER_URL
     REDIS_EXPORTER_TARGET="redis-exporter.railway.internal:9121"
-    echo "WARNING: REDIS_EXPORTER_URL not set. Redis metrics will not be scraped."
+    REDIS_EXPORTER_SCHEME="http"
+    echo "WARNING: REDIS_EXPORTER_URL not set. Redis metrics may not be scraped on Railway."
     echo "Set REDIS_EXPORTER_URL to the public URL of your Redis Exporter service."
+else
+    # Local Docker Compose - use the redis-exporter service
+    REDIS_EXPORTER_TARGET="redis-exporter:9121"
+    REDIS_EXPORTER_SCHEME="http"
+    echo "Using local redis-exporter service at ${REDIS_EXPORTER_TARGET}"
 fi
 
 # ============================================================
@@ -112,6 +127,7 @@ echo "MIMIR_URL: $MIMIR_URL"
 echo "MIMIR_TARGET: $MIMIR_TARGET"
 echo "ALERTMANAGER_TARGET: $ALERTMANAGER_TARGET"
 echo "REDIS_EXPORTER_TARGET: $REDIS_EXPORTER_TARGET"
+echo "REDIS_EXPORTER_SCHEME: $REDIS_EXPORTER_SCHEME"
 echo "TEMPO_TARGET: $TEMPO_TARGET"
 echo "RAILWAY_ENVIRONMENT: ${RAILWAY_ENVIRONMENT:-not set (local mode)}"
 echo "==========================================="
@@ -124,6 +140,7 @@ sed -e "s|FASTAPI_TARGET|${TARGET}|g" \
     -e "s|MIMIR_TARGET|${MIMIR_TARGET}|g" \
     -e "s|ALERTMANAGER_TARGET|${ALERTMANAGER_TARGET}|g" \
     -e "s|REDIS_EXPORTER_TARGET|${REDIS_EXPORTER_TARGET}|g" \
+    -e "s|REDIS_EXPORTER_SCHEME|${REDIS_EXPORTER_SCHEME}|g" \
     -e "s|TEMPO_TARGET|${TEMPO_TARGET}|g" \
     /tmp/prometheus.yml.tmp > /etc/prometheus/prometheus.yml
 
