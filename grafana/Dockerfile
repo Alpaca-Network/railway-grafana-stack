@@ -16,7 +16,7 @@ ENV MIMIR_INTERNAL_URL=http://mimir.railway.internal:9009
 # Allow embedding Grafana panels in iframes (for admin dashboard telemetry page)
 # Without this, Grafana sends X-Frame-Options: deny which blocks all iframe embeds
 ENV GF_SECURITY_ALLOW_EMBEDDING=true
-ENV GF_SECURITY_COOKIE_SAMESITE=none
+# ENV GF_SECURITY_COOKIE_SAMESITE=none
 ENV GF_AUTH_ANONYMOUS_ENABLED=true
 ENV GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
 
