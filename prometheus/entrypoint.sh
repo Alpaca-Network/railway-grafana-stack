@@ -187,18 +187,43 @@ if [ -n "$REDIS_ADDR" ]; then
     echo "Starting redis_exporter sidecar..."
     echo "  Redis Address: $REDIS_ADDR"
     
+    # Remove protocol prefix for connectivity check
+    REDIS_HOST=$(echo "$REDIS_ADDR" | sed 's|^redis://||' | sed 's|^rediss://||' | cut -d: -f1)
+    REDIS_PORT=$(echo "$REDIS_ADDR" | sed 's|^redis://||' | sed 's|^rediss://||' | cut -d: -f2)
+    
+    echo "  Checking connectivity to ${REDIS_HOST}:${REDIS_PORT}..."
+    if nc -z -w 5 "$REDIS_HOST" "$REDIS_PORT" 2>/dev/null; then
+        echo "  ✅ TCP connection successful"
+    else
+        echo "  ⚠️  TCP connection check failed (nc not available or unreachable)"
+    fi
+
     # Run with debug logging to help diagnose connection issues
-    /usr/local/bin/redis_exporter -debug -log-format=json -skip-tls-verification &
+    # Explicitly pass address and password to avoid environment variable ambiguity
+    # Pass -skip-tls-verification in case TLS is auto-detected
+    /usr/local/bin/redis_exporter \
+        -redis.addr="$REDIS_ADDR" \
+        -redis.password="$REDIS_PASSWORD" \
+        -debug \
+        -log-format=json \
+        -skip-tls-verification &
+        
     EXPORTER_PID=$!
     echo "  ✅ redis_exporter started (pid $EXPORTER_PID)"
 
     # Wait a moment and check if it's still running
-    sleep 2
+    sleep 3
     if kill -0 $EXPORTER_PID 2>/dev/null; then
          echo "  ✅ redis_exporter is running"
          # Optional: Try to scrape metrics to verify connection (requires wget)
          if wget -qO- http://localhost:9121/metrics | grep -q "redis_up"; then
              echo "  ✅ redis_exporter is serving metrics"
+             # Check if redis_up is actually 1
+             if wget -qO- http://localhost:9121/metrics | grep "redis_up 1"; then
+                 echo "  ✅ Connected to Redis successfully (redis_up=1)"
+             else
+                 echo "  ❌ Connected to Redis FAILED (redis_up=0). Check logs!"
+             fi
          else
              echo "  ⚠️  redis_exporter is running but metrics check failed (might be starting up)"
          fi
