@@ -72,20 +72,10 @@ fi
 
 # ============================================================
 # Redis Exporter Configuration
-# Redis Exporter runs in the backend project (separate Railway project)
-# So we need to use the public URL, not internal networking
+# Redis Exporter runs as a service in this stack (local or Railway)
+# It connects to REDIS_ADDR defined in environment variables
 # ============================================================
 
-if [ -n "$REDIS_EXPORTER_URL" ]; then
-    # Use explicitly set REDIS_EXPORTER_URL (public URL from backend project)
-    # Remove https:// prefix if present for the target
-    REDIS_EXPORTER_TARGET=$(echo "$REDIS_EXPORTER_URL" | sed 's|https://||' | sed 's|http://||')
-else
-    # Default/placeholder - must be set in Railway environment variables
-    REDIS_EXPORTER_TARGET="redis-exporter.railway.internal:9121"
-    echo "WARNING: REDIS_EXPORTER_URL not set. Redis metrics will not be scraped."
-    echo "Set REDIS_EXPORTER_URL to the public URL of your Redis Exporter service."
-fi
 
 # ============================================================
 # Tempo Configuration
@@ -111,7 +101,7 @@ echo "FASTAPI_SCHEME: $SCHEME"
 echo "MIMIR_URL: $MIMIR_URL"
 echo "MIMIR_TARGET: $MIMIR_TARGET"
 echo "ALERTMANAGER_TARGET: $ALERTMANAGER_TARGET"
-echo "REDIS_EXPORTER_TARGET: $REDIS_EXPORTER_TARGET"
+
 echo "TEMPO_TARGET: $TEMPO_TARGET"
 echo "RAILWAY_ENVIRONMENT: ${RAILWAY_ENVIRONMENT:-not set (local mode)}"
 echo "==========================================="
@@ -123,7 +113,7 @@ sed -e "s|FASTAPI_TARGET|${TARGET}|g" \
     -e "s|MIMIR_URL|${MIMIR_URL}|g" \
     -e "s|MIMIR_TARGET|${MIMIR_TARGET}|g" \
     -e "s|ALERTMANAGER_TARGET|${ALERTMANAGER_TARGET}|g" \
-    -e "s|REDIS_EXPORTER_TARGET|${REDIS_EXPORTER_TARGET}|g" \
+
     -e "s|TEMPO_TARGET|${TEMPO_TARGET}|g" \
     /tmp/prometheus.yml.tmp > /etc/prometheus/prometheus.yml
 
@@ -191,6 +181,19 @@ if [ "$MIMIR_READY" = "false" ]; then
     echo "  ⚠️  Mimir not ready yet. Remote write will retry automatically."
     echo "     Check Mimir logs if this persists."
 fi
+# ============================================================
+# Start Redis Exporter Sidecar
+# ============================================================
+if [ -n "$REDIS_ADDR" ]; then
+    echo "Starting redis_exporter sidecar..."
+    echo "  Redis Address: $REDIS_ADDR"
+    # Run in background
+    /usr/local/bin/redis_exporter &
+    echo "  ✅ redis_exporter started (pid $!)"
+else
+    echo "  ℹ️  REDIS_ADDR not set, skipping redis_exporter sidecar"
+fi
+
 echo "==========================================="
 
 # Start Prometheus with provided arguments

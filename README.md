@@ -146,7 +146,7 @@ All dashboards use **real API endpoints** with live data from Prometheus/Mimir -
 - **Log Search**: Real-time filtering and search
 - **Log Volume**: Count by level, service, severity
 
-#### Tempo Traces Dashboard
+#### 3. Tempo (Tracing)
 - **Pure trace data** from Tempo datasource
 - **Service Graph**: Distributed tracing visualization
 - **Span Metrics**: Request duration, error rates by service
