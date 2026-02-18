@@ -106,6 +106,24 @@ echo "TEMPO_TARGET: $TEMPO_TARGET"
 echo "RAILWAY_ENVIRONMENT: ${RAILWAY_ENVIRONMENT:-not set (local mode)}"
 echo "==========================================="
 
+# ============================================================
+# Bearer Token for Backend Scraping
+# Write the PRODUCTION_BEARER_TOKEN env var to a file so
+# Prometheus can use bearer_token_file in scrape configs
+# ============================================================
+if [ -n "$PRODUCTION_BEARER_TOKEN" ]; then
+    echo "$PRODUCTION_BEARER_TOKEN" > /etc/prometheus/secrets/production_bearer_token
+    chmod 600 /etc/prometheus/secrets/production_bearer_token
+    echo "  ✅ Bearer token written to /etc/prometheus/secrets/production_bearer_token"
+else
+    # Prometheus refuses to scrape targets with bearer_token_file pointing to a
+    # missing file. Write an empty file so the scrape config still works (the
+    # backend /metrics endpoint does not require auth).
+    touch /etc/prometheus/secrets/production_bearer_token
+    chmod 600 /etc/prometheus/secrets/production_bearer_token
+    echo "  ⚠️  PRODUCTION_BEARER_TOKEN not set — wrote empty token file (backend /metrics is unauthenticated)"
+fi
+
 # Substitute placeholders in prometheus.yml
 cp /etc/prometheus/prometheus.yml /tmp/prometheus.yml.tmp
 sed -e "s|FASTAPI_TARGET|${TARGET}|g" \
