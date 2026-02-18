@@ -16,10 +16,22 @@ if [ -n "$FASTAPI_TARGET" ]; then
     # Use explicitly set FASTAPI_TARGET (from docker-compose or Railway env vars)
     TARGET="$FASTAPI_TARGET"
 
+    # Strip scheme prefix if accidentally included (Prometheus targets must be host:port only)
+    TARGET=$(echo "$TARGET" | sed 's|^https://||' | sed 's|^http://||')
+
     # Auto-detect scheme based on target
     case "$TARGET" in
         api.gatewayz.ai*|*.railway.app*|*.up.railway.app*)
             SCHEME="${FASTAPI_SCHEME:-https}"
+            ;;
+        *.railway.internal*)
+            # Railway internal networking — always plain HTTP
+            SCHEME="${FASTAPI_SCHEME:-http}"
+            # Append default port if not specified
+            case "$TARGET" in
+                *:*) ;; # already has port
+                *) TARGET="${TARGET}:8000" ;;
+            esac
             ;;
         *)
             SCHEME="${FASTAPI_SCHEME:-http}"
@@ -27,7 +39,8 @@ if [ -n "$FASTAPI_TARGET" ]; then
     esac
 elif [ -n "$RAILWAY_ENVIRONMENT" ]; then
     # Railway production environment - use internal network
-    TARGET="fastapi-app.railway.internal:8000"
+    # Service name: gatewayz-backend (see docs/development/CLAUDE.md)
+    TARGET="gatewayz-backend.railway.internal:8000"
     SCHEME="http"
 else
     # Local Docker Compose environment - connect to host
@@ -111,6 +124,18 @@ echo "==========================================="
 # Write the PRODUCTION_BEARER_TOKEN env var to a file so
 # Prometheus can use bearer_token_file in scrape configs
 # ============================================================
+# Quick connectivity test to the backend
+echo ""
+echo "Testing backend connectivity..."
+BACKEND_URL="${SCHEME}://${TARGET}/metrics"
+echo "  Target URL: $BACKEND_URL"
+if wget -qO- --timeout=5 "$BACKEND_URL" 2>/dev/null | head -1 | grep -q "#"; then
+    echo "  ✅ Backend /metrics is reachable"
+else
+    echo "  ⚠️  Backend /metrics not reachable at $BACKEND_URL (may start later)"
+fi
+echo ""
+
 if [ -n "$PRODUCTION_BEARER_TOKEN" ]; then
     echo "$PRODUCTION_BEARER_TOKEN" > /etc/prometheus/secrets/production_bearer_token
     chmod 600 /etc/prometheus/secrets/production_bearer_token
