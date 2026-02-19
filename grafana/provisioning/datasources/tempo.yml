@@ -12,11 +12,34 @@ datasources:
     isDefault: false
     editable: true
     jsonData:
+      # Traces→Metrics: link from a trace span to the corresponding
+      # Prometheus metric. Uses span attributes to build PromQL queries.
       tracesToMetrics:
         datasourceUid: grafana_prometheus
+        spanStartTimeShift: -5m
+        spanEndTimeShift: 5m
+        tags:
+          - key: gen_ai.system
+            value: provider
+          - key: gen_ai.request.model
+            value: model
+      # Traces→Logs: navigate from a trace to correlated logs in Loki.
+      # The backend's LokiLogHandler sends trace_id as a Loki label,
+      # so filterByTraceID searches for {trace_id="<trace_id>"}.
       tracesToLogs:
         datasourceUid: grafana_loki
         spanStartTimeShift: -1h
         spanEndTimeShift: 1h
         filterByTraceID: true
         filterBySpanID: true
+        tags:
+          - key: gen_ai.system
+            value: provider
+          - key: service.name
+            value: app
+      # Node graph: visualize service dependencies from trace data
+      nodeGraph:
+        enabled: true
+      # Service graph: auto-generated from Tempo's metrics-generator
+      serviceMap:
+        datasourceUid: grafana_prometheus
