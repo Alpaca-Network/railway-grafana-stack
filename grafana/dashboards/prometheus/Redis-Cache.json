@@ -124,7 +124,7 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "redis_up{job=\"gatewayz_production\"}",
+          "expr": "redis_up{job=\"gatewayz_production\"} or vector(0)",
           "legendFormat": "Redis Status",
           "refId": "A"
         }
@@ -266,7 +266,7 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "redis_connected_clients{job=\"gatewayz_production\"}",
+          "expr": "redis_connected_clients{job=\"gatewayz_production\"} or vector(0)",
           "legendFormat": "Clients",
           "refId": "A"
         }
@@ -329,7 +329,7 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "redis_memory_used_bytes{job=\"gatewayz_production\"}",
+          "expr": "redis_memory_used_bytes{job=\"gatewayz_production\"} or vector(0)",
           "legendFormat": "Used Memory",
           "refId": "A"
         }
@@ -392,7 +392,7 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "rate(redis_commands_processed_total{job=\"gatewayz_production\"}[5m])",
+          "expr": "rate(redis_commands_processed_total{job=\"gatewayz_production\"}[5m]) or vector(0)",
           "legendFormat": "Commands/sec",
           "refId": "A"
         }
@@ -455,7 +455,7 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "redis_uptime_in_seconds{job=\"gatewayz_production\"}",
+          "expr": "redis_uptime_in_seconds{job=\"gatewayz_production\"} or vector(0)",
           "legendFormat": "Uptime",
           "refId": "A"
         }
@@ -518,7 +518,7 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "redis_total_connections_received_total{job=\"gatewayz_production\"}",
+          "expr": "redis_total_connections_received_total{job=\"gatewayz_production\"} or vector(0)",
           "legendFormat": "Total Connections",
           "refId": "A"
         }
@@ -581,7 +581,7 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "sum(redis_db_keys{job=\"gatewayz_production\"})",
+          "expr": "sum(redis_db_keys{job=\"gatewayz_production\"}) or vector(0)",
           "legendFormat": "Total Keys",
           "refId": "A"
         }
@@ -1719,7 +1719,7 @@
             "type": "loki",
             "uid": "grafana_loki"
           },
-          "expr": "{compose_service=\"fastapi-backend\"} |~ \"(?i)(cache|redis|Cache HIT|Cache MISS|Cache SET|Cache INVALIDATE)\"",
+          "expr": "{app=\"gatewayz\"} |~ \"(?i)(cache|redis|Cache HIT|Cache MISS|Cache SET|Cache INVALIDATE)\"",
           "legendFormat": "",
           "refId": "A"
         }
@@ -1787,7 +1787,7 @@
             "uid": "grafana_tempo"
           },
           "queryType": "traceql",
-          "query": "{ span.cache.operation =~ \".*\" || name =~ \"cache.*\" || name =~ \"redis.*\" }",
+          "query": "{ resource.service.name = \"gatewayz-backend\" && (name =~ \"cache.*\" || name =~ \"redis.*\" || name =~ \".*Redis.*\") }",
           "refId": "A",
           "limit": 50
         }
