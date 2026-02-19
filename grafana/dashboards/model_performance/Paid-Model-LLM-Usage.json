@@ -428,7 +428,8 @@
           "expr": "topk(5, sum by (model) (rate(tokens_used_total{token_type=\"input\"}[5m]))) * 60",
           "legendFormat": "{{model}}",
           "range": true,
-          "refId": "A"
+          "refId": "A",
+          "exemplar": true
         }
       ],
       "title": "Input Token Usage Rate Over Time (Top 5 Models)",
@@ -630,7 +631,8 @@
           "expr": "topk(5, sum by (model) (rate(tokens_used_total{token_type=\"output\"}[5m]))) * 60",
           "legendFormat": "{{model}}",
           "range": true,
-          "refId": "A"
+          "refId": "A",
+          "exemplar": true
         }
       ],
       "title": "Output Token Generation Rate Over Time (Top 5 Models)",
