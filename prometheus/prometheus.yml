@@ -70,19 +70,6 @@ scrape_configs:
         target_label: env
         replacement: production
 
-  # Redis Exporter - scrapes Redis metrics via LOCAL sidecar process
-  # The exporter process runs inside this container and connects to $REDIS_ADDR via TCP
-  - job_name: 'redis_exporter'
-    scheme: http
-    static_configs:
-      - targets: ['localhost:9121']
-    scrape_interval: 30s
-    scrape_timeout: 10s
-    metric_relabel_configs:
-      - source_labels: []
-        target_label: component
-        replacement: redis
-
   # Health Service Metrics Exporter
   - job_name: 'health_service_exporter'
     scheme: http
