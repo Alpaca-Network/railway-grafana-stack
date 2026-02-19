@@ -10,3 +10,9 @@ datasources:
     editable: true
     jsonData:
       timeInterval: 15s
+      # Exemplar configuration: link trace_id exemplars to Tempo traces.
+      # When a Prometheus histogram/counter carries a trace_id exemplar,
+      # Grafana renders a clickable diamond that opens the trace in Tempo.
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          datasourceUid: grafana_tempo

@@ -32,4 +32,4 @@ EXPOSE 9090
 
 # Use entrypoint script to substitute environment variables, then start Prometheus
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus"]
+CMD ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus", "--enable-feature=exemplar-storage"]

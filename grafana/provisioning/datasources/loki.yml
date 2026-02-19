@@ -8,4 +8,21 @@ datasources:
     url: ${LOKI_INTERNAL_URL:-http://loki:3100}
     isDefault: false
     editable: true
-
+    jsonData:
+      # Derived fields extract structured data from log lines and create
+      # clickable links. This enables logs→traces navigation in Grafana:
+      # click a trace_id in any log line to jump directly to the Tempo trace.
+      derivedFields:
+        # Extract trace_id from JSON-structured log lines
+        - name: trace_id
+          matcherRegex: '"trace_id":\s*"([a-f0-9]+)"'
+          url: "${__value.raw}"
+          datasourceUid: grafana_tempo
+          urlDisplayLabel: "View Trace"
+        # Also match trace_id from Loki labels (used by LokiLogHandler)
+        - name: TraceID
+          matcherType: label
+          matcherRegex: "trace_id"
+          url: "${__value.raw}"
+          datasourceUid: grafana_tempo
+          urlDisplayLabel: "View Trace"
