@@ -466,17 +466,20 @@
         {
           "expr": "histogram_quantile(0.50, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le))",
           "legendFormat": "P50",
-          "refId": "A"
+          "refId": "A",
+          "exemplar": true
         },
         {
           "expr": "histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le))",
           "legendFormat": "P95",
-          "refId": "B"
+          "refId": "B",
+          "exemplar": true
         },
         {
           "expr": "histogram_quantile(0.99, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le))",
           "legendFormat": "P99",
-          "refId": "C"
+          "refId": "C",
+          "exemplar": true
         }
       ],
       "title": "API Latency Percentiles",
@@ -601,7 +604,8 @@
         {
           "expr": "topk(5, histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le, endpoint)))",
           "legendFormat": "{{endpoint}}",
-          "refId": "A"
+          "refId": "A",
+          "exemplar": true
         }
       ],
       "title": "Slowest Endpoints (P95)",
@@ -803,12 +807,14 @@
         {
           "expr": "histogram_quantile(0.95, sum(rate(fastapi_request_size_bytes_bucket[5m])) by (le))",
           "legendFormat": "Request Size P95",
-          "refId": "A"
+          "refId": "A",
+          "exemplar": true
         },
         {
           "expr": "histogram_quantile(0.95, sum(rate(fastapi_response_size_bytes_bucket[5m])) by (le))",
           "legendFormat": "Response Size P95",
-          "refId": "B"
+          "refId": "B",
+          "exemplar": true
         }
       ],
       "title": "Request/Response Size",
@@ -933,7 +939,8 @@
         {
           "expr": "histogram_quantile(0.95, sum(rate(model_inference_duration_seconds_bucket[5m])) by (le, provider))",
           "legendFormat": "{{provider}}",
-          "refId": "A"
+          "refId": "A",
+          "exemplar": true
         }
       ],
       "title": "Provider Latency P95",
