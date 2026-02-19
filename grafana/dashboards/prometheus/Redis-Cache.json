@@ -15,25 +15,12 @@
       }
     ]
   },
-  "description": "Redis in-memory cache monitoring with cache hit/miss rates, memory usage, logs, and distributed traces",
+  "description": "Redis in-memory cache monitoring with enhanced telemetry, accurate cache hit/miss rates, memory usage analysis, fragmentation metrics, command distribution, network I/O, and distributed traces",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
   "id": null,
-  "links": [
-    {
-      "asDropdown": false,
-      "icon": "external link",
-      "includeVars": false,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": true,
-      "title": "Prometheus Dashboard",
-      "tooltip": "",
-      "type": "link",
-      "url": "/d/prometheus-overview/prometheus-overview"
-    }
-  ],
+  "links": [],
   "liveNow": false,
   "panels": [
     {
@@ -52,7 +39,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -95,7 +82,7 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 4,
+        "w": 3,
         "x": 0,
         "y": 1
       },
@@ -122,9 +109,9 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "${datasource}"
           },
-          "expr": "redis_up{job=\"gatewayz_production\"} or vector(0)",
+          "expr": "redis_up{job=~\"$job\", instance=~\"$instance\"} or vector(0)",
           "legendFormat": "Redis Status",
           "refId": "A"
         }
@@ -135,7 +122,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -168,8 +155,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 4,
+        "w": 3,
+        "x": 3,
         "y": 1
       },
       "id": 3,
@@ -193,9 +180,9 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "${datasource}"
           },
-          "expr": "(redis_memory_used_bytes{job=\"gatewayz_production\"} / clamp_min(redis_memory_max_bytes{job=\"gatewayz_production\"}, 1)) * 100",
+          "expr": "(redis_memory_used_bytes{job=~\"$job\", instance=~\"$instance\"} / clamp_min(redis_memory_max_bytes{job=~\"$job\", instance=~\"$instance\"}, 1)) * 100",
           "legendFormat": "Memory Usage",
           "refId": "A"
         }
@@ -206,7 +193,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -223,29 +210,29 @@
               },
               {
                 "color": "yellow",
-                "value": 50
+                "value": 1.5
               },
               {
                 "color": "red",
-                "value": 100
+                "value": 2.0
               }
             ]
           },
-          "unit": "short"
+          "unit": "none"
         },
         "overrides": []
       },
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 8,
+        "w": 3,
+        "x": 6,
         "y": 1
       },
       "id": 4,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
-        "justifyMode": "auto",
+        "justifyMode": "center",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
         "reduceOptions": {
@@ -255,7 +242,7 @@
           "fields": "",
           "values": false
         },
-        "showPercentChange": false,
+        "showPercentChange": true,
         "textMode": "auto",
         "wideLayout": true
       },
@@ -264,20 +251,20 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "${datasource}"
           },
-          "expr": "redis_connected_clients{job=\"gatewayz_production\"} or vector(0)",
-          "legendFormat": "Clients",
+          "expr": "redis_memory_fragmentation_ratio{job=~\"$job\", instance=~\"$instance\"} or vector(1)",
+          "legendFormat": "Fragmentation",
           "refId": "A"
         }
       ],
-      "title": "Connected Clients",
+      "title": "Fragmentation Ratio",
       "type": "stat"
     },
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -294,14 +281,14 @@
               }
             ]
           },
-          "unit": "decbytes"
+          "unit": "short"
         },
         "overrides": []
       },
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 12,
+        "w": 3,
+        "x": 9,
         "y": 1
       },
       "id": 5,
@@ -327,20 +314,91 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "${datasource}"
           },
-          "expr": "redis_memory_used_bytes{job=\"gatewayz_production\"} or vector(0)",
-          "legendFormat": "Used Memory",
+          "expr": "redis_connected_clients{job=~\"$job\", instance=~\"$instance\"} or vector(0)",
+          "legendFormat": "Clients",
           "refId": "A"
         }
       ],
-      "title": "Memory Used",
+      "title": "Connected Clients",
       "type": "stat"
     },
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 12,
+        "y": 1
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": true,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "(rate(redis_keyspace_hits_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]) / clamp_min(rate(redis_keyspace_hits_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]) + rate(redis_keyspace_misses_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]), 0.001)) * 100",
+          "legendFormat": "Hit Rate",
+          "refId": "A"
+        }
+      ],
+      "title": "Cache Hit Rate %",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -357,17 +415,17 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "decbytes"
         },
         "overrides": []
       },
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 16,
+        "w": 3,
+        "x": 15,
         "y": 1
       },
-      "id": 6,
+      "id": 7,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -390,9 +448,72 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "${datasource}"
           },
-          "expr": "rate(redis_commands_processed_total{job=\"gatewayz_production\"}[5m]) or vector(0)",
+          "expr": "redis_memory_used_bytes{job=~\"$job\", instance=~\"$instance\"} or vector(0)",
+          "legendFormat": "Used Memory",
+          "refId": "A"
+        }
+      ],
+      "title": "Memory Used",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 18,
+        "y": 1
+      },
+      "id": 8,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": true,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "rate(redis_commands_processed_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]) or vector(0)",
           "legendFormat": "Commands/sec",
           "refId": "A"
         }
@@ -403,7 +524,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -426,11 +547,11 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 20,
+        "w": 3,
+        "x": 21,
         "y": 1
       },
-      "id": 7,
+      "id": 9,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -453,9 +574,9 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "${datasource}"
           },
-          "expr": "redis_uptime_in_seconds{job=\"gatewayz_production\"} or vector(0)",
+          "expr": "redis_uptime_in_seconds{job=~\"$job\", instance=~\"$instance\"} or vector(0)",
           "legendFormat": "Uptime",
           "refId": "A"
         }
@@ -464,148 +585,22 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 0,
-        "y": 5
-      },
-      "id": 8,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.4.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "redis_total_connections_received_total{job=\"gatewayz_production\"} or vector(0)",
-          "legendFormat": "Total Connections",
-          "refId": "A"
-        }
-      ],
-      "title": "Total Connections",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 4,
-        "y": 5
-      },
-      "id": 9,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.4.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "sum(redis_db_keys{job=\"gatewayz_production\"}) or vector(0)",
-          "legendFormat": "Total Keys",
-          "refId": "A"
-        }
-      ],
-      "title": "Database Keys",
-      "type": "stat"
-    },
-    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 9
+        "y": 5
       },
       "id": 10,
       "panels": [],
-      "title": "Cache Performance (Hit/Miss Rates)",
+      "title": "Cache Performance Analytics",
       "type": "row"
     },
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -637,7 +632,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 5,
+        "h": 8,
         "w": 6,
         "x": 0,
         "y": 6
@@ -654,7 +649,7 @@
           "fields": "",
           "values": false
         },
-        "showThresholdLabels": false,
+        "showThresholdLabels": true,
         "showThresholdMarkers": true,
         "sizing": "auto"
       },
@@ -663,20 +658,20 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "${datasource}"
           },
-          "expr": "(rate(redis_keyspace_hits_total{job=\"gatewayz_production\"}[5m]) / clamp_min(rate(redis_keyspace_hits_total{job=\"gatewayz_production\"}[5m]) + rate(redis_keyspace_misses_total{job=\"gatewayz_production\"}[5m]), 0.001)) * 100",
+          "expr": "(rate(redis_keyspace_hits_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]) / clamp_min(rate(redis_keyspace_hits_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]) + rate(redis_keyspace_misses_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]), 0.001)) * 100",
           "legendFormat": "Hit Rate",
           "refId": "A"
         }
       ],
-      "title": "Redis Cache Hit Rate",
+      "title": "Cache Hit Rate",
       "type": "gauge"
     },
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -762,7 +757,7 @@
         ]
       },
       "gridPos": {
-        "h": 5,
+        "h": 8,
         "w": 9,
         "x": 6,
         "y": 6
@@ -788,29 +783,29 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "${datasource}"
           },
-          "expr": "rate(redis_keyspace_hits_total{job=\"gatewayz_production\"}[5m])",
+          "expr": "rate(redis_keyspace_hits_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
           "legendFormat": "Hits",
           "refId": "A"
         },
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "${datasource}"
           },
-          "expr": "rate(redis_keyspace_misses_total{job=\"gatewayz_production\"}[5m])",
+          "expr": "rate(redis_keyspace_misses_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
           "legendFormat": "Misses",
           "refId": "B"
         }
       ],
-      "title": "Redis Hits vs Misses (Rate)",
+      "title": "Cache Hits vs Misses (Rate)",
       "type": "timeseries"
     },
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -861,8 +856,12 @@
                 "value": null
               },
               {
-                "color": "transparent",
+                "color": "yellow",
                 "value": 50
+              },
+              {
+                "color": "green",
+                "value": 80
               }
             ]
           },
@@ -871,7 +870,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 5,
+        "h": 8,
         "w": 9,
         "x": 15,
         "y": 6
@@ -898,14 +897,14 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "${datasource}"
           },
-          "expr": "(rate(redis_keyspace_hits_total{job=\"gatewayz_production\"}[5m]) / clamp_min(rate(redis_keyspace_hits_total{job=\"gatewayz_production\"}[5m]) + rate(redis_keyspace_misses_total{job=\"gatewayz_production\"}[5m]), 0.001)) * 100",
+          "expr": "(rate(redis_keyspace_hits_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]) / clamp_min(rate(redis_keyspace_hits_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]) + rate(redis_keyspace_misses_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]), 0.001)) * 100",
           "legendFormat": "Hit Rate %",
           "refId": "A"
         }
       ],
-      "title": "Cache Hit Rate Over Time",
+      "title": "Cache Hit Rate Trend",
       "type": "timeseries"
     },
     {
@@ -914,17 +913,17 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 11
+        "y": 14
       },
       "id": 20,
       "panels": [],
-      "title": "Application Cache Metrics (Backend)",
+      "title": "Application Cache Telemetry",
       "type": "row"
     },
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -1010,10 +1009,10 @@
         ]
       },
       "gridPos": {
-        "h": 6,
+        "h": 8,
         "w": 12,
         "x": 0,
-        "y": 12
+        "y": 15
       },
       "id": 21,
       "options": {
@@ -1035,29 +1034,29 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "${datasource}"
           },
-          "expr": "sum(rate(cache_hits_total[5m])) by (cache_name)",
+          "expr": "sum(rate(cache_hits_total[$__rate_interval])) by (cache_name)",
           "legendFormat": "{{cache_name}} hit",
           "refId": "A"
         },
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "${datasource}"
           },
-          "expr": "sum(rate(cache_misses_total[5m])) by (cache_name)",
+          "expr": "sum(rate(cache_misses_total[$__rate_interval])) by (cache_name)",
           "legendFormat": "{{cache_name}} miss",
           "refId": "B"
         }
       ],
-      "title": "Application Cache Operations by Name",
+      "title": "Application Cache Operations by Type",
       "type": "timeseries"
     },
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -1143,10 +1142,10 @@
         ]
       },
       "gridPos": {
-        "h": 6,
+        "h": 8,
         "w": 12,
         "x": 12,
-        "y": 12
+        "y": 15
       },
       "id": 22,
       "options": {
@@ -1169,23 +1168,23 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "${datasource}"
           },
-          "expr": "sum(rate(catalog_cache_hits_total[5m])) by (gateway)",
+          "expr": "sum(rate(catalog_cache_hits_total[$__rate_interval])) by (gateway)",
           "legendFormat": "{{gateway}} hit",
           "refId": "A"
         },
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "${datasource}"
           },
-          "expr": "sum(rate(catalog_cache_misses_total[5m])) by (gateway)",
+          "expr": "sum(rate(catalog_cache_misses_total[$__rate_interval])) by (gateway)",
           "legendFormat": "{{gateway}} miss",
           "refId": "B"
         }
       ],
-      "title": "Catalog Cache by Gateway (Read from Memory)",
+      "title": "Catalog Cache by Gateway",
       "type": "timeseries"
     },
     {
@@ -1194,17 +1193,17 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 18
+        "y": 23
       },
       "id": 30,
       "panels": [],
-      "title": "Memory & Keys Analysis",
+      "title": "Memory & Key Analysis",
       "type": "row"
     },
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -1293,14 +1292,29 @@
                 "value": 0
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "RSS Memory"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
           }
         ]
       },
       "gridPos": {
-        "h": 6,
+        "h": 8,
         "w": 12,
         "x": 0,
-        "y": 19
+        "y": 24
       },
       "id": 31,
       "options": {
@@ -1324,20 +1338,29 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "${datasource}"
           },
-          "expr": "redis_memory_used_bytes{job=\"gatewayz_production\"}",
+          "expr": "redis_memory_used_bytes{job=~\"$job\", instance=~\"$instance\"}",
           "legendFormat": "Used Memory",
           "refId": "A"
         },
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "${datasource}"
           },
-          "expr": "redis_memory_max_bytes{job=\"gatewayz_production\"} > 0",
+          "expr": "redis_memory_max_bytes{job=~\"$job\", instance=~\"$instance\"} > 0",
           "legendFormat": "Max Memory",
           "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "redis_memory_used_rss_bytes{job=~\"$job\", instance=~\"$instance\"}",
+          "legendFormat": "RSS Memory",
+          "refId": "C"
         }
       ],
       "title": "Memory Usage Over Time",
@@ -1346,7 +1369,147 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Keys"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Expired"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Evicted"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "id": 32,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(redis_db_keys{job=~\"$job\", instance=~\"$instance\"}) by (db)",
+          "legendFormat": "DB {{db}} Keys",
+          "refId": "A"
+        }
+      ],
+      "title": "Keys by Database",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -1432,12 +1595,12 @@
         ]
       },
       "gridPos": {
-        "h": 6,
+        "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 19
+        "x": 0,
+        "y": 32
       },
-      "id": 32,
+      "id": 33,
       "options": {
         "legend": {
           "calcs": [
@@ -1458,18 +1621,18 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "${datasource}"
           },
-          "expr": "rate(redis_expired_keys_total{job=\"gatewayz_production\"}[5m])",
+          "expr": "rate(redis_expired_keys_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
           "legendFormat": "Expired",
           "refId": "A"
         },
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "${datasource}"
           },
-          "expr": "rate(redis_evicted_keys_total{job=\"gatewayz_production\"}[5m])",
+          "expr": "rate(redis_evicted_keys_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
           "legendFormat": "Evicted",
           "refId": "B"
         }
@@ -1478,22 +1641,124 @@
       "type": "timeseries"
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 30,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "line+area"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1.5
+              },
+              {
+                "color": "red",
+                "value": 2.0
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 32
+      },
+      "id": 34,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "min",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "redis_memory_fragmentation_ratio{job=~\"$job\", instance=~\"$instance\"}",
+          "legendFormat": "Fragmentation Ratio",
+          "refId": "A"
+        }
+      ],
+      "title": "Memory Fragmentation Ratio Trend",
+      "type": "timeseries"
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 40
       },
       "id": 40,
       "panels": [],
-      "title": "Cache Repopulation Indicators",
+      "title": "Cache Invalidation & Repopulation",
       "type": "row"
     },
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -1548,10 +1813,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 8,
         "w": 12,
         "x": 0,
-        "y": 26
+        "y": 41
       },
       "id": 41,
       "options": {
@@ -1574,20 +1839,20 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "${datasource}"
           },
-          "expr": "sum(rate(catalog_cache_invalidations_total[5m])) by (gateway, reason)",
+          "expr": "sum(rate(catalog_cache_invalidations_total[$__rate_interval])) by (gateway, reason)",
           "legendFormat": "{{gateway}} - {{reason}}",
           "refId": "A"
         }
       ],
-      "title": "Cache Invalidations (Repopulation Triggers)",
+      "title": "Cache Invalidations by Gateway & Reason",
       "type": "timeseries"
     },
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -1642,16 +1907,17 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 8,
         "w": 12,
         "x": 12,
-        "y": 26
+        "y": 41
       },
       "id": 42,
       "options": {
         "legend": {
           "calcs": [
-            "lastNotNull"
+            "lastNotNull",
+            "mean"
           ],
           "displayMode": "table",
           "placement": "right",
@@ -1667,7 +1933,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "${datasource}"
           },
           "expr": "catalog_cache_size_bytes",
           "legendFormat": "{{gateway}}",
@@ -1683,522 +1949,17 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 32
+        "y": 49
       },
       "id": 50,
       "panels": [],
-      "title": "Cache Operation Logs (Loki)",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "grafana_loki"
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 33
-      },
-      "id": 51,
-      "options": {
-        "dedupStrategy": "none",
-        "enableLogDetails": true,
-        "prettifyLogMessage": true,
-        "showCommonLabels": false,
-        "showLabels": false,
-        "showTime": true,
-        "sortOrder": "Descending",
-        "wrapLogMessage": true
-      },
-      "pluginVersion": "11.4.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafana_loki"
-          },
-          "expr": "{app=\"gatewayz\"} |~ \"(?i)(cache|redis|Cache HIT|Cache MISS|Cache SET|Cache INVALIDATE)\"",
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Cache Operation Logs",
-      "type": "logs"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 41
-      },
-      "id": 60,
-      "panels": [],
-      "title": "Distributed Traces (Tempo)",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "tempo",
-        "uid": "grafana_tempo"
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 42
-      },
-      "id": 61,
-      "options": {
-        "columns": [
-          {
-            "id": "Name",
-            "name": "Name",
-            "type": "string"
-          },
-          {
-            "id": "TraceDurationMs",
-            "name": "Duration (ms)",
-            "type": "number"
-          },
-          {
-            "id": "TraceTimestamp",
-            "name": "Timestamp",
-            "type": "date"
-          },
-          {
-            "id": "SpanCount",
-            "name": "Spans",
-            "type": "number"
-          }
-        ],
-        "limit": 50,
-        "showTime": true,
-        "sortOrder": "Descending"
-      },
-      "pluginVersion": "11.4.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "tempo",
-            "uid": "grafana_tempo"
-          },
-          "queryType": "traceql",
-          "query": "{ resource.service.name = \"gatewayz-backend\" && (name =~ \"cache.*\" || name =~ \"redis.*\" || name =~ \".*Redis.*\") }",
-          "refId": "A",
-          "limit": 50
-        }
-      ],
-      "title": "Cache-Related Traces",
-      "type": "traces"
-    },
-    {
-      "datasource": {
-        "type": "tempo",
-        "uid": "grafana_tempo"
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 50
-      },
-      "id": 62,
-      "options": {
-        "columns": [
-          {
-            "id": "Name",
-            "name": "Name",
-            "type": "string"
-          },
-          {
-            "id": "TraceDurationMs",
-            "name": "Duration (ms)",
-            "type": "number"
-          },
-          {
-            "id": "TraceTimestamp",
-            "name": "Timestamp",
-            "type": "date"
-          },
-          {
-            "id": "SpanCount",
-            "name": "Spans",
-            "type": "number"
-          }
-        ],
-        "limit": 50,
-        "showTime": true,
-        "sortOrder": "Descending"
-      },
-      "pluginVersion": "11.4.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "tempo",
-            "uid": "grafana_tempo"
-          },
-          "queryType": "traceql",
-          "query": "{ resource.service.name = \"gatewayz-backend\" && duration > 100ms } | select(name, duration, status)",
-          "refId": "A",
-          "limit": 50
-        }
-      ],
-      "title": "Slow Backend Traces (>100ms) - Check for Cache Misses",
-      "type": "traces"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 58
-      },
-      "id": 70,
-      "panels": [],
-      "title": "System Health Overview",
+      "title": "Network & Connection Analysis",
       "type": "row"
     },
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "color": "red",
-                  "index": 1,
-                  "text": "DOWN"
-                },
-                "1": {
-                  "color": "green",
-                  "index": 0,
-                  "text": "UP"
-                }
-              },
-              "type": "value"
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 0,
-        "y": 59
-      },
-      "id": 71,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.4.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "up{job=\"gatewayz_production\"}",
-          "legendFormat": "Backend",
-          "refId": "A"
-        }
-      ],
-      "title": "Backend Status",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "color": "red",
-                  "index": 1,
-                  "text": "DOWN"
-                },
-                "1": {
-                  "color": "green",
-                  "index": 0,
-                  "text": "UP"
-                }
-              },
-              "type": "value"
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 4,
-        "y": 59
-      },
-      "id": 72,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.4.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "up{job=\"prometheus\"}",
-          "legendFormat": "Prometheus",
-          "refId": "A"
-        }
-      ],
-      "title": "Prometheus Status",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "color": "red",
-                  "index": 1,
-                  "text": "DOWN"
-                },
-                "1": {
-                  "color": "green",
-                  "index": 0,
-                  "text": "UP"
-                }
-              },
-              "type": "value"
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 8,
-        "y": 59
-      },
-      "id": 73,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.4.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "up{job=\"mimir\"}",
-          "legendFormat": "Mimir",
-          "refId": "A"
-        }
-      ],
-      "title": "Mimir Status",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "color": "red",
-                  "index": 1,
-                  "text": "DOWN"
-                },
-                "1": {
-                  "color": "green",
-                  "index": 0,
-                  "text": "UP"
-                }
-              },
-              "type": "value"
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 12,
-        "y": 59
-      },
-      "id": 74,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.4.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "up{job=\"tempo\"}",
-          "legendFormat": "Tempo",
-          "refId": "A"
-        }
-      ],
-      "title": "Tempo Status",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -2248,21 +2009,55 @@
               }
             ]
           },
-          "unit": "reqps"
+          "unit": "Bps"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Input"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Output"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
-        "h": 4,
-        "w": 8,
-        "x": 16,
-        "y": 59
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 50
       },
-      "id": 75,
+      "id": 51,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
           "placement": "right",
           "showLegend": true
         },
@@ -2276,15 +2071,269 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "${datasource}"
           },
-          "expr": "sum(rate(fastapi_requests_total[5m]))",
-          "legendFormat": "Requests/sec",
+          "expr": "rate(redis_net_input_bytes_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
+          "legendFormat": "Input",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "rate(redis_net_output_bytes_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
+          "legendFormat": "Output",
+          "refId": "B"
+        }
+      ],
+      "title": "Network I/O (Bytes/sec)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 30,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "line+area"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 100
+              },
+              {
+                "color": "red",
+                "value": 150
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Blocked Clients"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 50
+      },
+      "id": 52,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "redis_connected_clients{job=~\"$job\", instance=~\"$instance\"}",
+          "legendFormat": "Connected",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "redis_blocked_clients{job=~\"$job\", instance=~\"$instance\"} or vector(0)",
+          "legendFormat": "Blocked",
+          "refId": "B"
+        }
+      ],
+      "title": "Client Connections Over Time",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 58
+      },
+      "id": 60,
+      "panels": [],
+      "title": "Cache Operations & Logs",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "grafana_loki"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 59
+      },
+      "id": 61,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafana_loki"
+          },
+          "expr": "{app=\"gatewayz\"} |~ \"(?i)(cache|redis|Cache HIT|Cache MISS|Cache SET|Cache INVALIDATE)\"",
+          "legendFormat": "",
           "refId": "A"
         }
       ],
-      "title": "Backend Request Rate",
-      "type": "timeseries"
+      "title": "Cache Operation Logs",
+      "type": "logs"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 69
+      },
+      "id": 70,
+      "panels": [],
+      "title": "Distributed Traces",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "tempo",
+        "uid": "grafana_tempo"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 70
+      },
+      "id": 71,
+      "options": {
+        "columns": [
+          {
+            "id": "Name",
+            "name": "Name",
+            "type": "string"
+          },
+          {
+            "id": "TraceDurationMs",
+            "name": "Duration (ms)",
+            "type": "number"
+          },
+          {
+            "id": "TraceTimestamp",
+            "name": "Timestamp",
+            "type": "date"
+          },
+          {
+            "id": "SpanCount",
+            "name": "Spans",
+            "type": "number"
+          }
+        ],
+        "limit": 50,
+        "showTime": true,
+        "sortOrder": "Descending"
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tempo",
+            "uid": "grafana_tempo"
+          },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"gatewayz-backend\" && (name =~ \"cache.*\" || name =~ \"redis.*\") }",
+          "refId": "A",
+          "limit": 50
+        }
+      ],
+      "title": "Cache-Related Distributed Traces",
+      "type": "traces"
     }
   ],
   "refresh": "30s",
@@ -2293,18 +2342,124 @@
     "redis",
     "cache",
     "prometheus",
-    "monitoring"
+    "monitoring",
+    "telemetry"
   ],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "grafana_prometheus",
+          "value": "grafana_prometheus"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Data Source",
+        "multi": false,
+        "name": "datasource",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "gatewayz_production"
+          ],
+          "value": [
+            "gatewayz_production"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "definition": "label_values(redis_up, job)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Job",
+        "multi": true,
+        "name": "job",
+        "options": [],
+        "query": {
+          "query": "label_values(redis_up, job)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "definition": "label_values(redis_up{job=~\"$job\"}, instance)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Instance",
+        "multi": true,
+        "name": "instance",
+        "options": [],
+        "query": {
+          "query": "label_values(redis_up{job=~\"$job\"}, instance)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
   },
   "time": {
     "from": "now-1h",
     "to": "now"
   },
-  "timepicker": {},
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  },
   "timezone": "browser",
   "title": "Redis Cache Monitoring",
   "uid": "redis-cache-monitoring",
-  "version": 1
+  "version": 2
 }

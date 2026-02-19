@@ -6,208 +6,373 @@ groups:
     folder: Redis Alerts
     interval: 30s
     rules:
+      # ================================================================
+      # CRITICAL ALERTS - Immediate Response Required
+      # ================================================================
+      
       # Alert: Redis Down
+      # Fires when Redis exporter reports instance as unavailable
       - uid: redis_down
-        title: Redis Down
-        condition: C
+        title: Redis Instance Down
+        condition: A
         noDataState: Alerting
         execErrState: Alerting
         for: 1m
         annotations:
-          description: 'Redis instance is not responding. Cache functionality is unavailable. Immediate investigation required.'
-          summary: 'Redis is down'
+          summary: 'Redis instance {{ $labels.instance }} is down'
+          description: |
+            Redis instance {{ $labels.instance }} (job: {{ $labels.job }}) has been unreachable for more than 1 minute.
+            
+            Impact: Cache functionality unavailable, increased database load
+            Action: Check Redis container/pod status and connectivity
           runbook_url: 'https://wiki.gatewayz.ai/runbooks/redis-down'
-          dashboard: 'http://localhost:3000/d/backend-services-v1/backend-services'
+          dashboard: 'http://localhost:3000/d/redis-cache-monitoring/redis-cache-monitoring'
         labels:
           severity: critical
           category: infrastructure
           component: redis
+          priority: p1
         data:
           - refId: A
             queryType: ''
+            relativeTimeRange:
+              from: 60
+              to: 0
             model:
               expr: 'redis_up == 0'
-              hide: false
-              intervalFactor: 1
-              legendFormat: 'Redis Status'
+              instant: true
               refId: A
-          - refId: C
-            queryType: ''
-            model:
-              conditions:
-                - evaluator:
-                    params:
-                      - 0
-                    type: gt
-                  operator:
-                    type: and
-                  query:
-                    params:
-                      - A
-                  type: query
-              type: threshold
-
-      # Alert: Redis High Memory Usage
-      - uid: redis_high_memory
-        title: Redis High Memory Usage
-        condition: C
-        noDataState: NoData
-        execErrState: Alerting
-        for: 5m
-        annotations:
-          description: 'Redis memory usage exceeds 80% threshold. Consider clearing cache or increasing memory allocation.'
-          summary: 'Redis memory usage high'
-          runbook_url: 'https://wiki.gatewayz.ai/runbooks/redis-memory'
-          dashboard: 'http://localhost:3000/d/backend-services-v1/backend-services'
-        labels:
-          severity: warning
-          category: infrastructure
-          component: redis
-        data:
-          - refId: A
-            queryType: ''
-            model:
-              expr: '(redis_memory_used_bytes / redis_memory_max_bytes) * 100 > 80'
-              hide: false
-              intervalFactor: 1
-              legendFormat: 'Memory Usage %'
-              refId: A
-          - refId: C
-            queryType: ''
-            model:
-              conditions:
-                - evaluator:
-                    params:
-                      - 0
-                    type: gt
-                  operator:
-                    type: and
-                  query:
-                    params:
-                      - A
-                  type: query
-              type: threshold
 
       # Alert: Redis Critical Memory Usage
+      # Fires when memory exceeds 90% of maxmemory limit
       - uid: redis_critical_memory
-        title: Redis Critical Memory Usage
-        condition: C
+        title: Redis Memory Critical
+        condition: A
         noDataState: NoData
         execErrState: Alerting
         for: 2m
         annotations:
-          description: 'Redis memory usage exceeds 90% threshold. Immediate action required to prevent cache eviction.'
-          summary: 'Redis memory usage critical'
+          summary: 'Redis memory critical on {{ $labels.instance }}'
+          description: |
+            Memory usage on {{ $labels.instance }} is {{ $value | printf "%.1f" }}%, exceeding 90% threshold.
+            
+            Used: {{ $labels.redis_memory_used_bytes | humanize }}B
+            Max: {{ $labels.redis_memory_max_bytes | humanize }}B
+            
+            Impact: Keys will be evicted, performance degradation
+            Action: Increase memory limit or clear cache immediately
           runbook_url: 'https://wiki.gatewayz.ai/runbooks/redis-memory-critical'
-          dashboard: 'http://localhost:3000/d/backend-services-v1/backend-services'
+          dashboard: 'http://localhost:3000/d/redis-cache-monitoring/redis-cache-monitoring'
         labels:
           severity: critical
           category: infrastructure
           component: redis
+          priority: p1
         data:
           - refId: A
             queryType: ''
+            relativeTimeRange:
+              from: 120
+              to: 0
             model:
-              expr: '(redis_memory_used_bytes / redis_memory_max_bytes) * 100 > 90'
-              hide: false
-              intervalFactor: 1
-              legendFormat: 'Memory Usage %'
+              expr: '(redis_memory_used_bytes / clamp_min(redis_memory_max_bytes, 1)) * 100 > 90'
+              instant: true
               refId: A
-          - refId: C
-            queryType: ''
-            model:
-              conditions:
-                - evaluator:
-                    params:
-                      - 0
-                    type: gt
-                  operator:
-                    type: and
-                  query:
-                    params:
-                      - A
-                  type: query
-              type: threshold
 
-      # Alert: Low Cache Hit Rate
-      - uid: redis_low_hit_rate
-        title: Low Cache Hit Rate
-        condition: C
-        noDataState: NoData
-        execErrState: Alerting
-        for: 10m
-        annotations:
-          description: 'Redis cache hit rate is below 50% threshold. This may indicate cache invalidation issues or cold cache.'
-          summary: 'Low Redis cache hit rate'
-          runbook_url: 'https://wiki.gatewayz.ai/runbooks/redis-hit-rate'
-          dashboard: 'http://localhost:3000/d/backend-services-v1/backend-services'
-        labels:
-          severity: warning
-          category: performance
-          component: redis
-        data:
-          - refId: A
-            queryType: ''
-            model:
-              expr: '(redis_keyspace_hits_total / (redis_keyspace_hits_total + redis_keyspace_misses_total)) * 100 < 50'
-              hide: false
-              intervalFactor: 1
-              legendFormat: 'Cache Hit Rate %'
-              refId: A
-          - refId: C
-            queryType: ''
-            model:
-              conditions:
-                - evaluator:
-                    params:
-                      - 0
-                    type: gt
-                  operator:
-                    type: and
-                  query:
-                    params:
-                      - A
-                  type: query
-              type: threshold
-
-      # Alert: High Redis Connection Count
-      - uid: redis_high_connections
-        title: High Redis Connection Count
-        condition: C
+      # Alert: Critical Memory Fragmentation
+      # Fires when fragmentation ratio exceeds 2.0 (severely fragmented)
+      - uid: redis_fragmentation_critical
+        title: Redis Memory Fragmentation Critical
+        condition: A
         noDataState: NoData
         execErrState: Alerting
         for: 5m
         annotations:
-          description: 'Redis has more than 100 connected clients. This may indicate connection leaks.'
-          summary: 'High Redis connection count'
-          runbook_url: 'https://wiki.gatewayz.ai/runbooks/redis-connections'
-          dashboard: 'http://localhost:3000/d/backend-services-v1/backend-services'
+          summary: 'Critical memory fragmentation on {{ $labels.instance }}'
+          description: |
+            Memory fragmentation ratio is {{ $value | printf "%.2f" }} (threshold: 2.0)
+            
+            Used Memory: {{ $labels.redis_memory_used_bytes | humanize }}B
+            RSS Memory: {{ $labels.redis_memory_used_rss_bytes | humanize }}B
+            
+            Impact: Memory inefficiency, potential OOM risk
+            Action: Plan Redis restart during maintenance window
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/redis-fragmentation-critical'
+          dashboard: 'http://localhost:3000/d/redis-cache-monitoring/redis-cache-monitoring'
+        labels:
+          severity: critical
+          category: performance
+          component: redis
+          priority: p2
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              expr: 'redis_memory_fragmentation_ratio > 2.0'
+              instant: true
+              refId: A
+
+      # ================================================================
+      # WARNING ALERTS - Attention Required Within 30 Minutes
+      # ================================================================
+
+      # Alert: Redis High Memory Usage
+      # Fires when memory exceeds 80% of maxmemory limit
+      - uid: redis_high_memory
+        title: Redis Memory High
+        condition: A
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          summary: 'Redis memory high on {{ $labels.instance }}'
+          description: |
+            Memory usage on {{ $labels.instance }} is {{ $value | printf "%.1f" }}%, exceeding 80% threshold.
+            
+            Current trend indicates potential critical threshold breach within 15-30 minutes.
+            
+            Action: Monitor closely, prepare to increase memory or clear cache
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/redis-memory'
+          dashboard: 'http://localhost:3000/d/redis-cache-monitoring/redis-cache-monitoring'
         labels:
           severity: warning
           category: infrastructure
           component: redis
+          priority: p3
         data:
           - refId: A
             queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              expr: '(redis_memory_used_bytes / clamp_min(redis_memory_max_bytes, 1)) * 100 > 80'
+              instant: true
+              refId: A
+
+      # Alert: Low Cache Hit Rate
+      # Fires when cache hit rate drops below 50%
+      - uid: redis_low_hit_rate
+        title: Redis Cache Hit Rate Low
+        condition: A
+        noDataState: NoData
+        execErrState: Alerting
+        for: 10m
+        annotations:
+          summary: 'Low cache hit rate on {{ $labels.instance }}'
+          description: |
+            Cache hit rate is {{ $value | printf "%.1f" }}%, below 50% threshold.
+            
+            This indicates:
+            - Cache may be cold (recent restart)
+            - Cache invalidation too aggressive
+            - Working set larger than cache capacity
+            
+            Action: Review cache invalidation patterns and TTL settings
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/redis-hit-rate'
+          dashboard: 'http://localhost:3000/d/redis-cache-monitoring/redis-cache-monitoring'
+        labels:
+          severity: warning
+          category: performance
+          component: redis
+          priority: p3
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              expr: '(rate(redis_keyspace_hits_total[5m]) / clamp_min(rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]), 0.001)) * 100 < 50'
+              instant: true
+              refId: A
+
+      # Alert: High Memory Fragmentation
+      # Fires when fragmentation ratio exceeds 1.5
+      - uid: redis_fragmentation_high
+        title: Redis Memory Fragmentation High
+        condition: A
+        noDataState: NoData
+        execErrState: Alerting
+        for: 10m
+        annotations:
+          summary: 'High memory fragmentation on {{ $labels.instance }}'
+          description: |
+            Memory fragmentation ratio is {{ $value | printf "%.2f" }} (threshold: 1.5)
+            
+            This indicates memory is becoming fragmented, which can lead to:
+            - Increased memory usage
+            - Performance degradation
+            - Eventually requiring restart
+            
+            Action: Plan maintenance window for Redis restart
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/redis-fragmentation'
+          dashboard: 'http://localhost:3000/d/redis-cache-monitoring/redis-cache-monitoring'
+        labels:
+          severity: warning
+          category: performance
+          component: redis
+          priority: p3
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              expr: 'redis_memory_fragmentation_ratio > 1.5'
+              instant: true
+              refId: A
+
+      # Alert: High Key Eviction Rate
+      # Fires when keys are being evicted at >10/sec
+      - uid: redis_high_eviction_rate
+        title: Redis High Key Eviction Rate
+        condition: A
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          summary: 'High key eviction rate on {{ $labels.instance }}'
+          description: |
+            Redis is evicting {{ $value | printf "%.1f" }} keys/second.
+            
+            This indicates:
+            - Memory pressure (approaching maxmemory)
+            - Working set exceeds cache capacity
+            - Potential performance impact from eviction overhead
+            
+            Action: Review memory usage and consider increasing limit
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/redis-eviction'
+          dashboard: 'http://localhost:3000/d/redis-cache-monitoring/redis-cache-monitoring'
+        labels:
+          severity: warning
+          category: performance
+          component: redis
+          priority: p3
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              expr: 'rate(redis_evicted_keys_total[5m]) > 10'
+              instant: true
+              refId: A
+
+      # Alert: High Connection Count
+      # Fires when connected clients exceed 100
+      - uid: redis_high_connections
+        title: Redis High Connection Count
+        condition: A
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          summary: 'High connection count on {{ $labels.instance }}'
+          description: |
+            {{ $value }} clients connected to Redis (threshold: 100)
+            
+            This may indicate:
+            - Connection pool misconfiguration
+            - Connection leaks in application code
+            - Too many application instances
+            
+            Action: Review connection pool settings and application code
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/redis-connections'
+          dashboard: 'http://localhost:3000/d/redis-cache-monitoring/redis-cache-monitoring'
+        labels:
+          severity: warning
+          category: infrastructure
+          component: redis
+          priority: p3
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
             model:
               expr: 'redis_connected_clients > 100'
-              hide: false
-              intervalFactor: 1
-              legendFormat: 'Connected Clients'
+              instant: true
               refId: A
-          - refId: C
+
+      # Alert: Blocked Clients Detected
+      # Fires when any clients are blocked on operations
+      - uid: redis_blocked_clients
+        title: Redis Blocked Clients Detected
+        condition: A
+        noDataState: NoData
+        execErrState: Alerting
+        for: 2m
+        annotations:
+          summary: 'Blocked clients detected on {{ $labels.instance }}'
+          description: |
+            {{ $value }} client(s) currently blocked on Redis operations.
+            
+            Blocked clients typically indicate:
+            - Long-running commands (KEYS, FLUSHALL, etc.)
+            - BLPOP/BRPOP with long timeouts
+            - Slow Lua scripts
+            
+            Action: Use CLIENT LIST to identify and terminate slow operations
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/redis-blocked-clients'
+          dashboard: 'http://localhost:3000/d/redis-cache-monitoring/redis-cache-monitoring'
+        labels:
+          severity: warning
+          category: performance
+          component: redis
+          priority: p2
+        data:
+          - refId: A
             queryType: ''
+            relativeTimeRange:
+              from: 120
+              to: 0
             model:
-              conditions:
-                - evaluator:
-                    params:
-                      - 0
-                    type: gt
-                  operator:
-                    type: and
-                  query:
-                    params:
-                      - A
-                  type: query
-              type: threshold
+              expr: 'redis_blocked_clients > 0'
+              instant: true
+              refId: A
+
+      # ================================================================
+      # INFO ALERTS - FYI, No Immediate Action Required
+      # ================================================================
+
+      # Alert: Redis Restart Detected
+      # Fires when uptime resets (indicates restart)
+      - uid: redis_restart_detected
+        title: Redis Restart Detected
+        condition: A
+        noDataState: NoData
+        execErrState: KeepLastState
+        for: 0s
+        annotations:
+          summary: 'Redis restart detected on {{ $labels.instance }}'
+          description: |
+            Redis instance {{ $labels.instance }} has been restarted.
+            
+            Uptime: {{ $value | humanizeDuration }}
+            
+            This is informational. Cache will be cold initially.
+            Monitor hit rates over next 30 minutes.
+          dashboard: 'http://localhost:3000/d/redis-cache-monitoring/redis-cache-monitoring'
+        labels:
+          severity: info
+          category: infrastructure
+          component: redis
+          priority: p4
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 60
+              to: 0
+            model:
+              expr: 'redis_uptime_in_seconds < 300'
+              instant: true
+              refId: A
     provenance: Grafana
