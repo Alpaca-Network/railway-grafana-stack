@@ -27,9 +27,6 @@ COPY diagnose-prometheus-mimir.sh /app/diagnose-prometheus-mimir.sh
 COPY verify-remote-write.sh /app/verify-remote-write.sh
 RUN chmod +x /app/diagnose-prometheus-mimir.sh /app/verify-remote-write.sh
 
-# Copy redis_exporter binary (for sidecar execution)
-COPY --from=oliver006/redis_exporter:latest /redis_exporter /usr/local/bin/redis_exporter
-
 # Expose Prometheus port for Railway private networking
 EXPOSE 9090
 
