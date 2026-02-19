@@ -196,7 +196,7 @@
       "pluginVersion": "11.5.2",
       "targets": [
         {
-          "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le))",
           "legendFormat": "P50",
           "refId": "A"
         }
@@ -240,7 +240,7 @@
       "pluginVersion": "11.5.2",
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le))",
           "legendFormat": "P95",
           "refId": "A"
         }
@@ -284,7 +284,7 @@
       "pluginVersion": "11.5.2",
       "targets": [
         {
-          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "expr": "histogram_quantile(0.99, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le))",
           "legendFormat": "P99",
           "refId": "A"
         }
@@ -464,17 +464,17 @@
       "pluginVersion": "11.5.2",
       "targets": [
         {
-          "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le))",
           "legendFormat": "P50",
           "refId": "A"
         },
         {
-          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le))",
           "legendFormat": "P95",
           "refId": "B"
         },
         {
-          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "expr": "histogram_quantile(0.99, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le))",
           "legendFormat": "P99",
           "refId": "C"
         }
@@ -538,7 +538,7 @@
       "pluginVersion": "11.5.2",
       "targets": [
         {
-          "expr": "topk(10, sum(rate(http_requests_total[5m])) by (endpoint))",
+          "expr": "topk(10, sum(rate(fastapi_requests_total[5m])) by (endpoint))",
           "legendFormat": "{{endpoint}}",
           "refId": "A"
         }
@@ -599,7 +599,7 @@
       "pluginVersion": "11.5.2",
       "targets": [
         {
-          "expr": "topk(5, histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, endpoint)))",
+          "expr": "topk(5, histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le, endpoint)))",
           "legendFormat": "{{endpoint}}",
           "refId": "A"
         }
