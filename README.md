@@ -872,52 +872,96 @@ Configure this once in the OpenTelemetry SDK resource at process startup — it 
 
 ---
 
-## 🔬 Future Enhancement: Continuous Profiling (Pyroscope)
+## 🔬 Continuous Profiling (Pyroscope via Grafana Cloud)
 
-> **Status: Not deployed — no new services added to this stack.**
-> This section documents how to add it when the team is ready.
+> **Status: No new Railway service required.**
+> Profiling is pushed from the backend directly to Grafana Cloud's hosted Pyroscope endpoint. This adds the fifth observability signal — **profiles** — without deploying any additional infrastructure.
 
-The current stack is **LGTM** (Loki · Grafana · Tempo · Mimir). Adding **Pyroscope** (Grafana's continuous profiling engine) would make it **LGTMP** and unlock the fifth observability signal.
+The current self-hosted stack is **LGTM** (Loki · Grafana · Tempo · Mimir). Grafana Cloud's hosted Pyroscope extends it to **LGTMP** for the price of one Python package and two environment variables.
 
-### Why Pyroscope matters
+### Why profiling matters for GatewayZ
 
-The Four Golden Signals tell you **what** is wrong. Pyroscope tells you **which line of code** is causing it.
+The Four Golden Signals tell you **what** is wrong. Profiling tells you **which line of code** is causing it.
 
-| Saturation says | Profiling adds |
-|-----------------|---------------|
-| CPU is at 90% | Which function is burning the CPU? Is it the token counter? The JSON serializer? |
-| Memory growing 50MB/hour | Which object is accumulating? Is it a cache with no TTL? An open file handle? |
-| P99 latency spiked to 8s | What was the thread doing during those 8 seconds? Was it waiting on a lock? |
+| Four Golden Signals say | Profiling adds |
+|-------------------------|---------------|
+| CPU saturation at 90% | Which function is burning the cycles? Token counter? JSON streaming serializer? |
+| Memory growing 50 MB/hour | Which object accumulates? A model-catalog cache entry with no TTL? An open SSE connection? |
+| P99 latency spiked to 8 s | What was the thread doing during those 8 seconds? Waiting on a Redis lock? A slow provider response? |
 
-### Tempo → Pyroscope trace linkage
+### How it works (no new service)
 
-Pyroscope integrates with Tempo via the `tracesToProfiles` datasource configuration. When you click a slow span in Tempo, you can jump directly to the flamegraph recorded at that exact moment in time for that exact service — no manual time correlation needed.
+The `pyroscope-otel` SDK runs **inside the backend process** and pushes CPU/memory profiles at regular intervals directly to Grafana Cloud's ingest endpoint. Grafana Cloud stores and indexes the profiles. The self-hosted Grafana instance reads them back via a datasource pointed at the Grafana Cloud API.
 
-### What is needed to add it
-
-**New service (1 container):**
-```yaml
-# docker-compose.yml addition
-pyroscope:
-  image: grafana/pyroscope:1.7.1
-  ports:
-    - "4040:4040"
-  volumes:
-    - pyroscope_data:/data
-  command: ["server"]
+```
+Backend process
+  └─ pyroscope SDK (in-process)
+       └─ HTTP push → https://profiles-prod-xxx.grafana.net
+                              ↑
+                    Grafana Cloud (hosted Pyroscope)
+                              ↑
+                    Self-hosted Grafana datasource
+                    (grafana_pyroscope → Grafana Cloud API)
 ```
 
-**New Grafana datasource:**
+### What is needed
+
+**1. Backend: install the SDK and push profiles**
+
+```bash
+pip install pyroscope-io
+```
+
+```python
+# gatewayz-backend/src/main.py — inside the lifespan startup block
+import pyroscope
+
+pyroscope.configure(
+    application_name="gatewayz-backend",
+    # Grafana Cloud hosted Pyroscope ingest endpoint
+    server_address="https://profiles-prod-xxx.grafana.net",  # from Grafana Cloud → Connections → Pyroscope
+    basic_auth_username="<grafana-cloud-instance-id>",       # numeric instance ID
+    basic_auth_password="<grafana-cloud-api-token>",          # scoped to profiles:write
+    tags={
+        "service_name": "gatewayz-backend",
+        "environment": os.getenv("RAILWAY_ENVIRONMENT", "production"),
+    },
+)
+```
+
+Add the two secrets to the Railway backend service:
+```
+GRAFANA_CLOUD_PYROSCOPE_URL=https://profiles-prod-xxx.grafana.net
+GRAFANA_CLOUD_INSTANCE_ID=<numeric-id>
+GRAFANA_CLOUD_API_TOKEN=glc_xxx...
+```
+
+**2. Grafana datasource: point to Grafana Cloud**
+
 ```yaml
-# grafana/provisioning/datasources/pyroscope.yml
+# grafana/provisioning/datasources/pyroscope.yml  (new file)
+apiVersion: 1
 datasources:
   - name: Pyroscope
     uid: grafana_pyroscope
     type: grafana-pyroscope-datasource  # built-in in Grafana 10+, no plugin needed
-    url: ${PYROSCOPE_INTERNAL_URL:-http://pyroscope.railway.internal:4040}
+    access: proxy
+    url: ${GRAFANA_CLOUD_PYROSCOPE_URL}
+    isDefault: false
+    editable: true
+    jsonData:
+      httpMethod: GET
+    secureJsonData:
+      basicAuthUser: ${GRAFANA_CLOUD_INSTANCE_ID}
+      basicAuthPassword: ${GRAFANA_CLOUD_API_TOKEN}
 ```
 
-**Tempo datasource addition** (in `tempo.yml`):
+Add the same environment variables to the Railway Grafana service.
+
+**3. Tempo datasource: enable Trace → Profile navigation**
+
+Add this block to `grafana/provisioning/datasources/tempo.yml` under `jsonData`:
+
 ```yaml
 tracesToProfiles:
   datasourceUid: grafana_pyroscope
@@ -927,18 +971,13 @@ tracesToProfiles:
       value: service_name
 ```
 
-**Backend instrumentation** — the FastAPI backend must install and configure the Pyroscope Python SDK:
-```python
-# In FastAPI startup
-import pyroscope
-pyroscope.configure(
-    application_name="gatewayz-backend",
-    server_address="http://pyroscope:4040",
-    tags={"service_name": "gatewayz-backend"},
-)
-```
+This makes every slow span in the Tempo trace viewer show a **"View Profile"** button that opens the flamegraph recorded at that exact timestamp for that service — no manual time correlation required.
 
-**Dashboard panels** — add two `flamegraph` panels to the Four Golden Signals dashboard, one for `process_cpu:cpu:nanoseconds:cpu:nanoseconds` and one for `memory:alloc_objects:count:space:bytes`.
+### What you get
+
+- **CPU flamegraphs** per endpoint — see if `/v1/chat/completions` burns cycles in the token estimator, the SSE chunker, or the routing logic
+- **Memory flamegraphs** — find objects that survive GC; useful for diagnosing the 50 MB/hour growth pattern visible in the Saturation pillar
+- **Trace → Profile drill-down** — click any slow span in Tempo and jump directly to the flamegraph recorded at that moment
 
 ---
 

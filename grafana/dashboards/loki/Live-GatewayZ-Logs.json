@@ -59,7 +59,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 3,
+        "h": 4,
         "w": 24,
         "x": 0,
         "y": 0
@@ -71,12 +71,13 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "# GatewayZ Logs - Loki\nReal-time log visibility for GatewayZ backend services. Use the filters above to track API requests, errors, and system events.",
+        "content": "## GatewayZ — Live Log Stream\nUnfiltered real-time log tail from the backend — the raw Loki stream for live incident investigation.\n\n| Section | What it shows |\n|---------|---------------|\n| All Logs | Every log line across all severity levels — use the level filter above to narrow to ERROR or WARN during an incident |\n| Access Log | Inbound request events with method, path, status code, and latency — confirms whether traffic is reaching the gateway |\n| System Events | Startup, shutdown, config reload, and background task events — useful for diagnosing deploy or restart-related failures |",
         "mode": "markdown"
       },
       "pluginVersion": "11.5.2",
       "title": "",
-      "type": "text"
+      "type": "text",
+      "transparent": true
     },
     {
       "collapsed": false,
@@ -84,7 +85,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 3
+        "y": 4
       },
       "id": 9,
       "panels": [],
@@ -214,7 +215,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 4
+        "y": 5
       },
       "id": 10,
       "options": {
@@ -255,7 +256,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 10
+        "y": 11
       },
       "id": 12,
       "panels": [],
@@ -276,7 +277,7 @@
         "h": 14,
         "w": 24,
         "x": 0,
-        "y": 11
+        "y": 12
       },
       "id": 13,
       "options": {
@@ -314,7 +315,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 26
       },
       "id": 14,
       "panels": [
@@ -332,7 +333,7 @@
             "h": 12,
             "w": 24,
             "x": 0,
-            "y": 25
+            "y": 26
           },
           "id": 15,
           "options": {
@@ -425,7 +426,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 89
+            "y": 90
           },
           "id": 16,
           "options": {
@@ -471,7 +472,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 26
+        "y": 27
       },
       "id": 17,
       "panels": [],
@@ -492,7 +493,7 @@
         "h": 12,
         "w": 24,
         "x": 0,
-        "y": 27
+        "y": 28
       },
       "id": 18,
       "options": {
@@ -530,7 +531,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 39
+        "y": 40
       },
       "id": 21,
       "panels": [],
@@ -551,7 +552,7 @@
         "h": 12,
         "w": 24,
         "x": 0,
-        "y": 40
+        "y": 41
       },
       "id": 22,
       "options": {
@@ -597,7 +598,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 52
+        "y": 53
       },
       "id": 23,
       "options": {
@@ -643,7 +644,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 52
+        "y": 53
       },
       "id": 24,
       "options": {
@@ -681,7 +682,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 62
+        "y": 63
       },
       "id": 25,
       "panels": [],
@@ -702,7 +703,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 63
+        "y": 64
       },
       "id": 26,
       "options": {
@@ -748,7 +749,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 63
+        "y": 64
       },
       "id": 27,
       "options": {
