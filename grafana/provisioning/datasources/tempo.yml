@@ -50,3 +50,27 @@ datasources:
       # Must point to grafana_mimir or the topology map will always be empty.
       serviceMap:
         datasourceUid: grafana_mimir
+      # Traces→Profiles: navigate from a slow Tempo span to the Pyroscope flamegraph
+      # recorded at that exact moment in time.
+      #
+      # How it works:
+      #   1. You click a slow span in the Tempo trace viewer.
+      #   2. Grafana opens Pyroscope filtered to:
+      #        • profileTypeId = process_cpu:cpu:nanoseconds:cpu:nanoseconds
+      #        • service_name  = gatewayz-backend   (matched via the tag below)
+      #        • time range    = span start – span end (with a small buffer)
+      #   3. You see a flamegraph of which Python functions were executing during
+      #      that specific request window — no manual timestamp correlation needed.
+      #
+      # The service.name → service_name mapping bridges the OTel attribute name
+      # (dot-separated) to the Pyroscope label name (underscore-separated) that
+      # pyroscope_config.py uses when pushing profiles.
+      tracesToProfiles:
+        datasourceUid: grafana_pyroscope
+        # CPU flamegraph — shows which functions burned cycles during the span.
+        # Switch to memory:alloc_objects:count:space:bytes in the Grafana UI
+        # to investigate allocations instead.
+        profileTypeId: process_cpu:cpu:nanoseconds:cpu:nanoseconds
+        tags:
+          - key: service.name
+            value: service_name
