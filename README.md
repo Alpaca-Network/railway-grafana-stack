@@ -872,10 +872,26 @@ Configure this once in the OpenTelemetry SDK resource at process startup — it 
 
 ---
 
-## 🔬 Continuous Profiling (Pyroscope via Grafana Cloud)
+## 🔬 Continuous Profiling (Pyroscope)
 
-> **Status: No new Railway service required.**
-> Profiling is pushed from the backend directly to Grafana Cloud's hosted Pyroscope endpoint. This adds the fifth observability signal — **profiles** — without deploying any additional infrastructure.
+> ### ⚠️ TODO — Decision required before this can be activated
+>
+> The backend code (`pyroscope_config.py`, `observability_middleware.py`) and the
+> Grafana datasource config (`provisioning/datasources/pyroscope.yml`) are fully
+> written and merged. Nothing will run until the env vars are set.
+>
+> **The open question is where Pyroscope storage lives:**
+>
+> | Option | What it means | Trade-off |
+> |--------|---------------|-----------|
+> | **A — Grafana Cloud (current code)** | Backend pushes profiles to `https://profiles-prod-xxx.grafana.net`. Grafana reads them back from the same URL. Requires a free Grafana Cloud account and 3 env vars on Railway. | No new Railway service, but a dependency on an external SaaS account. |
+> | **B — Self-hosted on Railway** | Add a `pyroscope` container to the Railway project. Backend pushes to `http://pyroscope.railway.internal:4040`. Grafana reads from the same internal URL. Everything stays inside Railway. | One new Railway service and its associated cost/maintenance. |
+>
+> **Action needed:** Confirm with your team which option to proceed with, then:
+> - **Option A:** Create a free Grafana Cloud account → copy the push URL, instance ID, and API token → add the 3 env vars listed below to both the backend and Grafana Railway services.
+> - **Option B:** Let the engineer know and the `pyroscope.yml` datasource + README will be updated to use the internal Railway URL instead.
+
+> **Current status: Code is ready. Profiling is dormant until `PYROSCOPE_ENABLED=true` is set.**
 
 The current self-hosted stack is **LGTM** (Loki · Grafana · Tempo · Mimir). Grafana Cloud's hosted Pyroscope extends it to **LGTMP** for the price of one Python package and two environment variables.
 
