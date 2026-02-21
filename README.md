@@ -127,6 +127,7 @@ All dashboards use **real API endpoints** with live data from Prometheus/Mimir -
 
 | Folder | Purpose | Key Metrics | Status |
 |--------|---------|-------------|--------|
+| **Four Golden Signals** | SRE observability hub | Latency P50/P95/P99, Traffic RPS, Error rate, Saturation, Service Graph | ✅ Ready |
 | **Model Performance** | AI model metrics | Request rates, latency, token usage, error rates | ✅ Ready |
 | **Loki** | Log aggregation | Log search, streaming, volume by level/service | ✅ Ready |
 | **Prometheus** | Short-term metrics | Scrape targets, query stats, self-monitoring | ✅ Ready |
@@ -832,6 +833,112 @@ railway-grafana-stack/
 2. Make changes and test locally with `docker compose up`
 3. Run tests: `pytest tests/ -v`
 4. Create pull request to `main`
+
+---
+
+## 🔗 Cross-Signal Navigation (Breaking Down the Silos)
+
+The biggest mistake in any LGTM observability setup is treating each panel as a silo. The stack is configured for end-to-end click-through navigation so you always move toward the root cause rather than copy-pasting IDs between tabs.
+
+### How the links are wired
+
+| From | To | Mechanism | How to trigger |
+|------|-----|-----------|---------------|
+| **Metric graph** | **Tempo trace** | Exemplar (blue ◆ dot on latency graphs) | Click the blue dot on any histogram panel |
+| **Loki log line** | **Tempo trace** | Derived Field on `trace_id` JSON field | Click **"View Trace"** button next to any log entry |
+| **Loki log label** | **Tempo trace** | Derived Field on `trace_id` Loki label | Click **"View Trace"** button in label sidebar |
+| **Tempo span** | **Mimir metric** | `tracesToMetrics` → `grafana_mimir` | In Tempo, click a span → "Related metrics" |
+| **Tempo span** | **Loki logs** | `tracesToLogs` → `grafana_loki` | In Tempo, click a span → "Related logs" |
+| **Tempo service graph** | **Node topology** | `serviceMap` → `grafana_mimir` | Service Graph & Topology section in dashboard |
+
+### Implementation details
+
+**Exemplars (Mimir + Prometheus → Tempo):** Both datasources have `exemplarTraceIdDestinations` set to `trace_id` (underscore, matching the OpenTelemetry field name the backend emits). The field names are now consistent — previously Mimir was using `traceId` (camelCase), which would have silently failed.
+
+**Derived Fields (Loki → Tempo):** Two matchers are configured — one for JSON-structured log lines (`"trace_id": "..."`) and one for Loki labels. Both resolve to the Tempo datasource so the button appears regardless of how the backend emits the ID.
+
+**Service Graph (Tempo → Mimir):** Tempo's `metrics_generator` with the `service-graphs` processor generates `traces_service_graph_*` metrics and remote-writes them **directly to Mimir** — they are never in Prometheus. The `serviceMap` datasource is correctly set to `grafana_mimir`. Similarly, `tracesToMetrics` points to Mimir because span metrics (`traces_spanmetrics_*`) are also Mimir-only.
+
+### Resource attribute consistency requirement
+
+For the `$service` template variable and cross-signal filtering to work reliably, the backend must emit consistent resource attributes across all four signals:
+
+```
+service.name  = "gatewayz-backend"   # must match in spans, logs, and metrics
+instance.id   = "<pod-or-host-id>"   # must match for per-instance filtering
+```
+
+Configure this once in the OpenTelemetry SDK resource at process startup — it propagates to Tempo (spans), Loki (log labels via the OTEL log handler), and Prometheus (target labels via relabeling).
+
+---
+
+## 🔬 Future Enhancement: Continuous Profiling (Pyroscope)
+
+> **Status: Not deployed — no new services added to this stack.**
+> This section documents how to add it when the team is ready.
+
+The current stack is **LGTM** (Loki · Grafana · Tempo · Mimir). Adding **Pyroscope** (Grafana's continuous profiling engine) would make it **LGTMP** and unlock the fifth observability signal.
+
+### Why Pyroscope matters
+
+The Four Golden Signals tell you **what** is wrong. Pyroscope tells you **which line of code** is causing it.
+
+| Saturation says | Profiling adds |
+|-----------------|---------------|
+| CPU is at 90% | Which function is burning the CPU? Is it the token counter? The JSON serializer? |
+| Memory growing 50MB/hour | Which object is accumulating? Is it a cache with no TTL? An open file handle? |
+| P99 latency spiked to 8s | What was the thread doing during those 8 seconds? Was it waiting on a lock? |
+
+### Tempo → Pyroscope trace linkage
+
+Pyroscope integrates with Tempo via the `tracesToProfiles` datasource configuration. When you click a slow span in Tempo, you can jump directly to the flamegraph recorded at that exact moment in time for that exact service — no manual time correlation needed.
+
+### What is needed to add it
+
+**New service (1 container):**
+```yaml
+# docker-compose.yml addition
+pyroscope:
+  image: grafana/pyroscope:1.7.1
+  ports:
+    - "4040:4040"
+  volumes:
+    - pyroscope_data:/data
+  command: ["server"]
+```
+
+**New Grafana datasource:**
+```yaml
+# grafana/provisioning/datasources/pyroscope.yml
+datasources:
+  - name: Pyroscope
+    uid: grafana_pyroscope
+    type: grafana-pyroscope-datasource  # built-in in Grafana 10+, no plugin needed
+    url: ${PYROSCOPE_INTERNAL_URL:-http://pyroscope.railway.internal:4040}
+```
+
+**Tempo datasource addition** (in `tempo.yml`):
+```yaml
+tracesToProfiles:
+  datasourceUid: grafana_pyroscope
+  profileTypeId: process_cpu:cpu:nanoseconds:cpu:nanoseconds
+  tags:
+    - key: service.name
+      value: service_name
+```
+
+**Backend instrumentation** — the FastAPI backend must install and configure the Pyroscope Python SDK:
+```python
+# In FastAPI startup
+import pyroscope
+pyroscope.configure(
+    application_name="gatewayz-backend",
+    server_address="http://pyroscope:4040",
+    tags={"service_name": "gatewayz-backend"},
+)
+```
+
+**Dashboard panels** — add two `flamegraph` panels to the Four Golden Signals dashboard, one for `process_cpu:cpu:nanoseconds:cpu:nanoseconds` and one for `memory:alloc_objects:count:space:bytes`.
 
 ---
 
