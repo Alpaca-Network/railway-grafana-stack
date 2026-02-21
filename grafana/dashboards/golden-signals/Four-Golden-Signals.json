@@ -1297,9 +1297,7 @@
       "title": "Redis Client Connections — Active vs Blocked",
       "description": "Blocked clients are waiting on blocking commands (e.g., BLPOP). A growing blocked count indicates work-queue depth is building — a leading indicator of saturation before users feel it.",
       "type": "timeseries"
-    }
-
-  ],
+    },
 
     {
       "collapsed": false,
