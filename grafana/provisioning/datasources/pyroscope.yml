@@ -1,25 +1,35 @@
 apiVersion: 1
 
 datasources:
-  # Self-hosted Pyroscope — continuous profiling for gatewayz-backend.
+  # Grafana Cloud hosted Pyroscope — continuous profiling for gatewayz-backend.
   #
-  # Pyroscope runs as a service inside the Railway project (same project as Grafana).
-  # The backend pushes CPU/memory flamegraph samples to it via internal DNS.
-  # Grafana reads those profiles back through this datasource.
+  # WHY GRAFANA CLOUD (not self-hosted on Railway):
+  #   The gatewayz-backend and the railway-grafana-stack are in TWO SEPARATE
+  #   Railway projects. Railway's internal DNS (*.railway.internal) only works
+  #   within the same project. A self-hosted Pyroscope container inside the
+  #   grafana-stack project would be unreachable from the backend's push calls.
   #
-  # Internal URLs:
-  #   Railway:       http://pyroscope.railway.internal:4040
-  #   docker-compose: http://pyroscope:4040  (Docker service name)
+  #   Grafana Cloud acts as a neutral external collector that both projects can
+  #   reach independently:
+  #     • gatewayz-backend  → PUSH → https://profiles-prod-xxx.grafana.net
+  #     • railway-grafana-stack → READ → https://profiles-prod-xxx.grafana.net
   #
-  # No authentication is required — port 4040 is internal only and never
-  # exposed publicly in the Railway project.
+  # Required Railway env vars on THIS (Grafana) service:
+  #   PYROSCOPE_SERVER_ADDRESS  — Grafana Cloud Pyroscope URL
+  #                               e.g. https://profiles-prod-006.grafana.net
+  #   PYROSCOPE_AUTH_USER       — Grafana Cloud numeric instance ID
+  #   PYROSCOPE_AUTH_PASSWORD   — Grafana Cloud API token (profiles:read scope)
   #
-  # Railway env var to set on the Grafana service:
-  #   PYROSCOPE_INTERNAL_URL=http://pyroscope.railway.internal:4040
+  # The same vars go on the backend service (with profiles:write scope on the token).
   - name: Pyroscope
     uid: grafana_pyroscope
     type: grafana-pyroscope-datasource   # built-in in Grafana 10+, no plugin needed
     access: proxy
-    url: ${PYROSCOPE_INTERNAL_URL:-http://pyroscope:4040}
+    url: ${PYROSCOPE_SERVER_ADDRESS}
     isDefault: false
     editable: true
+    jsonData:
+      httpMethod: GET
+    secureJsonData:
+      basicAuthUser: ${PYROSCOPE_AUTH_USER}
+      basicAuthPassword: ${PYROSCOPE_AUTH_PASSWORD}
