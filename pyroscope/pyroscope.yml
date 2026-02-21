@@ -1,0 +1,22 @@
+# Pyroscope configuration for GatewayZ monitoring stack
+#
+# Pyroscope is a continuous profiling backend.  The gatewayz-backend FastAPI
+# process pushes CPU/memory flamegraph samples here every 15 s via the
+# pyroscope-io Python SDK.  Grafana reads them back via the Pyroscope datasource.
+#
+# All communication is internal to the Railway project — port 4040 is never
+# exposed publicly.
+
+server:
+  http_listen_port: 4040
+
+# Store profiles on the local filesystem volume.
+# Railway persists volumes across deploys, so profiles survive restarts.
+storage:
+  backend: filesystem
+  filesystem:
+    dir: /data/pyroscope
+
+# Scrape configs are empty — GatewayZ uses the push model (SDK → Pyroscope),
+# not the pull model (Pyroscope → target /debug/pprof).
+scrape_configs: []

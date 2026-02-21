@@ -200,6 +200,45 @@ services:
           cpus: '0.05'
           memory: 64M
 
+  # --------------------------------------------------------------------------
+  # Pyroscope - Continuous Profiling Backend
+  # --------------------------------------------------------------------------
+  # Receives CPU/memory flamegraph samples pushed by the gatewayz-backend
+  # FastAPI process via the pyroscope-io Python SDK (every 15 s).
+  # Grafana reads profiles back through the Pyroscope datasource.
+  # Port 4040 is internal only — no public exposure needed.
+  pyroscope:
+    build:
+      context: ./pyroscope
+      dockerfile: Dockerfile
+    user: root
+    ports:
+      - "4040:4040"
+    volumes:
+      - pyroscope_data:/data/pyroscope
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: false
+    tmpfs:
+      - /tmp
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:4040/ready" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.10'
+          memory: 128M
+
   grafana:
     build:
       context: ./grafana
@@ -261,3 +300,4 @@ volumes:
   grafana_data:
   tempo_data:
   mimir_data:
+  pyroscope_data:

@@ -872,28 +872,9 @@ Configure this once in the OpenTelemetry SDK resource at process startup — it 
 
 ---
 
-## 🔬 Continuous Profiling (Pyroscope)
+## 🔬 Continuous Profiling (Pyroscope — self-hosted on Railway)
 
-> ### ⚠️ TODO — Decision required before this can be activated
->
-> The backend code (`pyroscope_config.py`, `observability_middleware.py`) and the
-> Grafana datasource config (`provisioning/datasources/pyroscope.yml`) are fully
-> written and merged. Nothing will run until the env vars are set.
->
-> **The open question is where Pyroscope storage lives:**
->
-> | Option | What it means | Trade-off |
-> |--------|---------------|-----------|
-> | **A — Grafana Cloud (current code)** | Backend pushes profiles to `https://profiles-prod-xxx.grafana.net`. Grafana reads them back from the same URL. Requires a free Grafana Cloud account and 3 env vars on Railway. | No new Railway service, but a dependency on an external SaaS account. |
-> | **B — Self-hosted on Railway** | Add a `pyroscope` container to the Railway project. Backend pushes to `http://pyroscope.railway.internal:4040`. Grafana reads from the same internal URL. Everything stays inside Railway. | One new Railway service and its associated cost/maintenance. |
->
-> **Action needed:** Confirm with your team which option to proceed with, then:
-> - **Option A:** Create a free Grafana Cloud account → copy the push URL, instance ID, and API token → add the 3 env vars listed below to both the backend and Grafana Railway services.
-> - **Option B:** Let the engineer know and the `pyroscope.yml` datasource + README will be updated to use the internal Railway URL instead.
-
-> **Current status: Code is ready. Profiling is dormant until `PYROSCOPE_ENABLED=true` is set.**
-
-The current self-hosted stack is **LGTM** (Loki · Grafana · Tempo · Mimir). Grafana Cloud's hosted Pyroscope extends it to **LGTMP** for the price of one Python package and two environment variables.
+The stack is **LGTMP**: Loki · Grafana · Tempo · Mimir · **Pyroscope**. Pyroscope runs as a service inside the Railway project — no external accounts, no public ports, everything stays internal.
 
 ### Why profiling matters for GatewayZ
 
@@ -905,95 +886,43 @@ The Four Golden Signals tell you **what** is wrong. Profiling tells you **which 
 | Memory growing 50 MB/hour | Which object accumulates? A model-catalog cache entry with no TTL? An open SSE connection? |
 | P99 latency spiked to 8 s | What was the thread doing during those 8 seconds? Waiting on a Redis lock? A slow provider response? |
 
-### How it works (no new service)
-
-The `pyroscope-otel` SDK runs **inside the backend process** and pushes CPU/memory profiles at regular intervals directly to Grafana Cloud's ingest endpoint. Grafana Cloud stores and indexes the profiles. The self-hosted Grafana instance reads them back via a datasource pointed at the Grafana Cloud API.
+### Architecture
 
 ```
-Backend process
-  └─ pyroscope SDK (in-process)
-       └─ HTTP push → https://profiles-prod-xxx.grafana.net
-                              ↑
-                    Grafana Cloud (hosted Pyroscope)
-                              ↑
-                    Self-hosted Grafana datasource
-                    (grafana_pyroscope → Grafana Cloud API)
+gatewayz-backend (Railway service)
+  └─ pyroscope-io SDK (in-process, 100 Hz sampler)
+       └─ HTTP push every 15 s ──→ pyroscope.railway.internal:4040
+                                          │
+                              Pyroscope (Railway service)
+                              /data/pyroscope volume
+                                          │
+                              Grafana datasource reads ←──────────
+                              (grafana_pyroscope → internal:4040)
 ```
 
-### What is needed
+### How to activate
 
-**1. Backend: install the SDK and push profiles**
+**1. Set one env var on the Railway backend service:**
+```
+PYROSCOPE_ENABLED=true
+PYROSCOPE_SERVER_ADDRESS=http://pyroscope.railway.internal:4040
+```
+No auth credentials needed — the endpoint is internal only.
 
-```bash
-pip install pyroscope-io
+**2. Set one env var on the Railway Grafana service:**
+```
+PYROSCOPE_INTERNAL_URL=http://pyroscope.railway.internal:4040
 ```
 
-```python
-# gatewayz-backend/src/main.py — inside the lifespan startup block
-import pyroscope
+**3. Deploy the Pyroscope Railway service** from the `pyroscope/` directory in this repo (uses `pyroscope/Dockerfile`). Railway will assign it the internal DNS name `pyroscope.railway.internal`.
 
-pyroscope.configure(
-    application_name="gatewayz-backend",
-    # Grafana Cloud hosted Pyroscope ingest endpoint
-    server_address="https://profiles-prod-xxx.grafana.net",  # from Grafana Cloud → Connections → Pyroscope
-    basic_auth_username="<grafana-cloud-instance-id>",       # numeric instance ID
-    basic_auth_password="<grafana-cloud-api-token>",          # scoped to profiles:write
-    tags={
-        "service_name": "gatewayz-backend",
-        "environment": os.getenv("RAILWAY_ENVIRONMENT", "production"),
-    },
-)
-```
-
-Add the two secrets to the Railway backend service:
-```
-GRAFANA_CLOUD_PYROSCOPE_URL=https://profiles-prod-xxx.grafana.net
-GRAFANA_CLOUD_INSTANCE_ID=<numeric-id>
-GRAFANA_CLOUD_API_TOKEN=glc_xxx...
-```
-
-**2. Grafana datasource: point to Grafana Cloud**
-
-```yaml
-# grafana/provisioning/datasources/pyroscope.yml  (new file)
-apiVersion: 1
-datasources:
-  - name: Pyroscope
-    uid: grafana_pyroscope
-    type: grafana-pyroscope-datasource  # built-in in Grafana 10+, no plugin needed
-    access: proxy
-    url: ${GRAFANA_CLOUD_PYROSCOPE_URL}
-    isDefault: false
-    editable: true
-    jsonData:
-      httpMethod: GET
-    secureJsonData:
-      basicAuthUser: ${GRAFANA_CLOUD_INSTANCE_ID}
-      basicAuthPassword: ${GRAFANA_CLOUD_API_TOKEN}
-```
-
-Add the same environment variables to the Railway Grafana service.
-
-**3. Tempo datasource: enable Trace → Profile navigation**
-
-Add this block to `grafana/provisioning/datasources/tempo.yml` under `jsonData`:
-
-```yaml
-tracesToProfiles:
-  datasourceUid: grafana_pyroscope
-  profileTypeId: process_cpu:cpu:nanoseconds:cpu:nanoseconds
-  tags:
-    - key: service.name
-      value: service_name
-```
-
-This makes every slow span in the Tempo trace viewer show a **"View Profile"** button that opens the flamegraph recorded at that exact timestamp for that service — no manual time correlation required.
+That's it. Profiles appear in Grafana within ~30 seconds of the first request hitting the backend.
 
 ### What you get
 
 - **CPU flamegraphs** per endpoint — see if `/v1/chat/completions` burns cycles in the token estimator, the SSE chunker, or the routing logic
-- **Memory flamegraphs** — find objects that survive GC; useful for diagnosing the 50 MB/hour growth pattern visible in the Saturation pillar
-- **Trace → Profile drill-down** — click any slow span in Tempo and jump directly to the flamegraph recorded at that moment
+- **Memory flamegraphs** — find objects that survive GC; useful for diagnosing slow memory growth visible in the Saturation pillar
+- **Trace → Profile drill-down** — click any slow span in Tempo → **"View Profile"** button opens the flamegraph recorded at that exact time window for that request
 
 ---
 

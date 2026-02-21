@@ -1,29 +1,25 @@
 apiVersion: 1
 
 datasources:
-  # Grafana Cloud hosted Pyroscope — continuous profiling for gatewayz-backend.
+  # Self-hosted Pyroscope — continuous profiling for gatewayz-backend.
   #
-  # The backend process pushes flamegraph samples directly to Grafana Cloud
-  # (configured via PYROSCOPE_ENABLED / PYROSCOPE_SERVER_ADDRESS env vars on
-  # the Railway backend service).  This datasource reads those profiles back
-  # so Grafana can display flamegraphs and enable Trace→Profile navigation.
+  # Pyroscope runs as a service inside the Railway project (same project as Grafana).
+  # The backend pushes CPU/memory flamegraph samples to it via internal DNS.
+  # Grafana reads those profiles back through this datasource.
   #
-  # No self-hosted Pyroscope container is required.
+  # Internal URLs:
+  #   Railway:       http://pyroscope.railway.internal:4040
+  #   docker-compose: http://pyroscope:4040  (Docker service name)
   #
-  # Required Railway env vars on the Grafana service:
-  #   PYROSCOPE_SERVER_ADDRESS  — same URL used by the backend push
-  #                               e.g. https://profiles-prod-006.grafana.net
-  #   PYROSCOPE_AUTH_USER       — Grafana Cloud numeric instance ID
-  #   PYROSCOPE_AUTH_PASSWORD   — Grafana Cloud API token (profiles:read scope)
+  # No authentication is required — port 4040 is internal only and never
+  # exposed publicly in the Railway project.
+  #
+  # Railway env var to set on the Grafana service:
+  #   PYROSCOPE_INTERNAL_URL=http://pyroscope.railway.internal:4040
   - name: Pyroscope
     uid: grafana_pyroscope
     type: grafana-pyroscope-datasource   # built-in in Grafana 10+, no plugin needed
     access: proxy
-    url: ${PYROSCOPE_SERVER_ADDRESS}
+    url: ${PYROSCOPE_INTERNAL_URL:-http://pyroscope:4040}
     isDefault: false
     editable: true
-    jsonData:
-      httpMethod: GET
-    secureJsonData:
-      basicAuthUser: ${PYROSCOPE_AUTH_USER}
-      basicAuthPassword: ${PYROSCOPE_AUTH_PASSWORD}
