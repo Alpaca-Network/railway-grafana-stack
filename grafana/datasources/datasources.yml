@@ -158,26 +158,24 @@ datasources:
       httpHeaderValue1: anonymous
 
   # Pyroscope - Continuous profiling (Grafana Cloud hosted)
-  # The backend pushes CPU/memory flamegraph samples to Grafana Cloud.
-  # This datasource reads them back so Grafana can display flamegraphs and
-  # enable Trace→Profile navigation from Tempo spans.
   #
-  # Required env vars on the Grafana Railway service:
+  # NOT provisioned here by default — Grafana errors on an empty URL.
+  # Add this datasource manually through the Grafana UI once you have credentials,
+  # OR uncomment the block below and redeploy after setting these env vars on
+  # the Grafana Railway service:
   #   PYROSCOPE_SERVER_ADDRESS  e.g. https://profiles-prod-006.grafana.net
   #   PYROSCOPE_AUTH_USER       Grafana Cloud numeric instance ID
   #   PYROSCOPE_AUTH_PASSWORD   Grafana Cloud API token (profiles:read scope)
   #
-  # Until these are set the datasource will show a connection error — that is
-  # expected and does not affect any other datasource.
-  - name: Pyroscope
-    type: grafana-pyroscope-datasource
-    access: proxy
-    orgId: 1
-    uid: grafana_pyroscope
-    url: ${PYROSCOPE_SERVER_ADDRESS:-}
-    isDefault: false
-    jsonData:
-      httpMethod: GET
-    secureJsonData:
-      basicAuthUser: ${PYROSCOPE_AUTH_USER:-}
-      basicAuthPassword: ${PYROSCOPE_AUTH_PASSWORD:-}
+  # - name: Pyroscope
+  #   type: grafana-pyroscope-datasource
+  #   access: proxy
+  #   orgId: 1
+  #   uid: grafana_pyroscope
+  #   url: ${PYROSCOPE_SERVER_ADDRESS}
+  #   isDefault: false
+  #   jsonData:
+  #     httpMethod: GET
+  #   secureJsonData:
+  #     basicAuthUser: ${PYROSCOPE_AUTH_USER}
+  #     basicAuthPassword: ${PYROSCOPE_AUTH_PASSWORD}
