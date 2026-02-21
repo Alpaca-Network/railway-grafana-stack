@@ -1,0 +1,29 @@
+apiVersion: 1
+
+datasources:
+  # Grafana Cloud hosted Pyroscope — continuous profiling for gatewayz-backend.
+  #
+  # The backend process pushes flamegraph samples directly to Grafana Cloud
+  # (configured via PYROSCOPE_ENABLED / PYROSCOPE_SERVER_ADDRESS env vars on
+  # the Railway backend service).  This datasource reads those profiles back
+  # so Grafana can display flamegraphs and enable Trace→Profile navigation.
+  #
+  # No self-hosted Pyroscope container is required.
+  #
+  # Required Railway env vars on the Grafana service:
+  #   PYROSCOPE_SERVER_ADDRESS  — same URL used by the backend push
+  #                               e.g. https://profiles-prod-006.grafana.net
+  #   PYROSCOPE_AUTH_USER       — Grafana Cloud numeric instance ID
+  #   PYROSCOPE_AUTH_PASSWORD   — Grafana Cloud API token (profiles:read scope)
+  - name: Pyroscope
+    uid: grafana_pyroscope
+    type: grafana-pyroscope-datasource   # built-in in Grafana 10+, no plugin needed
+    access: proxy
+    url: ${PYROSCOPE_SERVER_ADDRESS}
+    isDefault: false
+    editable: true
+    jsonData:
+      httpMethod: GET
+    secureJsonData:
+      basicAuthUser: ${PYROSCOPE_AUTH_USER}
+      basicAuthPassword: ${PYROSCOPE_AUTH_PASSWORD}
