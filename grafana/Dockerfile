@@ -34,6 +34,7 @@ COPY dashboards/mimir /etc/grafana/provisioning/dashboards/mimir
 COPY dashboards/model_performance /etc/grafana/provisioning/dashboards/model_performance
 COPY dashboards/provider /etc/grafana/provisioning/dashboards/provider
 COPY dashboards/developer /etc/grafana/provisioning/dashboards/developer
+COPY dashboards/golden-signals /etc/grafana/provisioning/dashboards/golden-signals
 
 # ============================================================
 # ALERTING PROVISIONING

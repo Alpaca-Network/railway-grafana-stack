@@ -25,9 +25,11 @@ datasources:
       # Even with multitenancy_enabled: false, Mimir requires this header
       # "anonymous" is the default tenant used when multi-tenancy is disabled
       httpHeaderName1: X-Scope-OrgID
-      # Enable exemplars for trace correlation
+      # Enable exemplars for trace correlation.
+      # Field name MUST match what the backend emits — use trace_id (underscore)
+      # to stay consistent with Prometheus datasource and OpenTelemetry convention.
       exemplarTraceIdDestinations:
-        - name: traceId
+        - name: trace_id
           datasourceUid: grafana_tempo
     secureJsonData:
       httpHeaderValue1: anonymous

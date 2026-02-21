@@ -1,0 +1,1567 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "GatewayZ Four Golden Signals — SRE observability covering Latency, Traffic, Errors, and Saturation (the four pillars of service reliability). Never rely on averages — they hide the misery of your slowest users.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "asDropdown": true,
+      "icon": "doc",
+      "includeVars": true,
+      "tags": ["gatewayz"],
+      "targetBlank": false,
+      "title": "Related Dashboards",
+      "type": "dashboards"
+    }
+  ],
+  "tags": ["gatewayz", "sre", "golden-signals"],
+  "panels": [
+
+    {
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false },
+        "content": "# GatewayZ — Four Golden Signals (SRE)\nThe four pillars every on-call engineer monitors: **Latency** (speed), **Traffic** (demand), **Errors** (correctness), **Saturation** (capacity). Percentiles only — averages hide the misery of your slowest users.",
+        "mode": "markdown"
+      },
+      "pluginVersion": "11.5.2",
+      "title": "",
+      "transparent": true,
+      "type": "text"
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 3 },
+      "id": 10,
+      "panels": [],
+      "title": "⚡  Pillar I — Latency (The Speed Pillar)  |  Successful Requests vs HTTP 5xx — P50 / P95 / P99 only, no averages",
+      "type": "row"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.3 },
+              { "color": "red", "value": 0.8 }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 4 },
+      "id": 11,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(fastapi_requests_duration_seconds_bucket{status_code!~\"5..\"}[5m])) by (le))",
+          "legendFormat": "P50 (success)",
+          "refId": "A"
+        }
+      ],
+      "title": "P50 Latency — Successful",
+      "type": "stat"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1.0 },
+              { "color": "red", "value": 2.0 }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 4 },
+      "id": 12,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket{status_code!~\"5..\"}[5m])) by (le))",
+          "legendFormat": "P95 (success)",
+          "refId": "A"
+        }
+      ],
+      "title": "P95 Latency — Successful",
+      "type": "stat"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 2.0 },
+              { "color": "red", "value": 5.0 }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 4 },
+      "id": 13,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(fastapi_requests_duration_seconds_bucket{status_code!~\"5..\"}[5m])) by (le))",
+          "legendFormat": "P99 (success)",
+          "refId": "A"
+        }
+      ],
+      "title": "P99 Latency — Successful (Tail)",
+      "type": "stat"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "noValue": "No 5xx traffic",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 0.1 },
+              { "color": "red", "value": 0.5 }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 4 },
+      "id": 14,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket{status_code=~\"5..\"}[5m])) by (le))",
+          "legendFormat": "P95 (5xx errors)",
+          "refId": "A"
+        }
+      ],
+      "title": "P95 Latency — HTTP 5xx (Poison Check)",
+      "description": "P95 of only failed (5xx) requests. A low value here means errors are failing fast (good). A high value means errors are also slow — double punishment for your users.",
+      "type": "stat"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisColorMode": "text",
+            "axisLabel": "Latency (seconds)",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "opacity",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 4,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "line+area", "fill": "below" }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "transparent", "value": null },
+              { "color": "rgba(255, 152, 0, 0.1)", "value": 2.0 }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "P50 — Success" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "#73BF69", "mode": "fixed" } },
+              { "id": "custom.lineWidth", "value": 2 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "P95 — Success" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "#FADE2A", "mode": "fixed" } },
+              { "id": "custom.lineWidth", "value": 2 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "P99 — Success (Tail)" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "#FF9830", "mode": "fixed" } },
+              { "id": "custom.lineWidth", "value": 2 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "P95 — HTTP 5xx (Poison)" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "#F2495C", "mode": "fixed" } },
+              { "id": "custom.lineStyle", "value": { "dash": [4, 4], "fill": "dash" } },
+              { "id": "custom.lineWidth", "value": 2 }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 8 },
+      "id": 15,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max", "lastNotNull"],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(fastapi_requests_duration_seconds_bucket{status_code!~\"5..\"}[5m])) by (le))",
+          "legendFormat": "P50 — Success",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket{status_code!~\"5..\"}[5m])) by (le))",
+          "legendFormat": "P95 — Success",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(fastapi_requests_duration_seconds_bucket{status_code!~\"5..\"}[5m])) by (le))",
+          "legendFormat": "P99 — Success (Tail)",
+          "refId": "C"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket{status_code=~\"5..\"}[5m])) by (le))",
+          "legendFormat": "P95 — HTTP 5xx (Poison)",
+          "refId": "D"
+        }
+      ],
+      "title": "Latency Percentiles Over Time — Success vs 5xx Errors",
+      "description": "Dashed red line shows the P95 of failed (5xx) requests. If this line spikes independently of the success lines, errors are triggering immediately and poisoning your overall latency average — exactly why we never trust the mean.",
+      "type": "timeseries"
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 17 },
+      "id": 20,
+      "panels": [],
+      "title": "🚦  Pillar II — Traffic (The Demand Pillar)  |  Distinguishes capacity problems from code problems",
+      "type": "row"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "red", "value": 200 }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 18 },
+      "id": 21,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showPercentChange": true,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "sum(rate(fastapi_requests_total[5m]))",
+          "legendFormat": "Total RPS",
+          "refId": "A"
+        }
+      ],
+      "title": "HTTP Request Rate (RPS)",
+      "description": "Total inbound requests per second across all endpoints and HTTP methods.",
+      "type": "stat"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 18 },
+      "id": 22,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "sum(increase(fastapi_requests_total[5m]))",
+          "legendFormat": "Requests",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Requests (last 5 min)",
+      "description": "Absolute count of requests received in the last 5-minute window. Use alongside RPS for traffic shape analysis.",
+      "type": "stat"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 40 },
+              { "color": "red", "value": 150 }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 18 },
+      "id": 23,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showPercentChange": true,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "sum(rate(fastapi_requests_total{status_code!~\"5..\"}[5m]))",
+          "legendFormat": "Success RPS",
+          "refId": "A"
+        }
+      ],
+      "title": "Successful Request Rate (RPS)",
+      "description": "RPS for only non-5xx responses. Compare with total RPS — a large gap means errors are eating into real capacity.",
+      "type": "stat"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "noValue": "Metric not instrumented",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null },
+              { "color": "yellow", "value": 5000000 },
+              { "color": "red", "value": 50000000 }
+            ]
+          },
+          "unit": "Bps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 18 },
+      "id": 24,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "sum(rate(fastapi_request_size_bytes_sum[5m])) or sum(rate(fastapi_response_size_bytes_sum[5m])) or vector(0)",
+          "legendFormat": "Bandwidth",
+          "refId": "A"
+        }
+      ],
+      "title": "Inbound Bandwidth (bytes/sec)",
+      "description": "Data volume flowing into the service per second. Critical for data-heavy workloads (LLM token streams). Requires request_size instrumentation to be enabled on the backend.",
+      "type": "stat"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisColorMode": "text",
+            "axisLabel": "Requests / second",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 4,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 200 }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "2xx (Success)" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "#73BF69", "mode": "fixed" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "4xx (Client Error)" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "#FADE2A", "mode": "fixed" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "5xx (Server Error)" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "#F2495C", "mode": "fixed" } }]
+          }
+        ]
+      },
+      "gridPos": { "h": 9, "w": 14, "x": 0, "y": 22 },
+      "id": 25,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max", "lastNotNull"],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "sum(rate(fastapi_requests_total{status_code=~\"2..\"}[5m]))",
+          "legendFormat": "2xx (Success)",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(fastapi_requests_total{status_code=~\"4..\"}[5m]))",
+          "legendFormat": "4xx (Client Error)",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(rate(fastapi_requests_total{status_code=~\"5..\"}[5m]))",
+          "legendFormat": "5xx (Server Error)",
+          "refId": "C"
+        }
+      ],
+      "title": "HTTP Request Rate by Status Class",
+      "description": "Traffic segmented by HTTP status class. A spike in total RPS with no 5xx growth = capacity problem. Normal RPS with growing 5xx = code problem.",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisColorMode": "text",
+            "axisLabel": "Bytes / second",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 4,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "Bps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 10, "x": 14, "y": 22 },
+      "id": 26,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max"],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "sum(rate(fastapi_request_size_bytes_sum[5m])) or vector(0)",
+          "legendFormat": "Inbound (req body)",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(fastapi_response_size_bytes_sum[5m])) or vector(0)",
+          "legendFormat": "Outbound (resp body)",
+          "refId": "B"
+        }
+      ],
+      "title": "Bandwidth — Inbound & Outbound (bytes/sec)",
+      "description": "Critical for LLM token streaming workloads. Shows if you are approaching network saturation. Will read 0 if request/response size instrumentation is not enabled on the FastAPI backend.",
+      "type": "timeseries"
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 31 },
+      "id": 30,
+      "panels": [],
+      "title": "🚨  Pillar III — Errors (The Correctness Pillar)  |  Explicit (5xx) · Implicit (wrong body) · Policy (SLO breach)",
+      "type": "row"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.01 },
+              { "color": "red", "value": 0.05 }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 32 },
+      "id": 31,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "sum(rate(fastapi_requests_total{status_code=~\"5..\"}[5m])) / sum(rate(fastapi_requests_total[5m])) or vector(0)",
+          "legendFormat": "Error Rate",
+          "refId": "A"
+        }
+      ],
+      "title": "Overall Error Rate %  (Errors / Total Traffic)",
+      "description": "The primary SRE correctness signal. Green < 1%, Yellow 1-5%, Red > 5%. This is the 'rate' in your error budget burn.",
+      "type": "stat"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.5 },
+              { "color": "red", "value": 5 }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 32 },
+      "id": 32,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showPercentChange": true,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "sum(rate(fastapi_requests_total{status_code=~\"5..\"}[5m]))",
+          "legendFormat": "5xx/sec",
+          "refId": "A"
+        }
+      ],
+      "title": "Explicit Errors — HTTP 5xx Rate/sec",
+      "description": "Server-side failures: connection timeouts, unhandled exceptions, upstream provider failures. These are your loudest, most actionable errors.",
+      "type": "stat"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.05 },
+              { "color": "red", "value": 0.15 }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 32 },
+      "id": 33,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "(sum(rate(fastapi_requests_duration_seconds_count[5m])) - sum(rate(fastapi_requests_duration_seconds_bucket{le=\"2.0\"}[5m]))) / sum(rate(fastapi_requests_duration_seconds_count[5m])) or vector(0)",
+          "legendFormat": "SLO Violations",
+          "refId": "A"
+        }
+      ],
+      "title": "Policy Violations % — SLO Breach (> 2s)",
+      "description": "Requests that completed successfully (200 OK) but exceeded the 2-second SLO threshold. A 10-second '200 OK' is still a functional failure from the user's perspective.",
+      "type": "stat"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 2 },
+              { "color": "orange", "value": 10 }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 32 },
+      "id": 34,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showPercentChange": true,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "sum(rate(fastapi_requests_total{status_code=~\"4..\"}[5m]))",
+          "legendFormat": "4xx/sec",
+          "refId": "A"
+        }
+      ],
+      "title": "Client Errors — HTTP 4xx Rate/sec",
+      "description": "Client-initiated errors (auth failures, bad input, rate limiting). High 4xx rate can indicate abuse, broken clients, or API contract changes.",
+      "type": "stat"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisColorMode": "text",
+            "axisLabel": "Error Rate",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 25,
+            "gradientMode": "opacity",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 4,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "line", "fill": "below" }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "transparent", "value": null },
+              { "color": "rgba(242, 73, 92, 0.15)", "value": 0.05 }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Explicit (5xx)" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "#F2495C", "mode": "fixed" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Policy Breach (> 2s SLO)" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "#FF9830", "mode": "fixed" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Client Errors (4xx)" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "#FADE2A", "mode": "fixed" } }]
+          }
+        ]
+      },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 36 },
+      "id": 35,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max", "lastNotNull"],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "sum(rate(fastapi_requests_total{status_code=~\"5..\"}[5m])) / sum(rate(fastapi_requests_total[5m])) or vector(0)",
+          "legendFormat": "Explicit (5xx)",
+          "refId": "A"
+        },
+        {
+          "expr": "(sum(rate(fastapi_requests_duration_seconds_count[5m])) - sum(rate(fastapi_requests_duration_seconds_bucket{le=\"2.0\"}[5m]))) / sum(rate(fastapi_requests_duration_seconds_count[5m])) or vector(0)",
+          "legendFormat": "Policy Breach (> 2s SLO)",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(rate(fastapi_requests_total{status_code=~\"4..\"}[5m])) / sum(rate(fastapi_requests_total[5m])) or vector(0)",
+          "legendFormat": "Client Errors (4xx)",
+          "refId": "C"
+        }
+      ],
+      "title": "Error Rate by Type — Explicit · Policy Breach · Client",
+      "description": "Three error categories: Explicit (server failures), Policy (slow 200s violating SLO), Client (bad requests). Separating these avoids alert fatigue — 4xx spikes are usually abuse, not outages.",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisColorMode": "text",
+            "axisLabel": "Requests / second",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 4,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "normal" }
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 36 },
+      "id": 36,
+      "options": {
+        "legend": {
+          "calcs": ["sum"],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "sum by(status_code) (rate(fastapi_requests_total{status_code=~\"[45]..\"}[5m]))",
+          "legendFormat": "HTTP {{status_code}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Errors by HTTP Status Code (4xx & 5xx stacked)",
+      "description": "Stacked bar breakdown of all error status codes. Useful for identifying if a specific status (e.g. 503, 429) is dominating. Excludes 2xx/3xx success codes.",
+      "type": "timeseries"
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 45 },
+      "id": 40,
+      "panels": [],
+      "title": "📊  Pillar IV — Saturation (The Capacity Pillar)  |  Leading indicator — know before your users feel it",
+      "type": "row"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 70 },
+              { "color": "red", "value": 90 }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 7, "w": 6, "x": 0, "y": 46 },
+      "id": 41,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "(redis_memory_used_bytes / redis_memory_max_bytes) * 100",
+          "legendFormat": "Redis Memory %",
+          "refId": "A"
+        }
+      ],
+      "title": "Redis Memory Utilization %",
+      "description": "The most constrained shared resource for Gateway Z. At > 90%, Redis starts evicting keys — this silently degrades rate limiting, session caching, and model catalog caches.",
+      "type": "gauge"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "max": 1000,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 500 },
+              { "color": "red", "value": 800 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 7, "w": 6, "x": 6, "y": 46 },
+      "id": 42,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "redis_connected_clients",
+          "legendFormat": "Connected Clients",
+          "refId": "A"
+        }
+      ],
+      "title": "Redis Connected Clients",
+      "description": "Concurrent connections to Redis. Approaching the maxclients limit (default: 10,000 Upstash) means new connections will be refused — causing cascading failures in rate limiting.",
+      "type": "gauge"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 500000000 },
+              { "color": "red", "value": 1000000000 }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 7, "w": 6, "x": 12, "y": 46 },
+      "id": 43,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "process_resident_memory_bytes{job=\"gatewayz_production\"}",
+          "legendFormat": "Process RSS",
+          "refId": "A"
+        }
+      ],
+      "title": "Backend Process Memory (RSS)",
+      "description": "Resident Set Size of the FastAPI process. Sustained growth indicates a memory leak. A sudden spike indicates a large payload or OOM risk. Critical before traffic spikes.",
+      "type": "stat"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            {
+              "options": {
+                "0": { "color": "red", "text": "DOWN" },
+                "1": { "color": "green", "text": "UP" }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 7, "w": 6, "x": 18, "y": 46 },
+      "id": 44,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "up{job=\"gatewayz_production\"}",
+          "legendFormat": "Backend",
+          "refId": "A"
+        }
+      ],
+      "title": "Backend Scrape Target — UP/DOWN",
+      "description": "Prometheus scrape health for the production backend. If this goes DOWN, all metric collection stops and every other panel will go stale — this is your canary for observability itself.",
+      "type": "stat"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisColorMode": "text",
+            "axisLabel": "Memory Used",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 4,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "line" }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 0.9 }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 53 },
+      "id": 45,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max", "lastNotNull"],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "redis_memory_used_bytes",
+          "legendFormat": "Used",
+          "refId": "A"
+        },
+        {
+          "expr": "redis_memory_max_bytes",
+          "legendFormat": "Max Allowed",
+          "refId": "B"
+        }
+      ],
+      "title": "Redis Memory — Used vs Max Capacity",
+      "description": "Watch for the 'Used' line approaching 'Max Allowed'. When they converge, Redis begins evicting keys silently, breaking rate limiters and caches without surfacing an explicit error.",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisColorMode": "text",
+            "axisLabel": "Count",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "opacity",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 4,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Connected Clients" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "#5794F2", "mode": "fixed" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Blocked Clients" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "#F2495C", "mode": "fixed" } }]
+          }
+        ]
+      },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 53 },
+      "id": 46,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max", "lastNotNull"],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "redis_connected_clients",
+          "legendFormat": "Connected Clients",
+          "refId": "A"
+        },
+        {
+          "expr": "redis_blocked_clients",
+          "legendFormat": "Blocked Clients",
+          "refId": "B"
+        }
+      ],
+      "title": "Redis Client Connections — Active vs Blocked",
+      "description": "Blocked clients are waiting on blocking commands (e.g., BLPOP). A growing blocked count indicates work-queue depth is building — a leading indicator of saturation before users feel it.",
+      "type": "timeseries"
+    }
+
+  ],
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 62 },
+      "id": 50,
+      "panels": [],
+      "title": "🗺️  Service Graph & Topology — Upstream vs Downstream Failure Analysis  |  Powered by Tempo metrics-generator → Mimir",
+      "type": "row"
+    },
+
+    {
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 63 },
+      "id": 51,
+      "options": {
+        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false },
+        "content": "### How to use this section\n**Service Graph** panels answer: *\"Is the latency spike in Service A caused by Service A, or by Service B it depends on?\"*\n\nTempo's `metrics_generator` with the `service-graphs` processor automatically generates `traces_service_graph_*` metrics from span data and remote-writes them to **Mimir**. Every edge in the graph is a real observed client→server call.\n\n**Cross-signal navigation** — click the blue dot (exemplar) on any latency graph to jump to the exact Tempo trace. In Loki log panels, click **\"View Trace\"** next to any `trace_id` field to open the Tempo waterfall. In Tempo, click any span and use **\"Related metrics\"** (→ Mimir) or **\"Related logs\"** (→ Loki).",
+        "mode": "markdown"
+      },
+      "pluginVersion": "11.5.2",
+      "title": "",
+      "transparent": true,
+      "type": "text"
+    },
+
+    {
+      "datasource": { "type": "tempo", "uid": "grafana_tempo" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 14, "w": 12, "x": 0, "y": 67 },
+      "id": 52,
+      "options": {},
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "grafana_tempo" },
+          "queryType": "serviceMap",
+          "refId": "A"
+        }
+      ],
+      "title": "Live Service Dependency Map",
+      "description": "Auto-generated from Tempo span data. Node size = request volume. Edge color = error rate (green→yellow→red). Click a node to filter Tempo traces to that service. Requires Tempo metrics_generator service-graphs processor (already enabled).",
+      "type": "nodeGraph"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisColorMode": "text",
+            "axisLabel": "Requests / second",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "opacity",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 4,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 67 },
+      "id": 53,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max"],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "sum by(client, server) (rate(traces_service_graph_request_total[$__rate_interval]))",
+          "legendFormat": "{{client}} → {{server}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Service-to-Service Request Rate (RPS)",
+      "description": "Traffic volume on each service edge observed by Tempo. A sudden drop to zero on an edge means that dependency is completely unreachable — a leading indicator of a cascading failure.",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisColorMode": "text",
+            "axisLabel": "Error Rate",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 4,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }
+          },
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.01 },
+              { "color": "red", "value": 0.05 }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 74 },
+      "id": 54,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max"],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "sum by(client, server) (rate(traces_service_graph_request_failed_total[$__rate_interval])) / sum by(client, server) (rate(traces_service_graph_request_total[$__rate_interval]))",
+          "legendFormat": "{{client}} → {{server}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Service-to-Service Error Rate %",
+      "description": "Cross-service error rate per edge. This tells you if a latency spike in the gateway is coming from an upstream AI provider failure (server edge goes red) or from gateway-internal code (client edge stays green).",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisColorMode": "text",
+            "axisLabel": "Latency (seconds)",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "opacity",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 4,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1.0 },
+              { "color": "red", "value": 3.0 }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 81 },
+      "id": 55,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max", "lastNotNull"],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "histogram_quantile(0.95, sum by(client, server, le) (rate(traces_service_graph_request_duration_seconds_bucket[$__rate_interval])))",
+          "legendFormat": "P95 · {{client}} → {{server}}",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "histogram_quantile(0.99, sum by(client, server, le) (rate(traces_service_graph_request_duration_seconds_bucket[$__rate_interval])))",
+          "legendFormat": "P99 · {{client}} → {{server}}",
+          "refId": "B"
+        }
+      ],
+      "title": "Cross-Service Latency — P95 & P99 per Edge",
+      "description": "P95/P99 latency for every client→server pair in the service graph. Separates upstream provider slowness from gateway processing time — the key to distinguishing capacity problems from code problems.",
+      "type": "timeseries"
+    }
+
+  ],
+
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": false, "text": "All", "value": "$__all" },
+        "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+        "definition": "label_values(traces_service_graph_request_total, server)",
+        "hide": 0,
+        "includeAll": true,
+        "multi": true,
+        "name": "service",
+        "options": [],
+        "query": {
+          "query": "label_values(traces_service_graph_request_total, server)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "label": "Service",
+        "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "GatewayZ — Four Golden Signals (SRE)",
+  "uid": "gatewayz-four-golden-signals",
+  "version": 1
+}
