@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "Self-hosted Sentry replacement: uptime, errors, transactions, DB queries, cache insights, and web vitals — all from Prometheus, Tempo, and Loki.",
+  "description": "Deep-dive reliability dashboard: availability, latency, DB/cache performance, streaming metrics, provider health, circuit breakers, and live logs.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -47,7 +47,7 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "## GatewayZ — Sentry Error Tracking\nApplication-level exception monitoring — catches errors that never produce an HTTP response (startup crashes, background task failures, uncaught exceptions).\n\n| Section | What it shows |\n|---------|---------------|\n| Error Events | Total exception count and event rate over time — Sentry catches failures that Prometheus and Loki may miss entirely |\n| Exception Breakdown | Top exception types and stack traces — links to Sentry issue pages for full context and assignee tracking |\n| Release Health | Error rate by deployment version — correlate spikes with recent pushes to isolate regression-caused failures |"
+        "content": "## GatewayZ \u2014 Reliability Dashboard\nDeep-dive reliability observability: availability, error budget, latency, database/cache health, streaming performance, provider circuit breakers, and live request logs.\n\n| Section | What it shows |\n|---------|---------------|\n| Availability & SLO | Uptime %, 24h error rate, request throughput, P95 latency at-a-glance |\n| Request Latency | P50/P95/P99 percentiles, per-route slowest endpoints, slow trace links |\n| Concurrency & Queuing | Active/queued in-flight requests, concurrency gate rejections |\n| Database Health | Query rate by table, avg duration, connection pool (active/idle/utilization) |\n| Cache Performance | App cache hit/miss rates, Redis hit rate, memory, eviction pressure |\n| Streaming Performance | TTFB P95, Time-to-First-Chunk, streaming duration, stage breakdown |\n| Provider Health | Per-provider availability, error rate, circuit breaker transitions, response P95 |\n| Live Logs | HTTP request log stream with method/status filtering |"
       },
       "transparent": true,
       "datasource": null
@@ -3301,7 +3301,7 @@
         "type": "loki",
         "uid": "grafana_loki"
       },
-      "description": "Live HTTP request volume from application logs, broken down by log level. Gradient fill shows traffic intensity over time — essential for real-time telemetry visibility.",
+      "description": "Live HTTP request volume from application logs, broken down by log level. Gradient fill shows traffic intensity over time \u2014 essential for real-time telemetry visibility.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -3517,7 +3517,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Sentry Monitoring (P/T/L Replacement)",
-  "uid": "sentry_ptl_v1",
+  "title": "GatewayZ \u2014 Reliability Dashboard",
+  "uid": "gatewayz_reliability_v1",
   "version": 2
 }
