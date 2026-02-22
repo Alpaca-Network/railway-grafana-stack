@@ -4,9 +4,9 @@ FROM grafana/pyroscope:1.7.1
 # Run as root for Railway volume permissions
 USER root
 
-# Create data directory
-RUN mkdir -p /data/pyroscope && chmod -R 777 /data/pyroscope
-
+# NOTE: /data is declared as a VOLUME in the base Pyroscope image, so
+# directory creation must happen at runtime, not build time.  The
+# entrypoint.sh already runs: mkdir -p /data/pyroscope && chmod 777 ...
 COPY pyroscope.yml /etc/pyroscope/pyroscope.yml
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

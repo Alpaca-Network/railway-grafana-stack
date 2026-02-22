@@ -1581,7 +1581,7 @@
       },
       "id": 40,
       "panels": [],
-      "title": "\ud83d\udcca  Pillar IV \u2014 Saturation (The Capacity Pillar)  |  Leading indicator \u2014 know before your users feel it",
+      "title": "\ud83d\udcca  Pillar IV \u2014 Saturation (The Capacity Pillar)  |  Redis Memory \u00b7 Connected Clients \u00b7 CPU \u00b7 Process \u00b7 File Descriptors",
       "type": "row"
     },
     {
@@ -2091,7 +2091,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 65
+        "y": 81
       },
       "id": 50,
       "panels": [],
@@ -2107,7 +2107,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 66
+        "y": 82
       },
       "id": 51,
       "options": {
@@ -2137,7 +2137,7 @@
         "h": 14,
         "w": 12,
         "x": 0,
-        "y": 70
+        "y": 86
       },
       "id": 52,
       "options": {},
@@ -2212,7 +2212,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 70
+        "y": 86
       },
       "id": 53,
       "options": {
@@ -2312,7 +2312,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 77
+        "y": 93
       },
       "id": 54,
       "options": {
@@ -2410,7 +2410,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 84
+        "y": 100
       },
       "id": 55,
       "options": {
@@ -2463,7 +2463,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 93
+        "y": 109
       },
       "panels": []
     },
@@ -2480,7 +2480,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 94
+        "y": 110
       },
       "options": {
         "reduceOptions": {
@@ -2551,7 +2551,7 @@
         "h": 4,
         "w": 6,
         "x": 6,
-        "y": 94
+        "y": 110
       },
       "options": {
         "reduceOptions": {
@@ -2626,7 +2626,7 @@
         "h": 4,
         "w": 6,
         "x": 12,
-        "y": 94
+        "y": 110
       },
       "options": {
         "reduceOptions": {
@@ -2697,7 +2697,7 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 94
+        "y": 110
       },
       "options": {
         "reduceOptions": {
@@ -2768,7 +2768,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 98
+        "y": 114
       },
       "options": {
         "legend": {
@@ -2930,509 +2930,6 @@
       "pluginVersion": "11.5.2"
     },
     {
-      "id": 66,
-      "type": "row",
-      "title": "\ud83d\udd0d  4xx Error Breakdown  |  Auth Failures \u00b7 Routing \u00b7 Validation \u00b7 Rate Limiting \u00b7 Client Aborts",
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 106
-      },
-      "panels": []
-    },
-    {
-      "id": 67,
-      "type": "stat",
-      "title": "Auth Failures \u2014 401 / 403",
-      "description": "401 = missing/invalid auth token. 403 = authenticated but unauthorized. Spikes may indicate credential leaks or bad deploys.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 0,
-        "y": 107
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "decimals": 3,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.01
-              },
-              {
-                "color": "red",
-                "value": 0.1
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "sum(rate(fastapi_requests_total{status_code=~\"401|403\"}[5m]))",
-          "instant": true,
-          "legendFormat": "__auto",
-          "refId": "A"
-        }
-      ],
-      "pluginVersion": "11.5.2"
-    },
-    {
-      "id": 68,
-      "type": "stat",
-      "title": "Not Found \u2014 404",
-      "description": "Routing misses. A spike post-deploy indicates contract drift or broken client integrations.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 6,
-        "y": 107
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "decimals": 3,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.05
-              },
-              {
-                "color": "orange",
-                "value": 0.5
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "sum(rate(fastapi_requests_total{status_code=\"404\"}[5m]))",
-          "instant": true,
-          "legendFormat": "__auto",
-          "refId": "A"
-        }
-      ],
-      "pluginVersion": "11.5.2"
-    },
-    {
-      "id": 69,
-      "type": "stat",
-      "title": "Conflict / Validation \u2014 409 / 422",
-      "description": "409=conflict, 422=validation failure. Rising rate may indicate schema drift or bad payload patterns.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 12,
-        "y": 107
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "decimals": 3,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.05
-              },
-              {
-                "color": "orange",
-                "value": 0.2
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "sum(rate(fastapi_requests_total{status_code=~\"409|422\"}[5m]))",
-          "instant": true,
-          "legendFormat": "__auto",
-          "refId": "A"
-        }
-      ],
-      "pluginVersion": "11.5.2"
-    },
-    {
-      "id": 70,
-      "type": "stat",
-      "title": "Rate Limited \u2014 429",
-      "description": "Requests rejected by rate limiter. High rate = abusive clients or traffic spike beyond capacity.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 18,
-        "y": 107
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "decimals": 3,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.1
-              },
-              {
-                "color": "red",
-                "value": 1.0
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "sum(rate(fastapi_requests_total{status_code=\"429\"}[5m]))",
-          "instant": true,
-          "legendFormat": "__auto",
-          "refId": "A"
-        }
-      ],
-      "pluginVersion": "11.5.2"
-    },
-    {
-      "id": 71,
-      "type": "timeseries",
-      "title": "4xx Error Rate by Code \u2014 Over Time",
-      "description": "Each 4xx code tells a different story. Correlate spikes with deploys using the version label.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 14,
-        "x": 0,
-        "y": 111
-      },
-      "options": {
-        "legend": {
-          "calcs": [
-            "last",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "custom": {
-            "drawStyle": "line",
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "fillOpacity": 8,
-            "gradientMode": "opacity",
-            "showPoints": "never",
-            "spanNulls": true
-          }
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "sum(rate(fastapi_requests_total{status_code=\"401\"}[5m]))",
-          "legendFormat": "401 Unauthorized",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "sum(rate(fastapi_requests_total{status_code=\"403\"}[5m]))",
-          "legendFormat": "403 Forbidden",
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "sum(rate(fastapi_requests_total{status_code=\"404\"}[5m]))",
-          "legendFormat": "404 Not Found",
-          "refId": "C"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "sum(rate(fastapi_requests_total{status_code=\"409\"}[5m]))",
-          "legendFormat": "409 Conflict",
-          "refId": "D"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "sum(rate(fastapi_requests_total{status_code=\"422\"}[5m]))",
-          "legendFormat": "422 Validation",
-          "refId": "E"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "sum(rate(fastapi_requests_total{status_code=\"429\"}[5m]))",
-          "legendFormat": "429 Rate Limited",
-          "refId": "F"
-        }
-      ],
-      "pluginVersion": "11.5.2"
-    },
-    {
-      "id": 72,
-      "type": "timeseries",
-      "title": "Client Disconnects \u2014 499 (Aborted Requests)",
-      "description": "499 = client closed connection before server responded. Rising 499s alongside 5xx suggest cascading slow-response issues. A silent reliability signal \u2014 not counted in 5xx rate.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 10,
-        "x": 14,
-        "y": 111
-      },
-      "options": {
-        "legend": {
-          "calcs": [
-            "last",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "custom": {
-            "drawStyle": "line",
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "fillOpacity": 8,
-            "gradientMode": "opacity",
-            "showPoints": "never",
-            "spanNulls": true
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "5xx Rate (context)"
-            },
-            "properties": [
-              {
-                "id": "custom.lineStyle",
-                "value": {
-                  "fill": "dash",
-                  "dash": [
-                    4,
-                    4
-                  ]
-                }
-              },
-              {
-                "id": "custom.opacity",
-                "value": 50
-              }
-            ]
-          }
-        ]
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "sum(rate(fastapi_requests_total{status_code=\"499\"}[5m]))",
-          "legendFormat": "499 Client Abort",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "sum(rate(fastapi_requests_total{status_code=~\"5..\"}[5m]))",
-          "legendFormat": "5xx Rate (context)",
-          "refId": "B"
-        }
-      ],
-      "pluginVersion": "11.5.2"
-    },
-    {
-      "id": 73,
-      "type": "row",
-      "title": "\u2699\ufe0f  Process Saturation  |  CPU \u00b7 File Descriptors \u00b7 In-Flight Requests \u00b7 Process Uptime",
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 120
-      },
-      "panels": []
-    },
-    {
       "id": 74,
       "type": "gauge",
       "title": "CPU Usage % (5m avg)",
@@ -3445,7 +2942,7 @@
         "h": 7,
         "w": 6,
         "x": 0,
-        "y": 121
+        "y": 65
       },
       "options": {
         "reduceOptions": {
@@ -3520,7 +3017,7 @@
         "h": 7,
         "w": 6,
         "x": 6,
-        "y": 121
+        "y": 65
       },
       "options": {
         "reduceOptions": {
@@ -3595,7 +3092,7 @@
         "h": 7,
         "w": 6,
         "x": 12,
-        "y": 121
+        "y": 65
       },
       "options": {
         "reduceOptions": {
@@ -3670,7 +3167,7 @@
         "h": 7,
         "w": 6,
         "x": 18,
-        "y": 121
+        "y": 65
       },
       "options": {
         "reduceOptions": {
@@ -3741,7 +3238,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 128
+        "y": 72
       },
       "options": {
         "legend": {
@@ -3837,7 +3334,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 128
+        "y": 72
       },
       "options": {
         "legend": {
@@ -3926,464 +3423,6 @@
           "expr": "process_max_fds{job=\"gatewayz_production\"}",
           "legendFormat": "Max FDs",
           "refId": "C"
-        }
-      ],
-      "pluginVersion": "11.5.2"
-    },
-    {
-      "id": 80,
-      "type": "row",
-      "title": "\u23f1\ufe0f  Timeouts, Cancellations & Payload Size  |  Silent Reliability Killers",
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 137
-      },
-      "panels": []
-    },
-    {
-      "id": 81,
-      "type": "stat",
-      "title": "Concurrency Gate Rejections/s",
-      "description": "Requests rejected by the concurrency gate before they reach FastAPI. These are NOT counted in 5xx rate but ARE reliability failures.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 0,
-        "y": 138
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "decimals": 3,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.1
-              },
-              {
-                "color": "red",
-                "value": 1.0
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "sum(rate(concurrency_rejected_total[5m]))",
-          "instant": true,
-          "legendFormat": "__auto",
-          "refId": "A"
-        }
-      ],
-      "pluginVersion": "11.5.2"
-    },
-    {
-      "id": 82,
-      "type": "stat",
-      "title": "Request Body Size \u2014 P95",
-      "description": "P95 request body size. Large payloads silently destroy P99 latency. >1MB warrants investigation.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 6,
-        "y": 138
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "bytes",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 1048576
-              },
-              {
-                "color": "red",
-                "value": 10485760
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(fastapi_request_size_bytes_bucket[5m])))",
-          "instant": true,
-          "legendFormat": "__auto",
-          "refId": "A"
-        }
-      ],
-      "pluginVersion": "11.5.2"
-    },
-    {
-      "id": 83,
-      "type": "stat",
-      "title": "Response Body Size \u2014 P95",
-      "description": "P95 response body size. Large responses cause TCP back-pressure and client timeout spikes.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 12,
-        "y": 138
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "bytes",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 5242880
-              },
-              {
-                "color": "red",
-                "value": 52428800
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(fastapi_response_size_bytes_bucket[5m])))",
-          "instant": true,
-          "legendFormat": "__auto",
-          "refId": "A"
-        }
-      ],
-      "pluginVersion": "11.5.2"
-    },
-    {
-      "id": 84,
-      "type": "stat",
-      "title": "Client Disconnects \u2014 499/s",
-      "description": "499 = client closed connection before server responded. Often precedes 5xx spikes. Not in error rate \u2014 invisible without this panel.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 18,
-        "y": 138
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "decimals": 3,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.05
-              },
-              {
-                "color": "red",
-                "value": 0.5
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "sum(rate(fastapi_requests_total{status_code=\"499\"}[5m]))",
-          "instant": true,
-          "legendFormat": "__auto",
-          "refId": "A"
-        }
-      ],
-      "pluginVersion": "11.5.2"
-    },
-    {
-      "id": 85,
-      "type": "timeseries",
-      "title": "Concurrency Gate Rejections by Reason",
-      "description": "Breakdown of WHY requests were rejected. Timeout rejections \u2192 providers too slow. Overload rejections \u2192 need horizontal scaling.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 0,
-        "y": 142
-      },
-      "options": {
-        "legend": {
-          "calcs": [
-            "last",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "custom": {
-            "drawStyle": "line",
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "fillOpacity": 8,
-            "gradientMode": "opacity",
-            "showPoints": "never",
-            "spanNulls": true
-          }
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "sum(rate(concurrency_rejected_total[5m]))",
-          "legendFormat": "Rejected (all reasons)",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "sum(rate(concurrency_rejected_total{reason=\"timeout\"}[5m]))",
-          "legendFormat": "Rejected \u2014 timeout",
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "sum(rate(concurrency_rejected_total{reason=\"overload\"}[5m]))",
-          "legendFormat": "Rejected \u2014 overload",
-          "refId": "C"
-        }
-      ],
-      "pluginVersion": "11.5.2"
-    },
-    {
-      "id": 86,
-      "type": "timeseries",
-      "title": "Request & Response Payload Size Distribution",
-      "description": "P99 request size spikes before P99 latency spikes \u2014 this is a leading indicator. Large response P95 \u2192 TCP back-pressure.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 12,
-        "y": 142
-      },
-      "options": {
-        "legend": {
-          "calcs": [
-            "last",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "bytes",
-          "custom": {
-            "drawStyle": "line",
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "fillOpacity": 8,
-            "gradientMode": "opacity",
-            "showPoints": "never",
-            "spanNulls": true
-          }
-        },
-        "overrides": []
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "histogram_quantile(0.50, sum by (le) (rate(fastapi_request_size_bytes_bucket[5m])))",
-          "legendFormat": "Request P50",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(fastapi_request_size_bytes_bucket[5m])))",
-          "legendFormat": "Request P95",
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "histogram_quantile(0.99, sum by (le) (rate(fastapi_request_size_bytes_bucket[5m])))",
-          "legendFormat": "Request P99",
-          "refId": "C"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(fastapi_response_size_bytes_bucket[5m])))",
-          "legendFormat": "Response P95",
-          "refId": "D"
         }
       ],
       "pluginVersion": "11.5.2"
