@@ -112,11 +112,12 @@ open http://localhost:9009  # Mimir
 
 | Service | Port | Purpose | Status |
 |---------|------|---------|--------|
-| **Grafana 11.5.2** | 3000 | Visualization & dashboards | ✅ 5 dashboard folders |
+| **Grafana 11.5.2** | 3000 | Visualization & dashboards | ✅ 6 dashboard folders |
 | **Prometheus 3.2.1** | 9090 | Metrics collection + alerting | ✅ 6 scrape jobs |
 | **Mimir 2.11.0** | 9009, 9095 | Long-term metrics storage | ✅ 30-day retention |
 | **Loki 3.4** | 3100 | Log aggregation | ✅ 30-day retention |
 | **Tempo** | 3200, 4317, 4318 | Distributed tracing | ✅ OTLP endpoints |
+| **Pyroscope 1.7.1** | 4040 | Continuous CPU profiling | ✅ Provider/model tagged flamegraphs |
 | **Redis Exporter** | 9121 | Redis metrics | ✅ Integrated |
 
 ---
@@ -129,6 +130,7 @@ All dashboards use **real API endpoints** with live data from Prometheus/Mimir -
 |--------|---------|-------------|--------|
 | **Four Golden Signals** | SRE observability hub | Latency P50/P95/P99, Traffic RPS, Error rate, Saturation, Service Graph | ✅ Ready |
 | **Model Performance** | AI model metrics | Request rates, latency, token usage, error rates | ✅ Ready |
+| **Inference Profiling** | CPU flamegraphs by provider/model | Pyroscope flamegraph, CPU bargauges per provider & model, sample rate over time | ✅ Ready |
 | **Loki** | Log aggregation | Log search, streaming, volume by level/service | ✅ Ready |
 | **Prometheus** | Short-term metrics | Scrape targets, query stats, self-monitoring | ✅ Ready |
 | **Tempo** | Distributed tracing | Service graph, span metrics, trace search | ✅ Ready |
@@ -197,8 +199,9 @@ curl http://localhost:9090/api/v1/targets
 |------------|-----|------|-----|---------|
 | **Prometheus** | `grafana_prometheus` | prometheus | `${PROMETHEUS_INTERNAL_URL}` | Short-term metrics |
 | **Mimir** | `grafana_mimir` | prometheus | `${MIMIR_INTERNAL_URL}/prometheus` | Long-term metrics |
-| **Loki** | `grafana_loki` | loki | `${LOKI_URL}` | Logs |
+| **Loki** | `grafana_loki` | loki | `${LOKI_INTERNAL_URL}` | Logs |
 | **Tempo** | `grafana_tempo` | tempo | `${TEMPO_INTERNAL_URL}` | Traces |
+| **Pyroscope** | `grafana_pyroscope` | grafana-pyroscope-datasource | `${PYROSCOPE_INTERNAL_URL}` | Continuous profiling / flamegraphs |
 
 ### Data Retention
 
@@ -738,8 +741,9 @@ railway up
 FASTAPI_TARGET=api.gatewayz.ai:443
 PROMETHEUS_INTERNAL_URL=http://prometheus.railway.internal:9090
 MIMIR_INTERNAL_URL=http://mimir.railway.internal:9009
-LOKI_URL=http://loki.railway.internal:3100
+LOKI_INTERNAL_URL=http://loki.railway.internal:3100
 TEMPO_INTERNAL_URL=http://tempo.railway.internal:3200
+PYROSCOPE_INTERNAL_URL=http://pyroscope.railway.internal:4040
 ```
 
 ### Docker Compose (Local)
@@ -872,26 +876,31 @@ Configure this once in the OpenTelemetry SDK resource at process startup — it 
 
 ---
 
-## 🔬 Continuous Profiling (Pyroscope via Grafana Cloud)
+## 🔬 Continuous Profiling (Self-hosted Pyroscope)
 
-The stack becomes **LGTMP**: Loki · Grafana · Tempo · Mimir · **Pyroscope**.
+The stack is **LGTMP**: Loki · Grafana · Tempo · Mimir · **Pyroscope**.
 
-### Why Grafana Cloud — not a self-hosted Railway service
+### Architecture
 
-The `gatewayz-backend` and `railway-grafana-stack` live in **two separate Railway projects**. Railway's internal DNS (`*.railway.internal`) is scoped to a single project — a Pyroscope container inside the grafana-stack project would be completely unreachable from the backend's push calls.
-
-Grafana Cloud's hosted Pyroscope endpoint is a neutral external collector that both projects can reach independently:
+The `gatewayz-backend` and `railway-grafana-stack` live in **two separate Railway projects**. Pyroscope runs as a service inside this (grafana-stack) project, so Grafana reaches it via Railway's internal DNS at zero cost. The backend, being in a different project, pushes profiles over Pyroscope's public Railway domain.
 
 ```
 gatewayz-backend  (Railway project A)
-  └─ pyroscope-io SDK (in-process, 100 Hz sampler)
-       └─ PUSH every 15 s ──→ https://profiles-prod-xxx.grafana.net
-                                              ↑  (Grafana Cloud — reachable from any project)
-railway-grafana-stack  (Railway project B)
-  └─ Grafana datasource READ ─────────────────
+  └─ pyroscope-io SDK  →  PUSH (HTTP) every 15 s
+       └──────────────────────────────────────────────────────────────►
+                                              https://<pyroscope-public-domain>.up.railway.app
+                                                              │
+                                              railway-grafana-stack  (Railway project B)
+                                                ├─ Pyroscope service  (:4040, internal)
+                                                │     stores profiles on /data/pyroscope
+                                                └─ Grafana  READ via  http://pyroscope.railway.internal:4040
 ```
 
-> **Note:** A self-hosted Pyroscope service (`pyroscope/` directory) is included in this repo for teams where both services share a single Railway project. The `pyroscope/Dockerfile` and config are production-ready — simply point `PYROSCOPE_SERVER_ADDRESS` at `http://pyroscope.railway.internal:4040` and skip the Grafana Cloud steps below.
+### Services table
+
+| Service | Port | Notes |
+|---------|------|-------|
+| **Pyroscope** | 4040 | Internal only. Backend pushes via public domain. Grafana reads via `.railway.internal`. |
 
 ### Why profiling matters for GatewayZ
 
@@ -899,40 +908,59 @@ The Four Golden Signals tell you **what** is wrong. Profiling tells you **which 
 
 | Four Golden Signals say | Profiling adds |
 |-------------------------|---------------|
-| CPU saturation at 90% | Which function is burning the cycles? Token counter? JSON streaming serializer? |
-| Memory growing 50 MB/hour | Which object accumulates? A model-catalog cache entry with no TTL? An open SSE connection? |
-| P99 latency spiked to 8 s | What was the thread doing during those 8 seconds? Waiting on a Redis lock? A slow provider response? |
+| CPU saturation at 90% | Which function burns the cycles? Token counter? JSON streaming serializer? |
+| Memory growing 50 MB/hour | Which object accumulates? A model-catalog cache with no TTL? An open SSE connection? |
+| P99 latency spiked to 8 s | What was the thread actually doing? Waiting on a Redis lock? A slow provider HTTP call? |
+
+### Provider & Model tagged flamegraphs
+
+Every inference call in `chat_handler.py` is wrapped with `pyroscope.tag_wrapper()` so flamegraphs can be filtered by the upstream provider and model:
+
+```
+Inference Profiling dashboard → filter $provider=openrouter, $model=claude-3-5-sonnet
+  → see exactly which Python functions consumed CPU during those calls
+```
+
+Tags applied at the `_call_provider` / `_call_provider_stream` boundaries:
+- `provider` — e.g. `openrouter`, `cerebras`, `groq`
+- `model` — e.g. `claude-3-5-sonnet-20241022`
+- `service_name` — always `gatewayz-backend`
+- `environment` — Railway environment (`production` / `staging` / `local`)
 
 ### How to activate
 
-**Step 1 — Create a free Grafana Cloud account** at [grafana.com](https://grafana.com). Navigate to your stack → **Hosted Profiling** to find:
-- **Push URL** → `PYROSCOPE_SERVER_ADDRESS` (e.g. `https://profiles-prod-006.grafana.net`)
-- **Instance ID** → `PYROSCOPE_AUTH_USER` (numeric)
+**Step 1 — Generate a public domain for Pyroscope in Railway:**
 
-Then go to **Security → Access Policies → Create token** with `profiles:write` + `profiles:read` scopes → `PYROSCOPE_AUTH_PASSWORD`.
+Railway dashboard → grafana-stack project → **Pyroscope service** → Settings → **Generate Domain**
 
-**Step 2 — Set env vars on the Railway backend service (Project A):**
+Copy the generated URL (e.g. `https://pyroscope-production-xxxx.up.railway.app`).
+
+**Step 2 — Set env vars on the backend service (Project A):**
+
 ```
 PYROSCOPE_ENABLED=true
-PYROSCOPE_SERVER_ADDRESS=https://profiles-prod-006.grafana.net
-PYROSCOPE_AUTH_USER=<numeric-instance-id>
-PYROSCOPE_AUTH_PASSWORD=<api-token>
+PYROSCOPE_SERVER_ADDRESS=https://pyroscope-production-xxxx.up.railway.app
 ```
 
-**Step 3 — Set env vars on the Railway Grafana service (Project B):**
+No auth variables needed — self-hosted Pyroscope has no authentication by default.
+
+**Step 3 — Set env vars on the Grafana service (Project B):**
+
 ```
-PYROSCOPE_SERVER_ADDRESS=https://profiles-prod-006.grafana.net
-PYROSCOPE_AUTH_USER=<numeric-instance-id>
-PYROSCOPE_AUTH_PASSWORD=<api-token>
+PYROSCOPE_INTERNAL_URL=http://pyroscope.railway.internal:4040
 ```
 
-The same token works for both — it has both `profiles:write` (backend push) and `profiles:read` (Grafana query) scopes.
+That's it. Grafana reaches Pyroscope via the internal network; the backend pushes over the public domain.
+
+### Local development
+
+With `docker compose up`, Pyroscope starts automatically. Grafana uses the `http://pyroscope:4040` default (set via the `PYROSCOPE_INTERNAL_URL` docker-compose env var). To push profiles locally, set `PYROSCOPE_SERVER_ADDRESS=http://localhost:4040` on the backend.
 
 ### What you get
 
-- **CPU flamegraphs** per endpoint — filter to `/v1/chat/completions` and see exactly which Python function accounts for the most cycles
-- **Memory flamegraphs** — find objects accumulating in memory; correlates directly with the memory growth visible in the Saturation pillar
-- **Trace → Profile drill-down** — click any slow span in Tempo → **"View Profile"** opens the flamegraph recorded at that exact time window, no manual timestamp matching needed
+- **Inference Profiling dashboard** (`model_performance/Inference-Profiling`) — flamegraph + CPU bargauges broken down by provider and model, sample rate over time
+- **Trace → Profile drill-down** — click any slow span in Tempo → **"View Profile"** jumps to the Pyroscope flamegraph at that exact timestamp, no manual matching needed
+- **Always-on sampling** — 100 Hz regardless of traffic, catches every P99 outlier (unlike Sentry's 5% transaction sample rate)
 
 ---
 
