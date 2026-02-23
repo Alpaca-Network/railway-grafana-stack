@@ -1,36 +1,40 @@
 apiVersion: 1
 
 datasources:
-  # Grafana Cloud hosted Pyroscope — continuous profiling for gatewayz-backend.
+  # Self-hosted Pyroscope — continuous profiling for gatewayz-backend.
   #
-  # WHY GRAFANA CLOUD (not self-hosted on Railway):
-  #   The gatewayz-backend and the railway-grafana-stack are in TWO SEPARATE
-  #   Railway projects. Railway's internal DNS (*.railway.internal) only works
-  #   within the same project. A self-hosted Pyroscope container inside the
-  #   grafana-stack project would be unreachable from the backend's push calls.
+  # ARCHITECTURE (two separate Railway projects):
   #
-  #   Grafana Cloud acts as a neutral external collector that both projects can
-  #   reach independently:
-  #     • gatewayz-backend  → PUSH → https://profiles-prod-xxx.grafana.net
-  #     • railway-grafana-stack → READ → https://profiles-prod-xxx.grafana.net
+  #   gatewayz-backend project          railway-grafana-stack project
+  #   ─────────────────────             ──────────────────────────────
+  #   gatewayz-backend  ──PUSH──►  pyroscope (public domain)
+  #                                      │
+  #                                   Grafana ◄──READ── pyroscope.railway.internal:4040
+  #
+  # The Pyroscope service lives in THIS (grafana-stack) project, so Grafana
+  # reaches it via Railway's internal DNS — zero egress cost, zero latency.
+  #
+  # The gatewayz-backend is in a DIFFERENT project and cannot use .railway.internal.
+  # It pushes to Pyroscope's PUBLIC Railway domain (generate one in the Railway
+  # dashboard: Pyroscope service → Settings → Generate Domain).
   #
   # Required Railway env vars on THIS (Grafana) service:
-  #   PYROSCOPE_SERVER_ADDRESS  — Grafana Cloud Pyroscope URL
-  #                               e.g. https://profiles-prod-006.grafana.net
-  #   PYROSCOPE_AUTH_USER       — Grafana Cloud numeric instance ID
-  #   PYROSCOPE_AUTH_PASSWORD   — Grafana Cloud API token (profiles:read scope)
+  #   PYROSCOPE_INTERNAL_URL  — internal URL for Grafana to read profiles
+  #                             Railway: http://pyroscope.railway.internal:4040
+  #                             Local docker-compose: http://pyroscope:4040 (default)
   #
-  # The same vars go on the backend service (with profiles:write scope on the token).
+  # Required Railway env vars on the BACKEND service:
+  #   PYROSCOPE_ENABLED=true
+  #   PYROSCOPE_SERVER_ADDRESS — Pyroscope's PUBLIC Railway domain
+  #                              e.g. https://pyroscope-production-xxxx.up.railway.app
+  #   (No auth vars needed — self-hosted Pyroscope has no auth by default)
   - name: Pyroscope
     uid: grafana_pyroscope
     type: grafana-pyroscope-datasource   # built-in in Grafana 10+, no plugin needed
     access: proxy
-    url: ${PYROSCOPE_SERVER_ADDRESS}
-    basicAuth: true
-    basicAuthUser: ${PYROSCOPE_AUTH_USER}
+    url: ${PYROSCOPE_INTERNAL_URL:-http://pyroscope:4040}
+    basicAuth: false
     isDefault: false
     editable: true
     jsonData:
       httpMethod: GET
-    secureJsonData:
-      basicAuthPassword: ${PYROSCOPE_AUTH_PASSWORD}

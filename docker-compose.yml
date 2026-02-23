@@ -270,6 +270,7 @@ services:
       - LOKI_INTERNAL_URL=${LOKI_INTERNAL_URL:-http://loki:3100}
       - TEMPO_INTERNAL_URL=${TEMPO_INTERNAL_URL:-http://tempo:3200}
       - MIMIR_INTERNAL_URL=${MIMIR_INTERNAL_URL:-http://mimir:9009}
+      - PYROSCOPE_INTERNAL_URL=${PYROSCOPE_INTERNAL_URL:-http://pyroscope:4040}
       - API_BASE_URL=${API_BASE_URL:-https://api.gatewayz.ai}
       # Email/SMTP Configuration for Alerts
       # Use port 465 (SSL) for cloud platforms, 587 (STARTTLS) for local
