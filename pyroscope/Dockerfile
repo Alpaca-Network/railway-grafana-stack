@@ -1,30 +1,34 @@
-# Pin to specific version for stability
-FROM grafana/pyroscope:1.7.1
+# ── Stage 1: script builder ──────────────────────────────────────────────────
+# Pyroscope's base image is distroless (no /bin/sh).
+# Use busybox to write the entrypoint script — no COPY from build context needed.
+FROM busybox:1.36 AS setup
 
-# Run as root for Railway volume permissions
-USER root
-
-COPY pyroscope.yml /etc/pyroscope/pyroscope.yml
-
-# Inline the startup script so there is no COPY entrypoint.sh step.
-# Railway's BuildKit sometimes fails to resolve files in monorepo subdirectory
-# build contexts; inlining avoids that entirely.
-#
-# What this does at runtime:
-#   1. Creates /data/pyroscope (VOLUME in base image — can't be done at build time)
-#   2. Starts Pyroscope, using $PORT if Railway injects one, otherwise 4040
 RUN printf '#!/bin/sh\nset -e\nmkdir -p /data/pyroscope\nchmod -R 777 /data/pyroscope || true\nexec /usr/bin/pyroscope -config.file=/etc/pyroscope/pyroscope.yml "$@"\n' \
     > /entrypoint.sh && chmod +x /entrypoint.sh
 
+# ── Stage 2: final image ──────────────────────────────────────────────────────
+FROM grafana/pyroscope:1.7.1
+
+USER root
+
+# Copy config
+COPY pyroscope.yml /etc/pyroscope/pyroscope.yml
+
+# Bring in /bin/sh from busybox so the shell script can run at container startup
+COPY --from=setup /bin/sh /bin/sh
+
+# Bring in the entrypoint (written in stage 1 — no build-context COPY)
+COPY --from=setup /entrypoint.sh /entrypoint.sh
+
 # PORT CONFIGURATION FOR RAILWAY:
-# Railway injects $PORT automatically when you generate a public domain.
-# The entrypoint passes it through to pyroscope.yml via the ${PORT:-4040} substitution.
+# Railway injects $PORT when you generate a public domain for this service.
+# pyroscope.yml uses ${PORT:-4040} so the server binds on Railway's assigned port.
 #
 # gatewayz-backend (separate Railway project) pushes profiles via PUBLIC domain:
 #   Railway dashboard → Pyroscope service → Settings → Generate Domain
 #   Set PYROSCOPE_SERVER_ADDRESS=https://pyroscope-xxx.up.railway.app on the backend
 #
-# Grafana (same Railway project) reads via internal DNS — free, zero-latency:
+# Grafana (same Railway project) reads via internal DNS:
 #   Set PYROSCOPE_INTERNAL_URL=http://pyroscope.railway.internal:4040 on Grafana service
 EXPOSE 4040
 
