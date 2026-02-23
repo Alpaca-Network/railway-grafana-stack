@@ -1,0 +1,228 @@
+{
+  "title": "Inference Profiling — Provider / Model",
+  "uid": "inference_profiling",
+  "description": "Continuous CPU flamegraphs for inference calls, broken down by provider and model. Each sample is tagged at the _call_provider / _call_provider_stream boundaries in chat_handler.py via pyroscope.tag_wrapper().",
+  "tags": ["profiling", "pyroscope", "inference", "provider", "model"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "🔥 CPU Flamegraph — Filter by Provider & Model",
+      "collapsed": false,
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 1 }
+    },
+    {
+      "id": 2,
+      "type": "flamegraph",
+      "title": "Inference CPU Flamegraph",
+      "description": "Stack samples captured during provider calls. Each sample is labelled with provider and model. Use the variables above to zoom into a specific provider or model.",
+      "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+      "gridPos": { "x": 0, "y": 1, "w": 24, "h": 16 },
+      "options": {
+        "collapseConfig": false,
+        "disableCollapsing": false,
+        "disableFocusOnClick": false,
+        "disableTooltip": false,
+        "extraColors": false,
+        "keepDisplayedInTree": false,
+        "nameLocation": "topLeft"
+      },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "labelSelector": "{service_name=\"gatewayz-backend\",provider=~\"$provider\",model=~\"$model\"}",
+          "queryType": "profile"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "row",
+      "title": "📊 CPU Distribution — Provider vs Model",
+      "collapsed": false,
+      "gridPos": { "x": 0, "y": 17, "w": 24, "h": 1 }
+    },
+    {
+      "id": 4,
+      "type": "bargauge",
+      "title": "CPU Samples by Provider",
+      "description": "Total Pyroscope CPU samples aggregated per provider over the selected time window. Higher = more CPU time attributed to that provider's inference calls.",
+      "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+      "gridPos": { "x": 0, "y": 18, "w": 12, "h": 8 },
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "displayMode": "gradient",
+        "valueMode": "color",
+        "showUnfilled": true,
+        "minVizWidth": 0,
+        "minVizHeight": 16,
+        "namePlacement": "auto",
+        "text": {}
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 60 },
+              { "color": "orange", "value": 80 },
+              { "color": "red", "value": 95 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "labelSelector": "{service_name=\"gatewayz-backend\",provider=~\"$provider\",model=~\"$model\"}",
+          "groupBy": ["provider"],
+          "queryType": "metrics"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "bargauge",
+      "title": "CPU Samples by Model",
+      "description": "Total Pyroscope CPU samples aggregated per model. Reveals which models are the most CPU-intensive across all providers.",
+      "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+      "gridPos": { "x": 12, "y": 18, "w": 12, "h": 8 },
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "displayMode": "gradient",
+        "valueMode": "color",
+        "showUnfilled": true,
+        "minVizWidth": 0,
+        "minVizHeight": 16,
+        "namePlacement": "auto",
+        "text": {}
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 60 },
+              { "color": "orange", "value": 80 },
+              { "color": "red", "value": 95 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "labelSelector": "{service_name=\"gatewayz-backend\",provider=~\"$provider\",model=~\"$model\"}",
+          "groupBy": ["model"],
+          "queryType": "metrics"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "row",
+      "title": "⏱️ Profile Rate Over Time",
+      "collapsed": false,
+      "gridPos": { "x": 0, "y": 26, "w": 24, "h": 1 }
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "CPU Sample Rate — Provider Breakdown",
+      "description": "Pyroscope sample rate (samples/sec) over time, coloured by provider. A spike means more CPU was being consumed by inference calls to that provider at that moment.",
+      "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+      "gridPos": { "x": 0, "y": 27, "w": 24, "h": 8 },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max", "sum"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 20,
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "labelSelector": "{service_name=\"gatewayz-backend\",provider=~\"$provider\",model=~\"$model\"}",
+          "groupBy": ["provider"],
+          "queryType": "metrics"
+        }
+      ]
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "provider",
+        "label": "Provider",
+        "type": "query",
+        "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+        "query": {
+          "labelSelector": "{service_name=\"gatewayz-backend\"}",
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "queryType": "label_values",
+          "labelName": "provider"
+        },
+        "refresh": 2,
+        "sort": 1,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "current": { "selected": true, "text": "All", "value": "$__all" }
+      },
+      {
+        "name": "model",
+        "label": "Model",
+        "type": "query",
+        "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+        "query": {
+          "labelSelector": "{service_name=\"gatewayz-backend\",provider=~\"$provider\"}",
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "queryType": "label_values",
+          "labelName": "model"
+        },
+        "refresh": 2,
+        "sort": 1,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "current": { "selected": true, "text": "All", "value": "$__all" }
+      }
+    ]
+  },
+  "annotations": { "list": [] },
+  "links": []
+}

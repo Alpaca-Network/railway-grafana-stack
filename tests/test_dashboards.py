@@ -120,7 +120,7 @@ class TestPanelConfiguration:
             "text", "gauge", "stat", "timeseries", "table", "piechart",
             "barchart", "heatmap", "scatter", "logs", "graph", "canvas",
             "alertlist", "dashlist", "nodeGraph", "traces",
-            "row", "bargauge", "state-timeline", "xychart"
+            "row", "bargauge", "state-timeline", "xychart", "flamegraph"
         }
 
         for dashboard_name, dashboard in dashboards.items():
@@ -145,7 +145,7 @@ class TestDatasourceConfiguration:
 
     def test_valid_datasource_uids(self, dashboards):
         """Verify all datasource UIDs are valid"""
-        valid_uids = {"grafana_prometheus", "grafana_loki", "grafana_tempo", "grafana_mimir", "-- Grafana --", "grafana", "", None}
+        valid_uids = {"grafana_prometheus", "grafana_loki", "grafana_tempo", "grafana_mimir", "grafana_pyroscope", "-- Grafana --", "grafana", "", None}
 
         for dashboard_name, dashboard in dashboards.items():
             for panel in dashboard.get("panels", []):
@@ -162,6 +162,7 @@ class TestDatasourceConfiguration:
             "grafana_loki": "loki",
             "grafana_tempo": "tempo",
             "grafana_mimir": "prometheus",
+            "grafana_pyroscope": "grafana-pyroscope-datasource",
             "-- Grafana --": "datasource",
         }
 
