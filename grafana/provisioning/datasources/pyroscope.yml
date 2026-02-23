@@ -26,10 +26,11 @@ datasources:
     type: grafana-pyroscope-datasource   # built-in in Grafana 10+, no plugin needed
     access: proxy
     url: ${PYROSCOPE_SERVER_ADDRESS}
+    basicAuth: true
+    basicAuthUser: ${PYROSCOPE_AUTH_USER}
     isDefault: false
     editable: true
     jsonData:
       httpMethod: GET
     secureJsonData:
-      basicAuthUser: ${PYROSCOPE_AUTH_USER}
       basicAuthPassword: ${PYROSCOPE_AUTH_PASSWORD}
