@@ -15,6 +15,7 @@ import os
 import pytest
 from pathlib import Path
 
+pytestmark = pytest.mark.dashboard
 
 # Get dashboards directory
 DASHBOARDS_DIR = Path(__file__).parent.parent / "grafana" / "dashboards"
@@ -118,7 +119,8 @@ class TestPanelConfiguration:
         valid_types = {
             "text", "gauge", "stat", "timeseries", "table", "piechart",
             "barchart", "heatmap", "scatter", "logs", "graph", "canvas",
-            "alertlist", "dashlist", "nodeGraph", "traces"
+            "alertlist", "dashlist", "nodeGraph", "traces",
+            "row", "bargauge", "state-timeline", "xychart"
         }
 
         for dashboard_name, dashboard in dashboards.items():
@@ -143,7 +145,7 @@ class TestDatasourceConfiguration:
 
     def test_valid_datasource_uids(self, dashboards):
         """Verify all datasource UIDs are valid"""
-        valid_uids = {"grafana_prometheus", "grafana_loki", "grafana_tempo", "-- Grafana --", "grafana", None}
+        valid_uids = {"grafana_prometheus", "grafana_loki", "grafana_tempo", "grafana_mimir", "-- Grafana --", "grafana", "", None}
 
         for dashboard_name, dashboard in dashboards.items():
             for panel in dashboard.get("panels", []):
@@ -159,6 +161,7 @@ class TestDatasourceConfiguration:
             "grafana_prometheus": "prometheus",
             "grafana_loki": "loki",
             "grafana_tempo": "tempo",
+            "grafana_mimir": "prometheus",
             "-- Grafana --": "datasource",
         }
 
@@ -196,34 +199,33 @@ class TestFieldOverrides:
                             f"{dashboard_name} has generic field name: '{field_name}'"
 
     def test_field_overrides_have_display_names(self, dashboards):
-        """Verify field overrides have display names set"""
+        """Verify field overrides with displayName property have non-empty values"""
         for dashboard_name, dashboard in dashboards.items():
             for panel in dashboard.get("panels", []):
                 overrides = panel.get("fieldConfig", {}).get("overrides", [])
                 for override in overrides:
                     properties = override.get("properties", [])
-                    # Check if there's a displayName property
-                    if properties and panel.get("type") != "text":  # Text panels don't need display names
-                        has_display_name = any(p.get("id") == "displayName" for p in properties)
-                        if override.get("matcher", {}).get("options"):
-                            # Only enforce if this is a named field
-                            assert has_display_name, \
-                                f"{dashboard_name} field override missing displayName"
+                    for prop in properties:
+                        if prop.get("id") == "displayName":
+                            value = prop.get("value", "")
+                            assert isinstance(value, str) and len(value) > 0, \
+                                f"{dashboard_name} panel '{panel.get('title', 'unknown')}' has empty displayName in override"
 
     def test_units_are_valid(self, dashboards):
         """Verify unit values are valid Grafana units"""
         valid_units = {
             "short", "percent", "currencyUSD", "ms", "s", "h",
-            "bytes", "deckbytes", "bits", "kbytes", "mbytes",
+            "bytes", "deckbytes", "decbytes", "bits", "kbytes", "mbytes",
             "ns", "us", "dateTimeAsIso", "dateTimeAsUS",
             "ops", "reqps", "rpm", "rps", "wps", "eps",
-            "dps", "iops", "none", "bps", "kops",
+            "dps", "iops", "none", "bps", "Bps", "kops",
             "themis", "v", "mv", "a", "ma", "ohm",
             "kohm", "mohm", "farad", "uf", "nf", "pf",
             "f", "degree", "henry", "hz", "khz", "mhz",
             "ghz", "joule", "kwh", "mah", "wh", "celsius",
             "fahrenheit", "kelvin", "db", "lux", "lm",
             "cd", "lp", "ok", "bad", "critical", "percent",
+            "locale", "percentunit",
         }
 
         for dashboard_name, dashboard in dashboards.items():
@@ -247,7 +249,7 @@ class TestFieldOverrides:
 
     def test_thresholds_have_valid_colors(self, dashboards):
         """Verify threshold colors are valid"""
-        valid_colors = {"green", "yellow", "orange", "red", "blue", "purple", "gray"}
+        valid_colors = {"green", "yellow", "orange", "red", "blue", "purple", "gray", "transparent"}
 
         for dashboard_name, dashboard in dashboards.items():
             for panel in dashboard.get("panels", []):

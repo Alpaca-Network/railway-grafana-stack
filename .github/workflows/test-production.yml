@@ -76,7 +76,7 @@ jobs:
 
       - name: Validate docker-compose.yml
         run: |
-          docker-compose config --quiet
+          docker compose config --quiet
           echo "✅ docker-compose.yml is valid"
 
       - name: Check all Dockerfiles exist
@@ -128,10 +128,10 @@ jobs:
         run: |
           python -c "
           import yaml
-          with open('prometheus/prom.yml') as f:
+          with open('prometheus/prometheus.yml') as f:
               config = yaml.safe_load(f)
           assert 'scrape_configs' in config, 'Missing scrape_configs'
-          print('✅ prometheus/prom.yml is valid')
+          print('✅ prometheus/prometheus.yml is valid')
           "
 
       - name: Validate Loki configuration
@@ -191,7 +191,7 @@ jobs:
         run: |
           python -c "
           import yaml
-          with open('prometheus/prom.yml') as f:
+          with open('prometheus/prometheus.yml') as f:
               config = yaml.safe_load(f)
           assert 'remote_write' in config, 'Missing remote_write'
           remote_write = config['remote_write']
