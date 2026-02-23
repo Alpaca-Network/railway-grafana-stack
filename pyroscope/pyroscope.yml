@@ -4,14 +4,11 @@
 # process pushes CPU/memory flamegraph samples here every 15 s via the
 # pyroscope-io Python SDK. Grafana reads them back via the Pyroscope datasource.
 #
-# PORT:
-#   Railway injects $PORT when a public domain is generated for this service.
-#   The http_listen_port below uses that variable (defaults to 4040 for local).
-#   Internal Railway DNS (pyroscope.railway.internal) always uses port 4040
-#   regardless of the public-facing port.
+# Railway public domain: set PORT=4040 in the Pyroscope service settings so
+# Railway's proxy maps the generated domain to port 4040.
 
 server:
-  http_listen_port: ${PORT:-4040}
+  http_listen_port: 4040
 
 # Store profiles on the local filesystem volume.
 # Railway persists volumes across deploys, so profiles survive restarts.
