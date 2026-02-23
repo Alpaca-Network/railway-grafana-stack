@@ -4,16 +4,21 @@ FROM grafana/pyroscope:1.7.1
 # Run as root for Railway volume permissions
 USER root
 
-# NOTE: /data is declared as a VOLUME in the base Pyroscope image, so
-# directory creation must happen at runtime, not build time.  The
-# entrypoint.sh already runs: mkdir -p /data/pyroscope && chmod 777 ...
 COPY pyroscope.yml /etc/pyroscope/pyroscope.yml
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+
+# Inline the startup script so there is no COPY entrypoint.sh step.
+# Railway's BuildKit sometimes fails to resolve files in monorepo subdirectory
+# build contexts; inlining avoids that entirely.
+#
+# What this does at runtime:
+#   1. Creates /data/pyroscope (VOLUME in base image — can't be done at build time)
+#   2. Starts Pyroscope, using $PORT if Railway injects one, otherwise 4040
+RUN printf '#!/bin/sh\nset -e\nmkdir -p /data/pyroscope\nchmod -R 777 /data/pyroscope || true\nexec /usr/bin/pyroscope -config.file=/etc/pyroscope/pyroscope.yml "$@"\n' \
+    > /entrypoint.sh && chmod +x /entrypoint.sh
 
 # PORT CONFIGURATION FOR RAILWAY:
-# Pyroscope listens on a single port:
-#   - 4040: HTTP API (profile ingest + Grafana queries)
+# Railway injects $PORT automatically when you generate a public domain.
+# The entrypoint passes it through to pyroscope.yml via the ${PORT:-4040} substitution.
 #
 # gatewayz-backend (separate Railway project) pushes profiles via PUBLIC domain:
 #   Railway dashboard → Pyroscope service → Settings → Generate Domain
