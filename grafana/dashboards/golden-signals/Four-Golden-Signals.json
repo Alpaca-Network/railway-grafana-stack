@@ -12,7 +12,7 @@
       }
     ]
   },
-  "description": "GatewayZ Four Golden Signals \u2014 SRE observability covering Latency, Traffic, Errors, and Saturation (the four pillars of service reliability). Never rely on averages \u2014 they hide the misery of your slowest users.",
+  "description": "SRE Four Golden Signals \u2014 Latency, Traffic, Errors \u2014 plus Pillar IV: Continuous Profiling via Pyroscope. Redis saturation metrics have moved to the dedicated Cache & Redis CPU Profile dashboard.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -1569,520 +1569,6 @@
       ],
       "title": "Errors by HTTP Status Code (4xx & 5xx stacked)",
       "description": "Stacked bar breakdown of all error status codes. Useful for identifying if a specific status (e.g. 503, 429) is dominating. Excludes 2xx/3xx success codes.",
-      "type": "timeseries"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 48
-      },
-      "id": 40,
-      "panels": [],
-      "title": "\ud83d\udcca  Pillar IV \u2014 Saturation (The Capacity Pillar)  |  Redis Memory \u00b7 Connected Clients \u00b7 CPU \u00b7 Process \u00b7 File Descriptors",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 70
-              },
-              {
-                "color": "red",
-                "value": 90
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 6,
-        "x": 0,
-        "y": 49
-      },
-      "id": 41,
-      "options": {
-        "minVizHeight": 75,
-        "minVizWidth": 75,
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "sizing": "auto"
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "expr": "(redis_memory_used_bytes / redis_memory_max_bytes) * 100",
-          "legendFormat": "Redis Memory %",
-          "refId": "A"
-        }
-      ],
-      "title": "Redis Memory Utilization %",
-      "description": "The most constrained shared resource for Gateway Z. At > 90%, Redis starts evicting keys \u2014 this silently degrades rate limiting, session caching, and model catalog caches.",
-      "type": "gauge"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "max": 1000,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 500
-              },
-              {
-                "color": "red",
-                "value": 800
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 6,
-        "x": 6,
-        "y": 49
-      },
-      "id": 42,
-      "options": {
-        "minVizHeight": 75,
-        "minVizWidth": 75,
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "sizing": "auto"
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "expr": "redis_connected_clients",
-          "legendFormat": "Connected Clients",
-          "refId": "A"
-        }
-      ],
-      "title": "Redis Connected Clients",
-      "description": "Concurrent connections to Redis. Approaching the maxclients limit (default: 10,000 Upstash) means new connections will be refused \u2014 causing cascading failures in rate limiting.",
-      "type": "gauge"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 500000000
-              },
-              {
-                "color": "red",
-                "value": 1000000000
-              }
-            ]
-          },
-          "unit": "bytes"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 6,
-        "x": 12,
-        "y": 49
-      },
-      "id": 43,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "expr": "process_resident_memory_bytes{job=\"gatewayz_production\"}",
-          "legendFormat": "Process RSS",
-          "refId": "A"
-        }
-      ],
-      "title": "Backend Process Memory (RSS)",
-      "description": "Resident Set Size of the FastAPI process. Sustained growth indicates a memory leak. A sudden spike indicates a large payload or OOM risk. Critical before traffic spikes.",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "color": "red",
-                  "text": "DOWN"
-                },
-                "1": {
-                  "color": "green",
-                  "text": "UP"
-                }
-              },
-              "type": "value"
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 6,
-        "x": 18,
-        "y": 49
-      },
-      "id": 44,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "expr": "up{job=\"gatewayz_production\"}",
-          "legendFormat": "Backend",
-          "refId": "A"
-        }
-      ],
-      "title": "Backend Scrape Target \u2014 UP/DOWN",
-      "description": "Prometheus scrape health for the production backend. If this goes DOWN, all metric collection stops and every other panel will go stale \u2014 this is your canary for observability itself.",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisColorMode": "text",
-            "axisLabel": "Memory Used",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 20,
-            "gradientMode": "opacity",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "pointSize": 4,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "line"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 0.9
-              }
-            ]
-          },
-          "unit": "bytes"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 0,
-        "y": 56
-      },
-      "id": 45,
-      "options": {
-        "legend": {
-          "calcs": [
-            "mean",
-            "max",
-            "lastNotNull"
-          ],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "expr": "redis_memory_used_bytes",
-          "legendFormat": "Used",
-          "refId": "A"
-        },
-        {
-          "expr": "redis_memory_max_bytes",
-          "legendFormat": "Max Allowed",
-          "refId": "B"
-        }
-      ],
-      "title": "Redis Memory \u2014 Used vs Max Capacity",
-      "description": "Watch for the 'Used' line approaching 'Max Allowed'. When they converge, Redis begins evicting keys silently, breaking rate limiters and caches without surfacing an explicit error.",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisColorMode": "text",
-            "axisLabel": "Count",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 15,
-            "gradientMode": "opacity",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "pointSize": 4,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Connected Clients"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "#5794F2",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Blocked Clients"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "#F2495C",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 12,
-        "y": 56
-      },
-      "id": 46,
-      "options": {
-        "legend": {
-          "calcs": [
-            "mean",
-            "max",
-            "lastNotNull"
-          ],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "expr": "redis_connected_clients",
-          "legendFormat": "Connected Clients",
-          "refId": "A"
-        },
-        {
-          "expr": "redis_blocked_clients",
-          "legendFormat": "Blocked Clients",
-          "refId": "B"
-        }
-      ],
-      "title": "Redis Client Connections \u2014 Active vs Blocked",
-      "description": "Blocked clients are waiting on blocking commands (e.g., BLPOP). A growing blocked count indicates work-queue depth is building \u2014 a leading indicator of saturation before users feel it.",
       "type": "timeseries"
     },
     {
@@ -4173,22 +3659,38 @@
       "title": "\ud83d\uddfa\ufe0f  SLO Status by Tenant \u2014 Error Rate % Over Time  (red band = active breach)",
       "type": "state-timeline"
     },
-
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 140 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 140
+      },
       "id": 100,
       "panels": [],
-      "title": "\ud83d\udd2c  Pillar V \u2014 Continuous Profiling (Pyroscope)  |  Root-Cause Layer for All Four Pillars",
+      "title": "\ud83d\udcca  Pillar IV \u2014 Continuous Profiling (Pyroscope)  |  Root-Cause Layer",
       "type": "row"
     },
     {
-      "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 141 },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 141
+      },
       "id": 101,
       "options": {
-        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false },
-        "content": "## \ud83d\udd2c  Pyroscope \u2014 Continuous CPU Profiling\n\nThis section ties the profiling layer directly to each of the four golden signal pillars above.\n\n| Golden Signal | What Pyroscope answers |\n|---|---|\n| **\u26a1 Latency** | *Which Python functions are burning CPU during slow requests?* Flamegraph filtered by `endpoint` reveals the hot path — provider HTTP call? token chunking? Redis rate-limit? |\n| **\ud83d\udea6 Traffic** | *Which endpoints / providers drive the most CPU load as RPS climbs?* The `CPU by Endpoint` bar chart correlates directly with the Traffic RPS panel above. |\n| **\ud83d\udea8 Errors** | *When the error rate spikes, is it a hot retry loop?* A sudden CPU spike correlated with an error spike means the gateway is hammering a failing provider. |\n| **\ud83d\udcca Saturation** | *What is consuming process CPU heading into saturation?* The full flamegraph shows the exact stack frames. Use `$provider` and `$model` dropdowns to isolate. |\n\nSampling rate: **100 Hz** (every 10 ms). Flush interval: **15 s**. Tags: `service_name`, `environment`, `endpoint`, `method`, `provider`, `model`.",
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "## \ud83d\udd2c  Pyroscope \u2014 Continuous CPU Profiling\n\nThis section ties the profiling layer directly to each of the four golden signal pillars above.\n\n| Golden Signal | What Pyroscope answers |\n|---|---|\n| **\u26a1 Latency** | *Which Python functions are burning CPU during slow requests?* Flamegraph filtered by `endpoint` reveals the hot path \u2014 provider HTTP call? token chunking? Redis rate-limit? |\n| **\ud83d\udea6 Traffic** | *Which endpoints / providers drive the most CPU load as RPS climbs?* The `CPU by Endpoint` bar chart correlates directly with the Traffic RPS panel above. |\n| **\ud83d\udea8 Errors** | *When the error rate spikes, is it a hot retry loop?* A sudden CPU spike correlated with an error spike means the gateway is hammering a failing provider. |\n| **\ud83d\udcca Saturation** | *What is consuming process CPU heading into saturation?* The full flamegraph shows the exact stack frames. Use `$provider` and `$model` dropdowns to isolate. |\n\nSampling rate: **100 Hz** (every 10 ms). Flush interval: **15 s**. Tags: `service_name`, `environment`, `endpoint`, `method`, `provider`, `model`.",
         "mode": "markdown"
       },
       "pluginVersion": "11.5.2",
@@ -4197,9 +3699,20 @@
       "type": "text"
     },
     {
-      "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
-      "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 18, "w": 24, "x": 0, "y": 145 },
+      "datasource": {
+        "uid": "grafana_pyroscope",
+        "type": "grafana-pyroscope-datasource"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 18,
+        "w": 24,
+        "x": 0,
+        "y": 145
+      },
       "id": 102,
       "options": {
         "collapseConfig": false,
@@ -4216,7 +3729,10 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+          "datasource": {
+            "uid": "grafana_pyroscope",
+            "type": "grafana-pyroscope-datasource"
+          },
           "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
           "labelSelector": "{service_name=\"gatewayz-backend\",provider=~\"$provider\",model=~\"$model\"}",
           "queryType": "profile"
@@ -4225,14 +3741,22 @@
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 163 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 163
+      },
       "id": 103,
       "panels": [],
       "title": "\ud83d\udcca  CPU Load by Pillar Dimension  |  Endpoint (Traffic) \u00b7 Provider (Latency) \u00b7 Model (Saturation)",
       "type": "row"
     },
     {
-      "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+      "datasource": {
+        "uid": "grafana_pyroscope",
+        "type": "grafana-pyroscope-datasource"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
@@ -4240,21 +3764,46 @@
           "thresholds": {
             "mode": "percentage",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 60 },
-              { "color": "orange", "value": 80 },
-              { "color": "red", "value": 95 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 60
+              },
+              {
+                "color": "orange",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 95
+              }
             ]
           },
-          "color": { "mode": "thresholds" }
+          "color": {
+            "mode": "thresholds"
+          }
         },
         "overrides": []
       },
-      "gridPos": { "h": 10, "w": 8, "x": 0, "y": 164 },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 164
+      },
       "id": 104,
       "options": {
         "orientation": "horizontal",
-        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
         "displayMode": "gradient",
         "valueMode": "color",
         "showUnfilled": true,
@@ -4269,16 +3818,24 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+          "datasource": {
+            "uid": "grafana_pyroscope",
+            "type": "grafana-pyroscope-datasource"
+          },
           "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
           "labelSelector": "{service_name=\"gatewayz-backend\"}",
-          "groupBy": ["endpoint"],
+          "groupBy": [
+            "endpoint"
+          ],
           "queryType": "metrics"
         }
       ]
     },
     {
-      "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+      "datasource": {
+        "uid": "grafana_pyroscope",
+        "type": "grafana-pyroscope-datasource"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
@@ -4286,21 +3843,46 @@
           "thresholds": {
             "mode": "percentage",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 60 },
-              { "color": "orange", "value": 80 },
-              { "color": "red", "value": 95 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 60
+              },
+              {
+                "color": "orange",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 95
+              }
             ]
           },
-          "color": { "mode": "thresholds" }
+          "color": {
+            "mode": "thresholds"
+          }
         },
         "overrides": []
       },
-      "gridPos": { "h": 10, "w": 8, "x": 8, "y": 164 },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 164
+      },
       "id": 105,
       "options": {
         "orientation": "horizontal",
-        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
         "displayMode": "gradient",
         "valueMode": "color",
         "showUnfilled": true,
@@ -4315,16 +3897,24 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+          "datasource": {
+            "uid": "grafana_pyroscope",
+            "type": "grafana-pyroscope-datasource"
+          },
           "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
           "labelSelector": "{service_name=\"gatewayz-backend\",provider=~\"$provider\"}",
-          "groupBy": ["provider"],
+          "groupBy": [
+            "provider"
+          ],
           "queryType": "metrics"
         }
       ]
     },
     {
-      "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+      "datasource": {
+        "uid": "grafana_pyroscope",
+        "type": "grafana-pyroscope-datasource"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
@@ -4332,21 +3922,46 @@
           "thresholds": {
             "mode": "percentage",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 60 },
-              { "color": "orange", "value": 80 },
-              { "color": "red", "value": 95 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 60
+              },
+              {
+                "color": "orange",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 95
+              }
             ]
           },
-          "color": { "mode": "thresholds" }
+          "color": {
+            "mode": "thresholds"
+          }
         },
         "overrides": []
       },
-      "gridPos": { "h": 10, "w": 8, "x": 16, "y": 164 },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 164
+      },
       "id": 106,
       "options": {
         "orientation": "horizontal",
-        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
         "displayMode": "gradient",
         "valueMode": "color",
         "showUnfilled": true,
@@ -4361,16 +3976,24 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+          "datasource": {
+            "uid": "grafana_pyroscope",
+            "type": "grafana-pyroscope-datasource"
+          },
           "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
           "labelSelector": "{service_name=\"gatewayz-backend\",provider=~\"$provider\",model=~\"$model\"}",
-          "groupBy": ["model"],
+          "groupBy": [
+            "model"
+          ],
           "queryType": "metrics"
         }
       ]
     },
     {
-      "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+      "datasource": {
+        "uid": "grafana_pyroscope",
+        "type": "grafana-pyroscope-datasource"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
@@ -4381,18 +4004,32 @@
             "spanNulls": true,
             "gradientMode": "opacity"
           },
-          "color": { "mode": "palette-classic" }
+          "color": {
+            "mode": "palette-classic"
+          }
         },
         "overrides": []
       },
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 174 },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 174
+      },
       "id": 107,
       "options": {
-        "tooltip": { "mode": "multi", "sort": "desc" },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
         "legend": {
           "displayMode": "table",
           "placement": "right",
-          "calcs": ["mean", "max", "sum"]
+          "calcs": [
+            "mean",
+            "max",
+            "sum"
+          ]
         }
       },
       "title": "\ud83d\udcc8  CPU Sample Rate Over Time \u2014 by Provider  (correlate spikes with Latency / Error pillars above)",
@@ -4401,26 +4038,47 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+          "datasource": {
+            "uid": "grafana_pyroscope",
+            "type": "grafana-pyroscope-datasource"
+          },
           "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
           "labelSelector": "{service_name=\"gatewayz-backend\",provider=~\"$provider\",model=~\"$model\"}",
-          "groupBy": ["provider"],
+          "groupBy": [
+            "provider"
+          ],
           "queryType": "metrics"
         }
       ]
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 184 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 184
+      },
       "id": 108,
       "panels": [],
       "title": "\ud83d\udd0d  Drill-Down Flamegraph \u2014 Filter by $provider / $model",
       "type": "row"
     },
     {
-      "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
-      "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 18, "w": 24, "x": 0, "y": 185 },
+      "datasource": {
+        "uid": "grafana_pyroscope",
+        "type": "grafana-pyroscope-datasource"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 18,
+        "w": 24,
+        "x": 0,
+        "y": 185
+      },
       "id": 109,
       "options": {
         "collapseConfig": false,
@@ -4437,7 +4095,10 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+          "datasource": {
+            "uid": "grafana_pyroscope",
+            "type": "grafana-pyroscope-datasource"
+          },
           "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
           "labelSelector": "{service_name=\"gatewayz-backend\",provider=~\"$provider\",model=~\"$model\"}",
           "queryType": "profile"
@@ -4479,7 +4140,10 @@
         "name": "provider",
         "label": "Provider (Pyroscope)",
         "type": "query",
-        "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+        "datasource": {
+          "uid": "grafana_pyroscope",
+          "type": "grafana-pyroscope-datasource"
+        },
         "query": {
           "labelSelector": "{service_name=\"gatewayz-backend\"}",
           "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
@@ -4492,13 +4156,20 @@
         "allValue": ".*",
         "multi": true,
         "hide": 0,
-        "current": { "selected": true, "text": "All", "value": "$__all" }
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        }
       },
       {
         "name": "model",
         "label": "Model (Pyroscope)",
         "type": "query",
-        "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+        "datasource": {
+          "uid": "grafana_pyroscope",
+          "type": "grafana-pyroscope-datasource"
+        },
         "query": {
           "labelSelector": "{service_name=\"gatewayz-backend\",provider=~\"$provider\"}",
           "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
@@ -4511,7 +4182,11 @@
         "allValue": ".*",
         "multi": true,
         "hide": 0,
-        "current": { "selected": true, "text": "All", "value": "$__all" }
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        }
       }
     ]
   },
