@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "GatewayZ Paid Model Traffic & Token Usage - Monitor LLM request volume and input/output token consumption for paid models",
+  "description": "Per-model token and request metrics for paid-tier LLMs. For the full multi-tier consolidated view see the \"GatewayZ \u2014 Model Usage (All Tiers)\" dashboard.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -53,7 +53,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "## GatewayZ — Paid Model Usage\nToken consumption and request volume for paid AI models — the primary cost driver of the platform.\n\n| Section | What it shows |\n|---------|---------------|\n| Request Volume | Requests per second by paid model — volume trends drive infrastructure and budget sizing decisions |\n| Token Consumption | Input and output token totals per model — input tokens are cheaper; output token growth has a direct cost impact |\n| Provider Distribution | Traffic split across OpenAI, Anthropic, OpenRouter, and other paid providers — monitors routing concentration risk |",
+        "content": "## GatewayZ \u2014 Paid Model Usage\nToken consumption and request volume for paid AI models \u2014 the primary cost driver of the platform.\n\n| Section | What it shows |\n|---------|---------------|\n| Request Volume | Requests per second by paid model \u2014 volume trends drive infrastructure and budget sizing decisions |\n| Token Consumption | Input and output token totals per model \u2014 input tokens are cheaper; output token growth has a direct cost impact |\n| Provider Distribution | Traffic split across OpenAI, Anthropic, OpenRouter, and other paid providers \u2014 monitors routing concentration risk |",
         "mode": "markdown"
       },
       "pluginVersion": "11.5.2",
@@ -166,78 +166,6 @@
       ],
       "title": "Total LLM Usage by Request Over Time",
       "type": "barchart"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 10000
-              },
-              {
-                "color": "red",
-                "value": 50000
-              }
-            ]
-          },
-          "unit": "locale"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 8,
-        "x": 0,
-        "y": 17
-      },
-      "id": 3,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(model_inference_requests_total{status=\"success\"})",
-          "legendFormat": "Total",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Total Successful Requests",
-      "type": "stat"
     },
     {
       "datasource": {

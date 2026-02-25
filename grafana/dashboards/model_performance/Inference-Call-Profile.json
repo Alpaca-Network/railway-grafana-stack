@@ -1,0 +1,754 @@
+{
+  "title": "GatewayZ — Inference Call Profile",
+  "uid": "gatewayz-inference-call-profile",
+  "description": "End-to-end anatomy of a single inference call — where time goes, which Python code runs (Pyroscope), and how providers compare. The definitive view for understanding inference performance by provider and model.",
+  "tags": ["gatewayz", "inference", "profiling", "provider", "model", "sre"],
+  "schemaVersion": 41,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "graphTooltip": 1,
+  "links": [
+    {
+      "asDropdown": true,
+      "icon": "doc",
+      "includeVars": true,
+      "tags": ["gatewayz"],
+      "title": "Related Dashboards",
+      "type": "dashboards"
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "provider",
+        "label": "Provider",
+        "type": "query",
+        "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+        "query": {
+          "labelSelector": "{service_name=\"gatewayz-backend\"}",
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "queryType": "label_values",
+          "labelName": "provider"
+        },
+        "refresh": 2,
+        "sort": 1,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "hide": 0,
+        "current": { "selected": true, "text": "All", "value": "$__all" }
+      },
+      {
+        "name": "model",
+        "label": "Model",
+        "type": "query",
+        "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+        "query": {
+          "labelSelector": "{service_name=\"gatewayz-backend\",provider=~\"$provider\"}",
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "queryType": "label_values",
+          "labelName": "model"
+        },
+        "refresh": 2,
+        "sort": 1,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "hide": 0,
+        "current": { "selected": true, "text": "All", "value": "$__all" }
+      }
+    ]
+  },
+  "annotations": { "list": [] },
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 0 },
+      "transparent": true,
+      "options": {
+        "mode": "markdown",
+        "content": "## 🔬  Inference Call Profile — GatewayZ AI Gateway\n\nThis dashboard answers one question at a time: **What is actually happening during an inference call?**\n\n| Section | Signal source | What it answers |\n|---|---|---|\n| **⏱️ Timing Breakdown** | Prometheus / Mimir | Where does wall-clock time go? TTFB vs TTFC vs streaming vs end-to-end |\n| **🔥 CPU Profile (Pyroscope)** | Pyroscope (100 Hz sampling) | Which Python function burns the most CPU per provider/model? |\n| **📊 Provider / Model Matrix** | Prometheus / Mimir | P50/P95/P99 latency, error rate, token throughput side-by-side |\n| **💰 Cost & Token Economics** | Prometheus / Mimir | Cost per request, tokens/sec — efficiency not just speed |\n| **🔍 Trace Drill-Down** | Tempo | Click into an individual slow call to see the exact span tree |\n\nUse `$provider` and `$model` dropdowns to zoom into a specific upstream. Selecting a single provider narrows the Pyroscope flamegraph to only samples tagged during calls to that provider."
+      },
+      "fieldConfig": { "defaults": {}, "overrides": [] }
+    },
+
+    {
+      "id": 2,
+      "type": "row",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "title": "⏱️  Stage 1 — Timing Breakdown  |  Where Does Wall-Clock Time Go Per Inference Call?"
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "P99  Backend TTFB",
+      "description": "P99 time-to-first-byte from backend to the upstream provider. Dominated by provider network RTT + queue time. Spikes here = provider is slow or overloaded.",
+      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 6 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "area"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "orange", "value": 3 },
+              { "color": "red", "value": 8 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "expr": "histogram_quantile(0.99, sum(rate(backend_ttfb_seconds_bucket{provider=~\"$provider\"}[$__rate_interval])) by (le))",
+          "legendFormat": "P99 TTFB"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "P99  Time to First Chunk",
+      "description": "P99 time from request arrival to first streaming token delivered to client. TTFB + gateway processing. Critical for perceived latency on streaming endpoints.",
+      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 6 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "area"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 2 },
+              { "color": "orange", "value": 5 },
+              { "color": "red", "value": 10 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "expr": "histogram_quantile(0.99, sum(rate(time_to_first_chunk_seconds_bucket{provider=~\"$provider\"}[$__rate_interval])) by (le))",
+          "legendFormat": "P99 TTFC"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "P99  Streaming Duration",
+      "description": "P99 time from first chunk to last chunk delivered. Reflects model generation speed × output length. Long streaming durations = long model outputs or slow token generation.",
+      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 6 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "area"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 10 },
+              { "color": "orange", "value": 30 },
+              { "color": "red", "value": 60 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "expr": "histogram_quantile(0.99, sum(rate(streaming_duration_seconds_bucket{provider=~\"$provider\"}[$__rate_interval])) by (le))",
+          "legendFormat": "P99 Streaming"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "P99  End-to-End Inference",
+      "description": "P99 total inference duration from gateway receipt to final response byte. TTFB + streaming duration + gateway overhead. This is the number users experience.",
+      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 6 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "area"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "orange", "value": 15 },
+              { "color": "red", "value": 30 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "expr": "histogram_quantile(0.99, sum(rate(model_inference_duration_seconds_bucket{provider=~\"$provider\",model=~\"$model\"}[$__rate_interval])) by (le))",
+          "legendFormat": "P99 E2E"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Backend TTFB by Provider  (time-to-first-byte: gateway → upstream response start)",
+      "description": "P50 / P95 / P99 TTFB per provider. A provider whose TTFB diverges from others during an incident is the root cause of the latency spike. Not affected by output length — purely provider responsiveness.",
+      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 10 },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "lineWidth": 2, "fillOpacity": 8, "showPoints": "never", "spanNulls": true },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "expr": "histogram_quantile(0.99, sum(rate(backend_ttfb_seconds_bucket{provider=~\"$provider\"}[$__rate_interval])) by (le, provider))",
+          "legendFormat": "P99 {{provider}}"
+        },
+        {
+          "refId": "B",
+          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "expr": "histogram_quantile(0.50, sum(rate(backend_ttfb_seconds_bucket{provider=~\"$provider\"}[$__rate_interval])) by (le, provider))",
+          "legendFormat": "P50 {{provider}}"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Time to First Chunk by Provider  (perceived latency: when does the user see the first token?)",
+      "description": "P50 / P99 TTFC per provider. This is what the user feels — the gap between hitting Send and seeing the first word appear. TTFC > 3 s starts to feel slow for interactive use cases.",
+      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 10 },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "lineWidth": 2, "fillOpacity": 8, "showPoints": "never", "spanNulls": true },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "expr": "histogram_quantile(0.99, sum(rate(time_to_first_chunk_seconds_bucket{provider=~\"$provider\"}[$__rate_interval])) by (le, provider))",
+          "legendFormat": "P99 {{provider}}"
+        },
+        {
+          "refId": "B",
+          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "expr": "histogram_quantile(0.50, sum(rate(time_to_first_chunk_seconds_bucket{provider=~\"$provider\"}[$__rate_interval])) by (le, provider))",
+          "legendFormat": "P50 {{provider}}"
+        }
+      ]
+    },
+
+    {
+      "id": 9,
+      "type": "row",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 19 },
+      "title": "🔥  Stage 2 — CPU Profile (Pyroscope 100 Hz)  |  Which Python Code Runs During Inference?"
+    },
+    {
+      "id": 10,
+      "type": "flamegraph",
+      "title": "🔥  CPU Flamegraph — Inference Calls Only  (filtered to /v1/chat/completions · /v1/messages · $provider · $model)",
+      "description": "Stack samples captured only while the process was inside an inference endpoint. The wide bars are where CPU time is actually spent. Cross-reference with TTFB: if the flamegraph shows time in httpx.send() that matches the provider with the highest TTFB, you have your answer. For I/O-bound slowness the flamegraph will be shallow (Python is idle during network wait) — in that case the TTFB chart above tells the real story.",
+      "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+      "gridPos": { "h": 18, "w": 24, "x": 0, "y": 20 },
+      "options": {
+        "collapseConfig": false,
+        "disableCollapsing": false,
+        "disableFocusOnClick": false,
+        "disableTooltip": false,
+        "extraColors": false,
+        "keepDisplayedInTree": false,
+        "nameLocation": "topLeft"
+      },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "labelSelector": "{service_name=\"gatewayz-backend\",endpoint=~\"/v1/chat/completions|/v1/messages\",provider=~\"$provider\",model=~\"$model\"}",
+          "queryType": "profile"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "bargauge",
+      "title": "CPU Samples by Provider  (total CPU cost attributable to each upstream)",
+      "description": "Accumulated CPU samples per provider during inference calls. A provider with 3× the samples of another takes 3× the Python CPU time per call — even if TTFB looks similar. This reveals hidden CPU overhead like response parsing, token counting, or retry logic.",
+      "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 38 },
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "displayMode": "gradient",
+        "showUnfilled": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 60 },
+              { "color": "red", "value": 90 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "labelSelector": "{service_name=\"gatewayz-backend\",endpoint=~\"/v1/chat/completions|/v1/messages\",provider=~\"$provider\"}",
+          "groupBy": ["provider"],
+          "queryType": "metrics"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "bargauge",
+      "title": "CPU Samples by Model  (which models consume the most Python CPU?)",
+      "description": "CPU samples per model. Large context models or models with complex tokenisation show up here with higher CPU even if the provider network call is fast. Useful for identifying models that are computationally expensive at the gateway layer.",
+      "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 38 },
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "displayMode": "gradient",
+        "showUnfilled": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 60 },
+              { "color": "red", "value": 90 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "labelSelector": "{service_name=\"gatewayz-backend\",endpoint=~\"/v1/chat/completions|/v1/messages\",provider=~\"$provider\",model=~\"$model\"}",
+          "groupBy": ["model"],
+          "queryType": "metrics"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "CPU Sample Rate Over Time — by Provider  (correlate CPU spikes with TTFB spikes above to find root cause)",
+      "description": "Pyroscope sample rate stacked by provider. When a provider's CPU line spikes at the same time its TTFB spikes (Section 1), the gateway code itself is doing extra work (retries, error handling, large response parsing). When TTFB spikes but CPU stays flat, the delay is pure I/O wait — the provider is slow.",
+      "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 38 },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "lineWidth": 1, "fillOpacity": 20, "showPoints": "never", "spanNulls": true },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "labelSelector": "{service_name=\"gatewayz-backend\",endpoint=~\"/v1/chat/completions|/v1/messages\",provider=~\"$provider\",model=~\"$model\"}",
+          "groupBy": ["provider"],
+          "queryType": "metrics"
+        }
+      ]
+    },
+
+    {
+      "id": 14,
+      "type": "row",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 46 },
+      "title": "📊  Stage 3 — Provider / Model Performance Matrix  |  P50 · P95 · P99 · Error Rate · Throughput"
+    },
+    {
+      "id": 15,
+      "type": "bargauge",
+      "title": "P99 Latency by Provider  (end-to-end inference)",
+      "description": "P99 end-to-end inference duration by provider. The slowest provider defines the worst-case user experience. Use $provider filter to hide one provider and see if the fleet average improves.",
+      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 47 },
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "displayMode": "gradient",
+        "showUnfilled": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "orange", "value": 15 },
+              { "color": "red", "value": 30 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "expr": "histogram_quantile(0.99, sum(rate(model_inference_duration_seconds_bucket{provider=~\"$provider\",model=~\"$model\"}[$__rate_interval])) by (le, provider))",
+          "legendFormat": "{{provider}}",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "type": "bargauge",
+      "title": "Error Rate by Provider  (% of inference requests that fail)",
+      "description": "Error rate per provider as a percentage of total requests. A provider with high error rate is generating cost without delivering value. Cross-reference with P99 latency — a slow and unreliable provider should be deprioritised in the router.",
+      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 47 },
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "displayMode": "gradient",
+        "showUnfilled": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.01 },
+              { "color": "orange", "value": 0.05 },
+              { "color": "red", "value": 0.1 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "expr": "sum(rate(model_inference_requests_total{status=\"error\",provider=~\"$provider\",model=~\"$model\"}[$__rate_interval])) by (provider) / sum(rate(model_inference_requests_total{provider=~\"$provider\",model=~\"$model\"}[$__rate_interval])) by (provider)",
+          "legendFormat": "{{provider}}",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "type": "bargauge",
+      "title": "Output Token Throughput by Provider  (tokens/sec — generation speed)",
+      "description": "Output tokens per second per provider. Higher = the provider is generating text faster. Combined with P99 TTFB this tells you whether slowness is latency-to-start or slowness-of-generation. A provider with low throughput but good TTFB is slow at generating, not at starting.",
+      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 47 },
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "displayMode": "gradient",
+        "showUnfilled": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 30 },
+              { "color": "green", "value": 70 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "expr": "sum(rate(tokens_used_total{token_type=\"output\",provider=~\"$provider\",model=~\"$model\"}[$__rate_interval])) by (provider)",
+          "legendFormat": "{{provider}} tok/s",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "type": "timeseries",
+      "title": "P99 Latency Trend by Provider  (E2E inference — track over time to detect degradation)",
+      "description": "End-to-end inference P99 latency per provider over the selected time window. Use this to detect provider degradation events: a step-change up for one provider while others stay flat is a provider-side incident. A correlated rise across all providers suggests a gateway-side issue (high load, Redis slowdown).",
+      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 55 },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max", "last"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "lineWidth": 2, "fillOpacity": 5, "showPoints": "never", "spanNulls": true },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "expr": "histogram_quantile(0.99, sum(rate(model_inference_duration_seconds_bucket{provider=~\"$provider\",model=~\"$model\"}[$__rate_interval])) by (le, provider))",
+          "legendFormat": "{{provider}}"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "type": "timeseries",
+      "title": "P99 Latency Trend by Model  (compare same model across providers)",
+      "description": "E2E P99 per model. When the same model (e.g. claude-3-5-sonnet) has vastly different P99 across providers, the model itself is not the bottleneck — the provider routing logic is. When all providers of the same model are slow simultaneously, the model itself may be overloaded or the input prompts have grown.",
+      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 55 },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max", "last"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "lineWidth": 2, "fillOpacity": 5, "showPoints": "never", "spanNulls": true },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "expr": "histogram_quantile(0.99, sum(rate(model_inference_duration_seconds_bucket{provider=~\"$provider\",model=~\"$model\"}[$__rate_interval])) by (le, model))",
+          "legendFormat": "{{model}}"
+        }
+      ]
+    },
+
+    {
+      "id": 20,
+      "type": "row",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 64 },
+      "title": "💰  Stage 4 — Cost & Token Economics  |  Is the Gateway Being Used Efficiently?"
+    },
+    {
+      "id": 21,
+      "type": "timeseries",
+      "title": "Cost per Minute by Provider  (USD — actual spend flowing through the gateway)",
+      "description": "Aggregated API cost per minute by provider. Spikes here should correlate with traffic spikes. A spike with no corresponding RPS increase = cost per request has risen (long prompts, expensive model selection, or pricing change). Use to monitor for runaway cost scenarios.",
+      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 65 },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["sum", "mean", "max"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never", "spanNulls": true },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "expr": "sum(rate(gatewayz_api_cost_usd_total{provider=~\"$provider\",model=~\"$model\"}[$__rate_interval])) by (provider) * 60",
+          "legendFormat": "{{provider}}"
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "type": "timeseries",
+      "title": "Output Tokens/sec by Provider  (generation throughput — how fast is each provider delivering tokens?)",
+      "description": "Output token generation rate per provider. Higher is better for streaming UX. When this drops while request rate stays constant, the provider is generating tokens slower — could be capacity pressure on their side or longer outputs being requested.",
+      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 65 },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never", "spanNulls": true },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "expr": "sum(rate(tokens_used_total{token_type=\"output\",provider=~\"$provider\",model=~\"$model\"}[$__rate_interval])) by (provider)",
+          "legendFormat": "{{provider}} output tok/s"
+        }
+      ]
+    },
+
+    {
+      "id": 23,
+      "type": "row",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 74 },
+      "title": "🔍  Stage 5 — Trace Drill-Down (Tempo)  |  Click into an Individual Slow Call to See the Exact Span Tree"
+    },
+    {
+      "id": 24,
+      "type": "timeseries",
+      "title": "Inference Request Rate  (RPS by provider — context for trace volume)",
+      "description": "Inference requests per second by provider. Use this as context when browsing traces below — a low-volume provider with high P99 latency deserves investigation even with few samples.",
+      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 75 },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": { "lineWidth": 1, "fillOpacity": 15, "showPoints": "never", "spanNulls": true, "stacking": { "mode": "normal" } },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "expr": "sum(rate(model_inference_requests_total{provider=~\"$provider\",model=~\"$model\"}[$__rate_interval])) by (provider)",
+          "legendFormat": "{{provider}}"
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "type": "traces",
+      "title": "Recent Inference Traces  (Tempo — click any row to open the full span waterfall)",
+      "description": "Recent distributed traces for /v1/chat/completions and /v1/messages. Each row is one inference call. Click a row to open the full Tempo span tree showing every internal operation: auth check, Redis rate-limit lookup, httpx call to provider, token tracking, credit deduction. Filter to slow calls (> 5 s) to focus on the problematic requests.",
+      "datasource": { "uid": "grafana_tempo", "type": "tempo" },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 82 },
+      "options": {
+        "frameType": "TRACE_ID"
+      },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_tempo", "type": "tempo" },
+          "queryType": "traceql",
+          "query": "{resource.service.name=\"gatewayz-api\" && (span.http.route=~\"/v1/chat/completions|/v1/messages\")} | select(duration, span.http.route, span.peer.service)",
+          "limit": 20,
+          "tableType": "spans"
+        }
+      ]
+    }
+  ]
+}
