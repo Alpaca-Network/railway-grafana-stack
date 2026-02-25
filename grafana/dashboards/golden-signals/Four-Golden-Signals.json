@@ -4172,6 +4172,277 @@
       ],
       "title": "\ud83d\uddfa\ufe0f  SLO Status by Tenant \u2014 Error Rate % Over Time  (red band = active breach)",
       "type": "state-timeline"
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 140 },
+      "id": 100,
+      "panels": [],
+      "title": "\ud83d\udd2c  Pillar V \u2014 Continuous Profiling (Pyroscope)  |  Root-Cause Layer for All Four Pillars",
+      "type": "row"
+    },
+    {
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 141 },
+      "id": 101,
+      "options": {
+        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false },
+        "content": "## \ud83d\udd2c  Pyroscope \u2014 Continuous CPU Profiling\n\nThis section ties the profiling layer directly to each of the four golden signal pillars above.\n\n| Golden Signal | What Pyroscope answers |\n|---|---|\n| **\u26a1 Latency** | *Which Python functions are burning CPU during slow requests?* Flamegraph filtered by `endpoint` reveals the hot path — provider HTTP call? token chunking? Redis rate-limit? |\n| **\ud83d\udea6 Traffic** | *Which endpoints / providers drive the most CPU load as RPS climbs?* The `CPU by Endpoint` bar chart correlates directly with the Traffic RPS panel above. |\n| **\ud83d\udea8 Errors** | *When the error rate spikes, is it a hot retry loop?* A sudden CPU spike correlated with an error spike means the gateway is hammering a failing provider. |\n| **\ud83d\udcca Saturation** | *What is consuming process CPU heading into saturation?* The full flamegraph shows the exact stack frames. Use `$provider` and `$model` dropdowns to isolate. |\n\nSampling rate: **100 Hz** (every 10 ms). Flush interval: **15 s**. Tags: `service_name`, `environment`, `endpoint`, `method`, `provider`, `model`.",
+        "mode": "markdown"
+      },
+      "pluginVersion": "11.5.2",
+      "title": "",
+      "transparent": true,
+      "type": "text"
+    },
+    {
+      "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 18, "w": 24, "x": 0, "y": 145 },
+      "id": 102,
+      "options": {
+        "collapseConfig": false,
+        "disableCollapsing": false,
+        "disableFocusOnClick": false,
+        "disableTooltip": false,
+        "extraColors": false,
+        "keepDisplayedInTree": false,
+        "nameLocation": "topLeft"
+      },
+      "title": "\ud83d\udd25  CPU Flamegraph \u2014 Full Process (All Pillars)  |  service_name=gatewayz-backend",
+      "description": "Process-wide flamegraph for the selected time window. Combines samples from every request. Use this to answer: what function is consuming the most CPU right now? This is the single most powerful root-cause tool for all four golden signal pillars.",
+      "type": "flamegraph",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "labelSelector": "{service_name=\"gatewayz-backend\",provider=~\"$provider\",model=~\"$model\"}",
+          "queryType": "profile"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 163 },
+      "id": 103,
+      "panels": [],
+      "title": "\ud83d\udcca  CPU Load by Pillar Dimension  |  Endpoint (Traffic) \u00b7 Provider (Latency) \u00b7 Model (Saturation)",
+      "type": "row"
+    },
+    {
+      "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "displayName": "${__field.labels.endpoint}",
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 60 },
+              { "color": "orange", "value": 80 },
+              { "color": "red", "value": 95 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 10, "w": 8, "x": 0, "y": 164 },
+      "id": 104,
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "displayMode": "gradient",
+        "valueMode": "color",
+        "showUnfilled": true,
+        "minVizWidth": 0,
+        "minVizHeight": 16,
+        "namePlacement": "auto",
+        "text": {}
+      },
+      "title": "\ud83d\udea6  Traffic \u2192 CPU by Endpoint  (top endpoints driving load)",
+      "description": "Pyroscope CPU samples accumulated per endpoint. Directly correlates with the Traffic RPS panel \u2014 high RPS on an endpoint means high CPU here. An endpoint with disproportionate CPU vs RPS is inefficient.",
+      "type": "bargauge",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "labelSelector": "{service_name=\"gatewayz-backend\"}",
+          "groupBy": ["endpoint"],
+          "queryType": "metrics"
+        }
+      ]
+    },
+    {
+      "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "displayName": "${__field.labels.provider}",
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 60 },
+              { "color": "orange", "value": 80 },
+              { "color": "red", "value": 95 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 10, "w": 8, "x": 8, "y": 164 },
+      "id": 105,
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "displayMode": "gradient",
+        "valueMode": "color",
+        "showUnfilled": true,
+        "minVizWidth": 0,
+        "minVizHeight": 16,
+        "namePlacement": "auto",
+        "text": {}
+      },
+      "title": "\u26a1  Latency \u2192 CPU by Provider  (which providers cost the most CPU?)",
+      "description": "CPU samples per upstream provider. A provider with high CPU samples that also has high P99 latency (see Latency pillar) is the root cause. Cross-reference with the P99 latency panel above.",
+      "type": "bargauge",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "labelSelector": "{service_name=\"gatewayz-backend\",provider=~\"$provider\"}",
+          "groupBy": ["provider"],
+          "queryType": "metrics"
+        }
+      ]
+    },
+    {
+      "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "displayName": "${__field.labels.model}",
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 60 },
+              { "color": "orange", "value": 80 },
+              { "color": "red", "value": 95 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 10, "w": 8, "x": 16, "y": 164 },
+      "id": 106,
+      "options": {
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "displayMode": "gradient",
+        "valueMode": "color",
+        "showUnfilled": true,
+        "minVizWidth": 0,
+        "minVizHeight": 16,
+        "namePlacement": "auto",
+        "text": {}
+      },
+      "title": "\ud83d\udcca  Saturation \u2192 CPU by Model  (which models saturate the process?)",
+      "description": "CPU samples per model. When process CPU is high (Saturation pillar), this panel identifies whether it is one model type dominating. Useful for detecting runaway streaming requests for large models.",
+      "type": "bargauge",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "labelSelector": "{service_name=\"gatewayz-backend\",provider=~\"$provider\",model=~\"$model\"}",
+          "groupBy": ["model"],
+          "queryType": "metrics"
+        }
+      ]
+    },
+    {
+      "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 15,
+            "showPoints": "never",
+            "spanNulls": true,
+            "gradientMode": "opacity"
+          },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 174 },
+      "id": 107,
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": ["mean", "max", "sum"]
+        }
+      },
+      "title": "\ud83d\udcc8  CPU Sample Rate Over Time \u2014 by Provider  (correlate spikes with Latency / Error pillars above)",
+      "description": "Pyroscope CPU sample rate (samples/sec) over time, stacked by provider. A spike here that coincides with a P99 latency spike (Latency pillar) or error rate spike (Errors pillar) confirms the hot provider. Flat line when PYROSCOPE_ENABLED=false.",
+      "type": "timeseries",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "labelSelector": "{service_name=\"gatewayz-backend\",provider=~\"$provider\",model=~\"$model\"}",
+          "groupBy": ["provider"],
+          "queryType": "metrics"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 184 },
+      "id": 108,
+      "panels": [],
+      "title": "\ud83d\udd0d  Drill-Down Flamegraph \u2014 Filter by $provider / $model",
+      "type": "row"
+    },
+    {
+      "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 18, "w": 24, "x": 0, "y": 185 },
+      "id": 109,
+      "options": {
+        "collapseConfig": false,
+        "disableCollapsing": false,
+        "disableFocusOnClick": false,
+        "disableTooltip": false,
+        "extraColors": false,
+        "keepDisplayedInTree": false,
+        "nameLocation": "topLeft"
+      },
+      "title": "\ud83d\udd2c  CPU Flamegraph \u2014 Filtered by $provider / $model  (use dropdowns to zoom into specific calls)",
+      "description": "Drill-down flamegraph scoped to the selected provider and model. Use the $provider and $model template variables at the top of this dashboard. When a specific provider is causing latency (Latency pillar) or errors (Errors pillar), set $provider to that provider here to see exactly which Python code is running during its calls.",
+      "type": "flamegraph",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "labelSelector": "{service_name=\"gatewayz-backend\",provider=~\"$provider\",model=~\"$model\"}",
+          "queryType": "profile"
+        }
+      ]
     }
   ],
   "refresh": "30s",
@@ -4203,6 +4474,44 @@
         "sort": 1,
         "label": "Service",
         "type": "query"
+      },
+      {
+        "name": "provider",
+        "label": "Provider (Pyroscope)",
+        "type": "query",
+        "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+        "query": {
+          "labelSelector": "{service_name=\"gatewayz-backend\"}",
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "queryType": "label_values",
+          "labelName": "provider"
+        },
+        "refresh": 2,
+        "sort": 1,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "hide": 0,
+        "current": { "selected": true, "text": "All", "value": "$__all" }
+      },
+      {
+        "name": "model",
+        "label": "Model (Pyroscope)",
+        "type": "query",
+        "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
+        "query": {
+          "labelSelector": "{service_name=\"gatewayz-backend\",provider=~\"$provider\"}",
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "queryType": "label_values",
+          "labelName": "model"
+        },
+        "refresh": 2,
+        "sort": 1,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "hide": 0,
+        "current": { "selected": true, "text": "All", "value": "$__all" }
       }
     ]
   },
