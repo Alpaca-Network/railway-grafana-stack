@@ -1,11 +1,14 @@
-# Pyroscope configuration for GatewayZ monitoring stack
+# Pyroscope 1.x configuration for GatewayZ monitoring stack
 #
 # Pyroscope is a continuous profiling backend. The gatewayz-backend FastAPI
 # process pushes CPU/memory flamegraph samples here every 15 s via the
 # pyroscope-io Python SDK. Grafana reads them back via the Pyroscope datasource.
 #
-# Railway public domain: set PORT=4040 in the Pyroscope service settings so
-# Railway's proxy maps the generated domain to port 4040.
+# NOTE: scrape_configs is a Prometheus concept — it does NOT exist in Pyroscope 1.x.
+# GatewayZ uses the push model (SDK → Pyroscope HTTP ingest), not the pull model.
+#
+# Railway public domain: set PORT=4040 in the Pyroscope service variables so
+# Railway's proxy maps the generated domain to the container's port 4040.
 
 server:
   http_listen_port: 4040
@@ -16,7 +19,3 @@ storage:
   backend: filesystem
   filesystem:
     dir: /data/pyroscope
-
-# Scrape configs are empty — GatewayZ uses the push model (SDK → Pyroscope),
-# not the pull model (Pyroscope → target /debug/pprof).
-scrape_configs: []
