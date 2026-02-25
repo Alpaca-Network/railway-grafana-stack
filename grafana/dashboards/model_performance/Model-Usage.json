@@ -1,19 +1,30 @@
 {
-  "title": "GatewayZ — Model Usage (All Tiers)",
+  "title": "GatewayZ \u2014 Model Usage (All Tiers)",
   "uid": "gatewayz-model-usage",
   "description": "Unified model usage dashboard covering all user tiers (paid, trial, free). Replaces the separate Paid-Model-LLM-Usage and Free-Model-Usage dashboards. Filter by $tier to isolate a cohort.",
-  "tags": ["gatewayz", "models", "usage", "tokens", "tiers"],
+  "tags": [
+    "gatewayz",
+    "models",
+    "usage",
+    "tokens",
+    "tiers"
+  ],
   "schemaVersion": 41,
   "version": 1,
   "refresh": "1m",
-  "time": { "from": "now-24h", "to": "now" },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
   "graphTooltip": 1,
   "links": [
     {
       "asDropdown": true,
       "icon": "doc",
       "includeVars": true,
-      "tags": ["gatewayz"],
+      "tags": [
+        "gatewayz"
+      ],
       "title": "Related Dashboards",
       "type": "dashboards"
     }
@@ -26,12 +37,32 @@
         "type": "custom",
         "query": "paid,trial,free,all",
         "options": [
-          { "selected": true, "text": "All",   "value": "all" },
-          { "selected": false, "text": "Paid",  "value": "paid" },
-          { "selected": false, "text": "Trial", "value": "trial" },
-          { "selected": false, "text": "Free",  "value": "free" }
+          {
+            "selected": true,
+            "text": "All",
+            "value": "all"
+          },
+          {
+            "selected": false,
+            "text": "Paid",
+            "value": "paid"
+          },
+          {
+            "selected": false,
+            "text": "Trial",
+            "value": "trial"
+          },
+          {
+            "selected": false,
+            "text": "Free",
+            "value": "free"
+          }
         ],
-        "current": { "selected": true, "text": "All", "value": "all" },
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "all"
+        },
         "hide": 0,
         "includeAll": false,
         "multi": false
@@ -40,7 +71,10 @@
         "name": "model",
         "label": "Model",
         "type": "query",
-        "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+        "datasource": {
+          "uid": "grafana_prometheus",
+          "type": "prometheus"
+        },
         "definition": "label_values(model_inference_requests_total, model)",
         "query": {
           "query": "label_values(model_inference_requests_total, model)",
@@ -51,46 +85,98 @@
         "includeAll": true,
         "multi": true,
         "hide": 0,
-        "current": { "selected": true, "text": "All", "value": "$__all" }
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        }
       }
     ]
   },
-  "annotations": { "list": [] },
+  "annotations": {
+    "list": []
+  },
   "panels": [
     {
       "id": 1,
       "type": "text",
-      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
       "transparent": true,
       "options": {
         "mode": "markdown",
-        "content": "## 📦  Model Usage — All Tiers\nConsolidated view of LLM model usage across paid, trial, and free users. Use the **$tier** filter to isolate a cohort. Use **$model** to focus on a specific model. This dashboard replaced the separate Paid-Model-LLM-Usage and Free-Model-Usage dashboards — their unique panels are preserved here with the addition of a tier filter."
+        "content": "## \ud83d\udce6  Model Usage \u2014 All Tiers\nConsolidated view of LLM model usage across paid, trial, and free users. Use the **$tier** filter to isolate a cohort. Use **$model** to focus on a specific model. This dashboard replaced the separate Paid-Model-LLM-Usage and Free-Model-Usage dashboards \u2014 their unique panels are preserved here with the addition of a tier filter."
       },
-      "fieldConfig": { "defaults": {}, "overrides": [] }
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
     },
-
     {
       "id": 2,
       "type": "row",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 3 },
-      "title": "📊  Overview — All Tiers at a Glance"
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 3
+      },
+      "title": "\ud83d\udcca  Overview \u2014 All Tiers at a Glance"
     },
     {
       "id": 3,
       "type": "stat",
       "title": "Total Requests (window)",
-      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
-      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 4 },
-      "options": { "reduceOptions": { "calcs": ["sum"] }, "colorMode": "background", "graphMode": "area", "textMode": "auto" },
+      "datasource": {
+        "uid": "grafana_prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 4
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto"
+      },
       "fieldConfig": {
-        "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }, "color": { "mode": "thresholds" } },
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
         "overrides": []
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "datasource": {
+            "uid": "grafana_prometheus",
+            "type": "prometheus"
+          },
           "expr": "sum(increase(model_inference_requests_total[$__range]))",
           "legendFormat": "Requests"
         }
@@ -100,17 +186,51 @@
       "id": 4,
       "type": "stat",
       "title": "Successful Requests",
-      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
-      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 4 },
-      "options": { "reduceOptions": { "calcs": ["sum"] }, "colorMode": "background", "graphMode": "area", "textMode": "auto" },
+      "datasource": {
+        "uid": "grafana_prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 4
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto"
+      },
       "fieldConfig": {
-        "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }, "color": { "mode": "thresholds" } },
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
         "overrides": []
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "datasource": {
+            "uid": "grafana_prometheus",
+            "type": "prometheus"
+          },
           "expr": "sum(increase(model_inference_requests_total{status=\"success\"}[$__range]))",
           "legendFormat": "Success"
         }
@@ -120,17 +240,51 @@
       "id": 5,
       "type": "stat",
       "title": "Active Models",
-      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
-      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 4 },
-      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none", "textMode": "auto" },
+      "datasource": {
+        "uid": "grafana_prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 4
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
       "fieldConfig": {
-        "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "purple", "value": null }] }, "color": { "mode": "thresholds" } },
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "purple",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
         "overrides": []
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "datasource": {
+            "uid": "grafana_prometheus",
+            "type": "prometheus"
+          },
           "expr": "count(sum(rate(model_inference_requests_total[$__rate_interval])) by (model) > 0)",
           "legendFormat": "Active Models"
         }
@@ -140,17 +294,51 @@
       "id": 6,
       "type": "stat",
       "title": "Total Input Tokens",
-      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
-      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 4 },
-      "options": { "reduceOptions": { "calcs": ["sum"] }, "colorMode": "background", "graphMode": "area", "textMode": "auto" },
+      "datasource": {
+        "uid": "grafana_prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 4
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto"
+      },
       "fieldConfig": {
-        "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "yellow", "value": null }] }, "color": { "mode": "thresholds" } },
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "yellow",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
         "overrides": []
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "datasource": {
+            "uid": "grafana_prometheus",
+            "type": "prometheus"
+          },
           "expr": "sum(increase(tokens_used_total{token_type=\"input\",model=~\"$model\"}[$__range]))",
           "legendFormat": "Input Tokens"
         }
@@ -160,17 +348,51 @@
       "id": 7,
       "type": "stat",
       "title": "Total Output Tokens",
-      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
-      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 4 },
-      "options": { "reduceOptions": { "calcs": ["sum"] }, "colorMode": "background", "graphMode": "area", "textMode": "auto" },
+      "datasource": {
+        "uid": "grafana_prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 4
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto"
+      },
       "fieldConfig": {
-        "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "orange", "value": null }] }, "color": { "mode": "thresholds" } },
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
         "overrides": []
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "datasource": {
+            "uid": "grafana_prometheus",
+            "type": "prometheus"
+          },
           "expr": "sum(increase(tokens_used_total{token_type=\"output\",model=~\"$model\"}[$__range]))",
           "legendFormat": "Output Tokens"
         }
@@ -181,53 +403,119 @@
       "type": "stat",
       "title": "Free Model Usage (trial + free tier)",
       "description": "Total requests using the free model quota. A spike here without a corresponding paid-tier spike means trial/free users are driving load. Cross-reference with trial_active metric for abuse signals.",
-      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
-      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 4 },
-      "options": { "reduceOptions": { "calcs": ["sum"] }, "colorMode": "background", "graphMode": "area", "textMode": "auto" },
-      "fieldConfig": {
-        "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "semi-dark-blue", "value": null }] }, "color": { "mode": "thresholds" } },
-        "overrides": []
+      "datasource": {
+        "uid": "grafana_prometheus",
+        "type": "prometheus"
       },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
-          "expr": "sum(increase(free_model_usage_total[$__range]))",
-          "legendFormat": "Free Usage"
-        }
-      ]
-    },
-
-    {
-      "id": 9,
-      "type": "row",
-      "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 8 },
-      "title": "📈  Usage Trends — Request Rate & Token Consumption Over Time"
-    },
-    {
-      "id": 10,
-      "type": "timeseries",
-      "title": "Request Rate by Model  (top 10 — which models are driving volume?)",
-      "description": "Request rate per second for the top 10 most-used models. Use $model to isolate. A model surging relative to others indicates a product feature using it heavily. Sudden drops for a model = provider circuit breaker may have tripped.",
-      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
-      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 9 },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 4
+      },
       "options": {
-        "tooltip": { "mode": "multi", "sort": "desc" },
-        "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max"] }
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto"
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "reqps",
-          "custom": { "lineWidth": 2, "fillOpacity": 8, "showPoints": "never", "spanNulls": true },
-          "color": { "mode": "palette-classic" }
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "semi-dark-blue",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
         },
         "overrides": []
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "datasource": {
+            "uid": "grafana_prometheus",
+            "type": "prometheus"
+          },
+          "expr": "sum(increase(free_model_usage_total[$__range]))",
+          "legendFormat": "Free Usage"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "title": "\ud83d\udcc8  Usage Trends \u2014 Request Rate & Token Consumption Over Time"
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Request Rate by Model  (top 10 \u2014 which models are driving volume?)",
+      "description": "Request rate per second for the top 10 most-used models. Use $model to isolate. A model surging relative to others indicates a product feature using it heavily. Sudden drops for a model = provider circuit breaker may have tripped.",
+      "datasource": {
+        "uid": "grafana_prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "uid": "grafana_prometheus",
+            "type": "prometheus"
+          },
           "expr": "topk(10, sum(rate(model_inference_requests_total{status=\"success\",model=~\"$model\"}[$__rate_interval])) by (model))",
           "legendFormat": "{{model}}"
         }
@@ -236,70 +524,136 @@
     {
       "id": 11,
       "type": "timeseries",
-      "title": "Token Rate — Input vs Output by Model  (tokens/sec — cost and throughput signal)",
-      "description": "Input and output token throughput per second. Input tokens rising faster than output = prompts are growing (more context, system instructions). Output tokens rising faster = model is generating longer responses. Both rising = usage is growing. The ratio of output/input is the 'amplification factor' — higher means the model is doing more work per prompt.",
-      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
-      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 9 },
+      "title": "Token Rate \u2014 Input vs Output by Model  (tokens/sec \u2014 cost and throughput signal)",
+      "description": "Input and output token throughput per second. Input tokens rising faster than output = prompts are growing (more context, system instructions). Output tokens rising faster = model is generating longer responses. Both rising = usage is growing. The ratio of output/input is the 'amplification factor' \u2014 higher means the model is doing more work per prompt.",
+      "datasource": {
+        "uid": "grafana_prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
       "options": {
-        "tooltip": { "mode": "multi", "sort": "desc" },
-        "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max"] }
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        }
       },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "custom": { "lineWidth": 2, "fillOpacity": 8, "showPoints": "never", "spanNulls": true },
-          "color": { "mode": "palette-classic" }
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
         },
         "overrides": []
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "datasource": {
+            "uid": "grafana_prometheus",
+            "type": "prometheus"
+          },
           "expr": "topk(5, sum(rate(tokens_used_total{token_type=\"input\",model=~\"$model\"}[$__rate_interval])) by (model))",
           "legendFormat": "in: {{model}}"
         },
         {
           "refId": "B",
-          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "datasource": {
+            "uid": "grafana_prometheus",
+            "type": "prometheus"
+          },
           "expr": "topk(5, sum(rate(tokens_used_total{token_type=\"output\",model=~\"$model\"}[$__rate_interval])) by (model))",
           "legendFormat": "out: {{model}}"
         }
       ]
     },
-
     {
       "id": 12,
       "type": "row",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 18 },
-      "title": "🏆  Top Models — Which Models Are Used Most?"
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
+      "title": "\ud83c\udfc6  Top Models \u2014 Which Models Are Used Most?"
     },
     {
       "id": 13,
       "type": "bargauge",
       "title": "Top 10 Models by Request Volume",
-      "description": "Absolute request count per model over the selected window. This is the popularity ranking. Models at the top are the ones users are choosing — or the ones the router defaults to when no preference is specified.",
-      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
-      "gridPos": { "h": 10, "w": 8, "x": 0, "y": 19 },
+      "description": "Absolute request count per model over the selected window. This is the popularity ranking. Models at the top are the ones users are choosing \u2014 or the ones the router defaults to when no preference is specified.",
+      "datasource": {
+        "uid": "grafana_prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 19
+      },
       "options": {
         "orientation": "horizontal",
-        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
         "displayMode": "gradient",
         "showUnfilled": true
       },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "thresholds": { "mode": "percentage", "steps": [{ "color": "blue", "value": null }, { "color": "purple", "value": 80 }] },
-          "color": { "mode": "thresholds" }
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "purple",
+                "value": 80
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
         },
         "overrides": []
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "datasource": {
+            "uid": "grafana_prometheus",
+            "type": "prometheus"
+          },
           "expr": "topk(10, sum(increase(model_inference_requests_total{status=\"success\",model=~\"$model\"}[$__range])) by (model))",
           "legendFormat": "{{model}}",
           "instant": true
@@ -310,27 +664,58 @@
       "id": 14,
       "type": "bargauge",
       "title": "Top 10 Models by Input Tokens",
-      "description": "Input token consumption per model — measures prompt volume. Large input-token models are expensive from an API cost perspective. Cross-reference with the cost metrics to see if a high-input model is also high-cost.",
-      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
-      "gridPos": { "h": 10, "w": 8, "x": 8, "y": 19 },
+      "description": "Input token consumption per model \u2014 measures prompt volume. Large input-token models are expensive from an API cost perspective. Cross-reference with the cost metrics to see if a high-input model is also high-cost.",
+      "datasource": {
+        "uid": "grafana_prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 19
+      },
       "options": {
         "orientation": "horizontal",
-        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
         "displayMode": "gradient",
         "showUnfilled": true
       },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "thresholds": { "mode": "percentage", "steps": [{ "color": "yellow", "value": null }, { "color": "orange", "value": 80 }] },
-          "color": { "mode": "thresholds" }
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "yellow",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 80
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
         },
         "overrides": []
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "datasource": {
+            "uid": "grafana_prometheus",
+            "type": "prometheus"
+          },
           "expr": "topk(10, sum(increase(tokens_used_total{token_type=\"input\",model=~\"$model\"}[$__range])) by (model))",
           "legendFormat": "{{model}}",
           "instant": true
@@ -341,64 +726,131 @@
       "id": 15,
       "type": "bargauge",
       "title": "Top 10 Models by Output Tokens",
-      "description": "Output token generation per model — measures response volume and cost. High-output models are expensive and generate longer streaming sessions. A spike in a model's output tokens while input tokens stay flat means the model is being asked to generate longer responses.",
-      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
-      "gridPos": { "h": 10, "w": 8, "x": 16, "y": 19 },
+      "description": "Output token generation per model \u2014 measures response volume and cost. High-output models are expensive and generate longer streaming sessions. A spike in a model's output tokens while input tokens stay flat means the model is being asked to generate longer responses.",
+      "datasource": {
+        "uid": "grafana_prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 19
+      },
       "options": {
         "orientation": "horizontal",
-        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
         "displayMode": "gradient",
         "showUnfilled": true
       },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "thresholds": { "mode": "percentage", "steps": [{ "color": "orange", "value": null }, { "color": "red", "value": 80 }] },
-          "color": { "mode": "thresholds" }
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
         },
         "overrides": []
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "datasource": {
+            "uid": "grafana_prometheus",
+            "type": "prometheus"
+          },
           "expr": "topk(10, sum(increase(tokens_used_total{token_type=\"output\",model=~\"$model\"}[$__range])) by (model))",
           "legendFormat": "{{model}}",
           "instant": true
         }
       ]
     },
-
     {
       "id": 16,
       "type": "row",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 29 },
-      "title": "🆓  Free / Trial Tier — Usage Patterns & Abuse Signals"
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "title": "\ud83c\udd93  Free / Trial Tier \u2014 Usage Patterns & Abuse Signals"
     },
     {
       "id": 17,
       "type": "timeseries",
       "title": "Free Model Usage by User Status  (trial active vs expired vs anonymous)",
-      "description": "Breakdown of free-tier usage by user status. 'expired_trial' usage is suspicious — users whose trial has ended should not be making free-tier calls. 'anonymous' spikes indicate unauthenticated access or scraping. Use this panel alongside the Security & Rate Limiting dashboard for abuse investigation.",
-      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
-      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 30 },
+      "description": "Breakdown of free-tier usage by user status. 'expired_trial' usage is suspicious \u2014 users whose trial has ended should not be making free-tier calls. 'anonymous' spikes indicate unauthenticated access or scraping. Use this panel alongside the Security & Rate Limiting dashboard for abuse investigation.",
+      "datasource": {
+        "uid": "grafana_prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 30
+      },
       "options": {
-        "tooltip": { "mode": "multi", "sort": "desc" },
-        "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max", "sum"] }
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max",
+            "sum"
+          ]
+        }
       },
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never", "spanNulls": true, "stacking": { "mode": "normal" } },
-          "color": { "mode": "palette-classic" }
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "mode": "normal"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
         },
         "overrides": []
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "datasource": {
+            "uid": "grafana_prometheus",
+            "type": "prometheus"
+          },
           "expr": "sum(rate(free_model_usage_total[$__rate_interval])) by (user_status)",
           "legendFormat": "{{user_status}}"
         }
@@ -407,58 +859,109 @@
     {
       "id": 18,
       "type": "timeseries",
-      "title": "API Key Lookup Rate  (tracking quality — are requests being attributed correctly?)",
-      "description": "Rate of API key lookup attempts, successes, retries, and failures. A high failure rate means requests are not being attributed to users — credits may not be deducted correctly. Retry spikes indicate Redis latency during high-traffic periods.",
-      "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
-      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 30 },
+      "title": "API Key Lookup Rate  (tracking quality \u2014 are requests being attributed correctly?)",
+      "description": "Rate of API key lookup attempts, successes, retries, and failures. A high failure rate means requests are not being attributed to users \u2014 credits may not be deducted correctly. Retry spikes indicate Redis latency during high-traffic periods.",
+      "datasource": {
+        "uid": "grafana_prometheus",
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 30
+      },
       "options": {
-        "tooltip": { "mode": "multi", "sort": "desc" },
-        "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max"] }
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        }
       },
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "custom": { "lineWidth": 2, "fillOpacity": 8, "showPoints": "never", "spanNulls": true },
-          "color": { "mode": "palette-classic" }
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 8,
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
         },
         "overrides": []
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "datasource": {
+            "uid": "grafana_prometheus",
+            "type": "prometheus"
+          },
           "expr": "sum(rate(api_key_lookup_attempts_total[$__rate_interval])) by (status)",
           "legendFormat": "lookup {{status}}"
         },
         {
           "refId": "B",
-          "datasource": { "uid": "grafana_mimir", "type": "prometheus" },
+          "datasource": {
+            "uid": "grafana_prometheus",
+            "type": "prometheus"
+          },
           "expr": "api_key_tracking_rate",
           "legendFormat": "tracking success rate"
         }
       ]
     },
-
     {
       "id": 19,
       "type": "row",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 39 },
-      "title": "🔍  Trace Drill-Down — Recent Model Completions (Tempo)"
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 39
+      },
+      "title": "\ud83d\udd0d  Trace Drill-Down \u2014 Recent Model Completions (Tempo)"
     },
     {
       "id": 20,
       "type": "traces",
       "title": "Recent Stream Completions  (click a row to open the full span waterfall in Tempo)",
-      "description": "Recent traces for streaming inference calls. Each row is one completion request. Useful for debugging unexpected model behaviour — click to see the exact tokens, timings, and provider response within the trace.",
-      "datasource": { "uid": "grafana_tempo", "type": "tempo" },
-      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 40 },
-      "options": { "frameType": "TRACE_ID" },
-      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "description": "Recent traces for streaming inference calls. Each row is one completion request. Useful for debugging unexpected model behaviour \u2014 click to see the exact tokens, timings, and provider response within the trace.",
+      "datasource": {
+        "uid": "grafana_tempo",
+        "type": "tempo"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "options": {
+        "frameType": "TRACE_ID"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "uid": "grafana_tempo", "type": "tempo" },
+          "datasource": {
+            "uid": "grafana_tempo",
+            "type": "tempo"
+          },
           "queryType": "traceql",
           "query": "{resource.service.name=\"gatewayz-api\"}",
           "limit": 20,
