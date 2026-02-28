@@ -69,7 +69,7 @@ echo "  SMTP from   : ${SMTP_FROM:-NOT SET}"
 echo "  SMTP user   : ${SMTP_USER:-NOT SET}"
 echo "  Ops email   : ${ALERT_EMAIL_OPS}"
 echo "  Crit email  : ${ALERT_EMAIL_CRIT}"
-echo "  Listen port : ${LISTEN_PORT}"
+echo "  Listen port : 9093"
 echo "  External URL: ${EXTERNAL_URL}"
 if [ -n "$RAILWAY_ENVIRONMENT" ]; then
     echo "  Environment : Railway (${RAILWAY_ENVIRONMENT})"
@@ -86,12 +86,8 @@ else
 fi
 echo ""
 
-# ── Listen address ──────────────────────────────────────────────────────────
-# Railway injects PORT dynamically; fall back to 9093 for local Docker Compose.
-LISTEN_PORT="${PORT:-9093}"
-
 # ── Hand off to Alertmanager ────────────────────────────────────────────────
 exec /bin/alertmanager \
-    "--web.listen-address=:${LISTEN_PORT}" \
+    "--web.listen-address=:9093" \
     "--web.external-url=${EXTERNAL_URL}" \
     "$@"
