@@ -9,23 +9,23 @@
 #   SMTP_FROM          From address           (required)
 #   SMTP_USER          SMTP username          (required)
 #   SMTP_PASSWORD      SMTP password / app-password (required)
-#   SMTP_STARTTLS      NoStartTLS | MandatoryStartTLS | OpportunisticStartTLS
 #   ALERT_EMAIL_OPS    Ops team email(s)      (default: manjeshprasad21@gmail.com,vaughn@alpacanetwork.ai)
 #   ALERT_EMAIL_CRIT   Critical-pager email(s)(default: same as ops)
 #   EXTERNAL_URL       Public URL of this Alertmanager service (for links in emails)
 #
+# NOTE: matchers use Alertmanager string syntax: 'label="value"'
+# NOT the Grafana provisioning map syntax (name/value/matchType).
 # ============================================================================
 
 global:
-  # How long to wait before re-sending an alert that has already been sent.
   resolve_timeout: 5m
 
   # SMTP — all values substituted by entrypoint.sh
-  smtp_smarthost:       'SMTP_HOST_PLACEHOLDER'
-  smtp_from:            'SMTP_FROM_PLACEHOLDER'
-  smtp_auth_username:   'SMTP_USER_PLACEHOLDER'
-  smtp_auth_password:   'SMTP_PASSWORD_PLACEHOLDER'
-  smtp_require_tls:     false   # entrypoint sets this to true when using STARTTLS
+  smtp_smarthost:     'SMTP_HOST_PLACEHOLDER'
+  smtp_from:          'SMTP_FROM_PLACEHOLDER'
+  smtp_auth_username: 'SMTP_USER_PLACEHOLDER'
+  smtp_auth_password: 'SMTP_PASSWORD_PLACEHOLDER'
+  smtp_require_tls:   false
 
 # ============================================================================
 # Templates
@@ -35,48 +35,34 @@ templates:
 
 # ============================================================================
 # Routing Tree
-# Mirrors the policy structure already in grafana/provisioning/alerting/
-# notification_policies.yml so both Grafana Alerting AND Prometheus alerts
-# reach the right people.
 # ============================================================================
 route:
   receiver: ops-email
-  group_by:
-    - alertname
-    - instance
-
-  # Timing defaults for non-matched alerts
+  group_by: [alertname, instance]
   group_wait:      30s
   group_interval:  5m
   repeat_interval: 1h
 
   routes:
     # ------------------------------------------------------------------
-    # CRITICAL — immediate, repeat every 15 min
+    # CRITICAL severity — immediate, 15 min repeat
     # ------------------------------------------------------------------
     - receiver: critical-email
-      group_by: [alertname, instance]
       matchers:
-        - name: severity
-          value: critical
-          matchType: '='
+        - 'severity="critical"'
       group_wait:      0s
       group_interval:  2m
       repeat_interval: 15m
       continue: false
 
     # ------------------------------------------------------------------
-    # SLO burn-rate — critical path
+    # SLO burn-rate
     # ------------------------------------------------------------------
     - receiver: critical-email
       group_by: [alertname, slo]
       matchers:
-        - name: component
-          value: slo
-          matchType: '='
-        - name: severity
-          value: critical
-          matchType: '='
+        - 'component="slo"'
+        - 'severity="critical"'
       group_wait:      0s
       group_interval:  5m
       repeat_interval: 15m
@@ -84,25 +70,19 @@ route:
     - receiver: ops-email
       group_by: [alertname, slo]
       matchers:
-        - name: component
-          value: slo
-          matchType: '='
+        - 'component="slo"'
       group_wait:      5m
       group_interval:  10m
       repeat_interval: 1h
 
     # ------------------------------------------------------------------
-    # Traffic spikes — critical (3×+ baseline)
+    # Traffic spikes
     # ------------------------------------------------------------------
     - receiver: critical-email
       group_by: [alertname, category]
       matchers:
-        - name: category
-          value: traffic_spike
-          matchType: '='
-        - name: severity
-          value: critical
-          matchType: '='
+        - 'category="traffic_spike"'
+        - 'severity="critical"'
       group_wait:      10s
       group_interval:  5m
       repeat_interval: 15m
@@ -110,9 +90,7 @@ route:
     - receiver: ops-email
       group_by: [alertname, category]
       matchers:
-        - name: category
-          value: traffic_spike
-          matchType: '='
+        - 'category="traffic_spike"'
       group_wait:      30s
       group_interval:  10m
       repeat_interval: 1h
@@ -123,25 +101,19 @@ route:
     - receiver: ops-email
       group_by: [alertname, category]
       matchers:
-        - name: category
-          value: traffic_drop
-          matchType: '='
+        - 'category="traffic_drop"'
       group_wait:      30s
       group_interval:  10m
       repeat_interval: 1h
 
     # ------------------------------------------------------------------
-    # Error rate spike — critical
+    # Error rate spike
     # ------------------------------------------------------------------
     - receiver: critical-email
       group_by: [alertname, category]
       matchers:
-        - name: category
-          value: error_rate_spike
-          matchType: '='
-        - name: severity
-          value: critical
-          matchType: '='
+        - 'category="error_rate_spike"'
+        - 'severity="critical"'
       group_wait:      0s
       group_interval:  3m
       repeat_interval: 15m
@@ -149,9 +121,7 @@ route:
     - receiver: ops-email
       group_by: [alertname, category]
       matchers:
-        - name: category
-          value: error_rate_spike
-          matchType: '='
+        - 'category="error_rate_spike"'
       group_wait:      30s
       group_interval:  5m
       repeat_interval: 30m
@@ -162,25 +132,19 @@ route:
     - receiver: critical-email
       group_by: [alertname, category]
       matchers:
-        - name: category
-          value: server_errors
-          matchType: '='
+        - 'category="server_errors"'
       group_wait:      0s
       group_interval:  2m
       repeat_interval: 15m
 
     # ------------------------------------------------------------------
-    # Latency — critical
+    # Latency
     # ------------------------------------------------------------------
     - receiver: critical-email
       group_by: [alertname, category]
       matchers:
-        - name: category
-          value: latency_anomaly
-          matchType: '='
-        - name: severity
-          value: critical
-          matchType: '='
+        - 'category="latency_anomaly"'
+        - 'severity="critical"'
       group_wait:      10s
       group_interval:  5m
       repeat_interval: 15m
@@ -188,9 +152,7 @@ route:
     - receiver: ops-email
       group_by: [alertname, category]
       matchers:
-        - name: category
-          value: latency_anomaly
-          matchType: '='
+        - 'category="latency_anomaly"'
       group_wait:      30s
       group_interval:  10m
       repeat_interval: 1h
@@ -198,9 +160,7 @@ route:
     - receiver: critical-email
       group_by: [alertname, category]
       matchers:
-        - name: category
-          value: latency_spike
-          matchType: '='
+        - 'category="latency_spike"'
       group_wait:      0s
       group_interval:  3m
       repeat_interval: 15m
@@ -211,12 +171,8 @@ route:
     - receiver: critical-email
       group_by: [alertname, category, provider]
       matchers:
-        - name: category
-          value: availability_drop
-          matchType: '='
-        - name: severity
-          value: critical
-          matchType: '='
+        - 'category="availability_drop"'
+        - 'severity="critical"'
       group_wait:      0s
       group_interval:  2m
       repeat_interval: 15m
@@ -224,9 +180,7 @@ route:
     - receiver: ops-email
       group_by: [alertname, category, provider]
       matchers:
-        - name: category
-          value: availability_drop
-          matchType: '='
+        - 'category="availability_drop"'
       group_wait:      30s
       group_interval:  5m
       repeat_interval: 30m
@@ -234,9 +188,7 @@ route:
     - receiver: critical-email
       group_by: [alertname, provider]
       matchers:
-        - name: category
-          value: circuit_breaker
-          matchType: '='
+        - 'category="circuit_breaker"'
       group_wait:      0s
       group_interval:  2m
       repeat_interval: 15m
@@ -244,9 +196,7 @@ route:
     - receiver: critical-email
       group_by: [alertname]
       matchers:
-        - name: category
-          value: multi_provider_degradation
-          matchType: '='
+        - 'category="multi_provider_degradation"'
       group_wait:      0s
       group_interval:  5m
       repeat_interval: 15m
@@ -257,9 +207,7 @@ route:
     - receiver: ops-email
       group_by: [alertname, model_id]
       matchers:
-        - name: category
-          value: model
-          matchType: '='
+        - 'category="model"'
       group_wait:      5m
       group_interval:  5m
       repeat_interval: 30m
@@ -270,9 +218,7 @@ route:
     - receiver: ops-email
       group_by: [alertname, component]
       matchers:
-        - name: category
-          value: backend
-          matchType: '='
+        - 'category="backend"'
       group_wait:      5m
       group_interval:  5m
       repeat_interval: 30m
@@ -280,12 +226,8 @@ route:
     - receiver: critical-email
       group_by: [alertname, job]
       matchers:
-        - name: component
-          value: infrastructure
-          matchType: '='
-        - name: severity
-          value: critical
-          matchType: '='
+        - 'component="infrastructure"'
+        - 'severity="critical"'
       group_wait:      0s
       group_interval:  2m
       repeat_interval: 15m
@@ -296,9 +238,7 @@ route:
     - receiver: ops-email
       group_by: [alertname, service]
       matchers:
-        - name: category
-          value: logs
-          matchType: '='
+        - 'category="logs"'
       group_wait:      30s
       group_interval:  5m
       repeat_interval: 30m
@@ -307,9 +247,6 @@ route:
 # Receivers
 # ============================================================================
 receivers:
-  # --------------------------------------------------------------------------
-  # ops-email — general operational alerts
-  # --------------------------------------------------------------------------
   - name: ops-email
     email_configs:
       - to: 'ALERT_EMAIL_OPS_PLACEHOLDER'
@@ -329,17 +266,14 @@ receivers:
           <hr/>
           {{ end }}
 
-  # --------------------------------------------------------------------------
-  # critical-email — immediate pager-style alerts
-  # --------------------------------------------------------------------------
   - name: critical-email
     email_configs:
       - to: 'ALERT_EMAIL_CRIT_PLACEHOLDER'
         send_resolved: true
         headers:
-          Subject: '🚨 [GatewayZ CRITICAL] {{ .GroupLabels.alertname }} — {{ .Status | toUpper }}'
+          Subject: '[GatewayZ CRITICAL] {{ .GroupLabels.alertname }} — {{ .Status | toUpper }}'
         html: |
-          <h1 style="color:red">🚨 CRITICAL ALERT</h1>
+          <h1 style="color:red">CRITICAL ALERT</h1>
           {{ range .Alerts }}
           <h2>{{ .Labels.alertname }}</h2>
           <p><strong>Status:</strong> {{ .Status }}</p>
@@ -350,33 +284,22 @@ receivers:
           <p><strong>Description:</strong> {{ .Annotations.description }}</p>
           <p><strong>Runbook:</strong> {{ .Annotations.runbook_url }}</p>
           <p><strong>Starts At:</strong> {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}</p>
-          {{ if .GeneratorURL }}<p><a href="{{ .GeneratorURL }}">🔍 View in Prometheus</a></p>{{ end }}
+          {{ if .GeneratorURL }}<p><a href="{{ .GeneratorURL }}">View in Prometheus</a></p>{{ end }}
           <hr/>
           {{ end }}
 
 # ============================================================================
 # Inhibition Rules
-# Suppress lower-severity alerts when a critical alert already firing
 # ============================================================================
 inhibit_rules:
-  # Suppress warning when critical is firing for same alertname + instance
   - source_matchers:
-      - name: severity
-        value: critical
-        matchType: '='
+      - 'severity="critical"'
     target_matchers:
-      - name: severity
-        value: warning
-        matchType: '='
+      - 'severity="warning"'
     equal: [alertname, instance]
 
-  # Suppress individual provider alerts when multi-provider degradation fires
   - source_matchers:
-      - name: category
-        value: multi_provider_degradation
-        matchType: '='
+      - 'category="multi_provider_degradation"'
     target_matchers:
-      - name: category
-        value: availability_drop
-        matchType: '='
+      - 'category="availability_drop"'
     equal: []
