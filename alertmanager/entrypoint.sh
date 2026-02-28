@@ -69,7 +69,7 @@ echo "  SMTP from   : ${SMTP_FROM:-NOT SET}"
 echo "  SMTP user   : ${SMTP_USER:-NOT SET}"
 echo "  Ops email   : ${ALERT_EMAIL_OPS}"
 echo "  Crit email  : ${ALERT_EMAIL_CRIT}"
-echo "  Listen port : 9093"
+echo "  Listen port : ${PORT:-9093}"
 echo "  External URL: ${EXTERNAL_URL}"
 if [ -n "$RAILWAY_ENVIRONMENT" ]; then
     echo "  Environment : Railway (${RAILWAY_ENVIRONMENT})"
@@ -87,7 +87,9 @@ fi
 echo ""
 
 # ── Hand off to Alertmanager ────────────────────────────────────────────────
+# Railway routes its public health check to PORT. We bind to PORT so Railway's
+# proxy can reach us, but default to 9093 for local Docker Compose.
 exec /bin/alertmanager \
-    "--web.listen-address=:9093" \
+    "--web.listen-address=:${PORT:-9093}" \
     "--web.external-url=${EXTERNAL_URL}" \
     "$@"
