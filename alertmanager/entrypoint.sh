@@ -21,9 +21,9 @@ set -e
 
 # ── SMTP ────────────────────────────────────────────────────────────────────
 SMTP_HOST="${SMTP_HOST:-smtp.gmail.com:465}"
-SMTP_FROM="${SMTP_FROM:-${GF_SMTP_FROM_ADDRESS:-}}"
+SMTP_FROM="${SMTP_FROM:-${GF_SMTP_FROM_ADDRESS:-alerts@localhost}}"
 SMTP_USER="${SMTP_USER:-${GF_SMTP_USER:-}}"
-SMTP_PASSWORD="${SMTP_PASSWORD:-${GF_SMTP_PASSWORD:-}}"
+SMTP_PASSWORD="${SMTP_PASSWORD:-${GF_SMTP_PASSWORD:-no-password}}"
 
 # ── Email addresses ─────────────────────────────────────────────────────────
 DEFAULT_EMAILS="manjeshprasad21@gmail.com,vaughn@alpacanetwork.ai"
