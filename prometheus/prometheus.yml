@@ -5,18 +5,18 @@ global:
     environment: ${ENVIRONMENT:-production}
 
 # Alerting configuration
-# NOTE: Alertmanager is optional. When not configured, alerts are only
-# visible in Prometheus UI at /alerts. For email/slack notifications,
-# configure Grafana Alerting instead (see grafana/provisioning/alerting/)
-#
-# To enable Alertmanager, uncomment and set ALERTMANAGER_TARGET:
-# alerting:
-#   alertmanagers:
-#     - static_configs:
-#         - targets:
-#             - 'ALERTMANAGER_TARGET'
-#       timeout: 10s
-#       api_version: v2
+# Forwards firing alerts to the standalone Alertmanager service.
+# ALERTMANAGER_TARGET is substituted by entrypoint.sh at runtime:
+#   Local (docker-compose): alertmanager:9093
+#   Railway:                alertmanager.railway.internal:9093
+#                           (set ALERTMANAGER_INTERNAL_URL on this service)
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'ALERTMANAGER_TARGET'
+      timeout: 10s
+      api_version: v2
 
 # Remote write to Mimir for long-term storage and consistent queries
 # This ensures metrics are not lost on Prometheus restart and provides

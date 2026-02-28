@@ -30,6 +30,7 @@ docker compose up --build
 open http://localhost:3000  # Grafana (admin/yourpassword123)
 open http://localhost:9090  # Prometheus
 open http://localhost:9009  # Mimir
+open http://localhost:9093  # Alertmanager (alert routing UI)
 ```
 
 **📖 Documentation:**
@@ -66,6 +67,16 @@ open http://localhost:9009  # Mimir
             │                     │                     │
             │ remote_write        │ (no connection)     │ metrics_generator
             │ /api/v1/push        │                     │ remote_write
+            │                     │                     │
+            │  firing alerts      │                     │
+            ├────────────────►────┤                     │
+            │          ┌──────────┴──────┐              │
+            │          │  Alertmanager   │              │
+            │          │    :9093        │              │
+            │          │                 │              │
+            │          │ Routes alerts → │              │
+            │          │ Email (SMTP)    │              │
+            │          └─────────────────┘              │
             ▼                     │                     ▼
     ┌───────────────┐             │             ┌───────────────┐
     │               │◄────────────┘             │               │
@@ -113,11 +124,12 @@ open http://localhost:9009  # Mimir
 | Service | Port | Purpose | Status |
 |---------|------|---------|--------|
 | **Grafana 11.5.2** | 3000 | Visualization & dashboards | ✅ 6 dashboard folders |
-| **Prometheus 3.2.1** | 9090 | Metrics collection + alerting | ✅ 6 scrape jobs |
+| **Prometheus 3.2.1** | 9090 | Metrics collection + alerting rules | ✅ 6 scrape jobs |
+| **Alertmanager v0.27.0** | 9093 | Alert routing → email (ops + critical) | ✅ Mirrors Grafana notification policies |
 | **Mimir 2.11.0** | 9009, 9095 | Long-term metrics storage | ✅ 30-day retention |
 | **Loki 3.4** | 3100 | Log aggregation | ✅ 30-day retention |
 | **Tempo** | 3200, 4317, 4318 | Distributed tracing | ✅ OTLP endpoints |
-| **Pyroscope 1.7.1** | 4040 | Continuous CPU profiling | ✅ Provider/model tagged flamegraphs |
+| **Pyroscope 1.7.1** | 4040 | Continuous CPU profiling | ✅ Provider/model/cache tagged flamegraphs |
 | **Redis Exporter** | 9121 | Redis metrics | ✅ Integrated |
 
 ---
@@ -126,15 +138,14 @@ open http://localhost:9009  # Mimir
 
 All dashboards use **real API endpoints** with live data from Prometheus/Mimir - no mock data.
 
-| Folder | Purpose | Key Metrics | Status |
-|--------|---------|-------------|--------|
-| **Four Golden Signals** | SRE observability hub | Latency P50/P95/P99, Traffic RPS, Error rate, Saturation, Service Graph | ✅ Ready |
-| **Model Performance** | AI model metrics | Request rates, latency, token usage, error rates | ✅ Ready |
-| **Inference Profiling** | CPU flamegraphs by provider/model | Pyroscope flamegraph, CPU bargauges per provider & model, sample rate over time | ✅ Ready |
-| **Loki** | Log aggregation | Log search, streaming, volume by level/service | ✅ Ready |
-| **Prometheus** | Short-term metrics | Scrape targets, query stats, self-monitoring | ✅ Ready |
-| **Tempo** | Distributed tracing | Service graph, span metrics, trace search | ✅ Ready |
-| **Mimir** | Long-term metrics | Historical queries, retention stats | ✅ Ready |
+| Folder | Dashboard(s) | Purpose | Status |
+|--------|-------------|---------|--------|
+| **Four Golden Signals** | Four-Golden-Signals | Latency · Traffic · Errors · Pyroscope Profiling (Pillar IV) | ✅ Ready |
+| **Model Performance** | Inference-Call-Profile, Model-Usage, Cache-Layer-Profile, Inference-Profiling, Provider-Directory | AI inference anatomy, token usage, Redis cache CPU, provider metrics | ✅ Ready |
+| **Loki** | Loki dashboards | Log search, streaming, volume by level/service | ✅ Ready |
+| **Prometheus** | Prometheus self-monitoring | Scrape targets, query stats, remote_write health | ✅ Ready |
+| **Tempo** | Tempo dashboards | Service graph, span metrics, trace search | ✅ Ready |
+| **Mimir** | Mimir dashboards | Historical queries, retention stats | ✅ Ready |
 
 ### Dashboard Features
 
@@ -197,11 +208,13 @@ curl http://localhost:9090/api/v1/targets
 
 | Datasource | UID | Type | URL | Purpose |
 |------------|-----|------|-----|---------|
-| **Prometheus** | `grafana_prometheus` | prometheus | `${PROMETHEUS_INTERNAL_URL}` | Short-term metrics |
-| **Mimir** | `grafana_mimir` | prometheus | `${MIMIR_INTERNAL_URL}/prometheus` | Long-term metrics |
+| **Prometheus** | `grafana_prometheus` | prometheus | `${PROMETHEUS_INTERNAL_URL}` | Short-term app metrics |
+| **Mimir** | `grafana_mimir` | prometheus | `${MIMIR_INTERNAL_URL}/prometheus` | Long-term metrics + span metrics from Tempo |
 | **Loki** | `grafana_loki` | loki | `${LOKI_INTERNAL_URL}` | Logs |
 | **Tempo** | `grafana_tempo` | tempo | `${TEMPO_INTERNAL_URL}` | Traces |
 | **Pyroscope** | `grafana_pyroscope` | grafana-pyroscope-datasource | `${PYROSCOPE_INTERNAL_URL}` | Continuous profiling / flamegraphs |
+
+> **Datasource rule:** `grafana_prometheus` = standard app metrics. `grafana_mimir` = ONLY Tempo-generated `traces_spanmetrics_*` / `traces_service_graph_*` metrics. Never mix them in dashboards.
 
 ### Data Retention
 
@@ -437,18 +450,18 @@ open http://localhost:9090/targets
 
 ### 📊 Golden Signals Monitoring
 - **Latency**: P50/P95/P99 percentiles + trends.
-- **Traffic**: Request volume and rates.
-- **Errors**: Error rate gauge + trends.
-- **Saturation**: CPU/Memory/Redis utilization.
+- **Traffic**: Request volume and rates by provider and model.
+- **Errors**: Error rate gauge + trends per provider.
+- **Profiling (Pillar IV)**: Continuous Pyroscope flamegraphs replace traditional saturation metrics — tells you *which line of code* is the bottleneck.
 
 ### 🔍 Specialized Dashboards
-- **Executive Overview**: High-level KPIs and alerts.
-- **Backend Services**: Redis cache hit rates, API performance.
+- **Inference Call Profile**: Per-request CPU anatomy by provider/model.
+- **Cache Layer Profile**: Redis CPU cost by cache layer (`auth`, `rate_limit`, `model_catalog`, `response_cache`, `trial_analytics`) via Pyroscope tags.
 - **Loki Logs**: Deep log search without metrics noise.
 - **Tempo Traces**: Distributed tracing and service graphs.
 
 ### 🛡️ Production Grade
-- **Alerting**: Email notifications for health scores and SLO breaches.
+- **Two-layer alerting**: Grafana Alerting (dashboard rules) + standalone Alertmanager (Prometheus rules) — both route to ops/critical email via the same severity/category label convention.
 - **Testing**: Comprehensive integration test suite (90+ tests).
 - **Security**: No hardcoded credentials; fully environment-variable driven.
 
@@ -533,7 +546,20 @@ limits:
 
 ## 🔔 Alerting Setup
 
-GatewayZ uses **Prometheus Alert Rules** with Grafana for visualization. Alerts are defined in `prometheus/alert.rules.yml` with a focus on actionability and reducing alert fatigue.
+GatewayZ uses a **two-layer alerting architecture** — both layers send email using the same routing logic, so no alert falls through whether it originates from a Grafana rule or a raw Prometheus rule.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Layer 1: Grafana Alerting (dashboard-based)                    │
+│  Rules in grafana/provisioning/alerting/rules/                  │
+│  → contact_points.yml → notification_policies.yml → Email       │
+└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│  Layer 2: Prometheus → Alertmanager (rule-based)                │
+│  Rules in prometheus/alert.rules.yml                            │
+│  → alertmanager:9093 → alertmanager/alertmanager.yml → Email    │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 ### Alert Philosophy
 
@@ -542,7 +568,152 @@ GatewayZ uses **Prometheus Alert Rules** with Grafana for visualization. Alerts 
 3. **Warning vs Critical** - warning = investigate soon, critical = wake someone up
 4. **No duplicates** - consolidated overlapping alerts into single actionable items
 
-### Alert Groups (14 Total)
+---
+
+### Layer 1: Grafana Alerting
+
+Grafana evaluates alert rules against Prometheus/Mimir queries and routes firing alerts to email contact points using a notification policy tree.
+
+#### Alert Rules
+
+**Directory:** `grafana/provisioning/alerting/rules/`
+
+| File | Alert Category |
+|------|---------------|
+| `traffic_anomalies.yml` | Traffic spikes, traffic drops |
+| `error_rate_anomalies.yml` | Error rate spikes by provider |
+| `latency_anomalies.yml` | P99 latency spikes and anomalies |
+| `availability_anomalies.yml` | Provider availability drops, circuit breakers |
+| `slo_burn_rate_alerts.yml` | SLO violation burn-rate alerts |
+| `backend_alerts.yml` | Backend service health |
+| `model_alerts.yml` | Model-specific issues |
+
+#### Contact Points
+
+**File:** `grafana/provisioning/alerting/contact_points.yml`
+
+Email addresses are provisioned here. Grafana reads this file at startup — update it to change recipients without touching the Railway dashboard.
+
+#### Notification Policies
+
+**File:** `grafana/provisioning/alerting/notification_policies.yml`
+
+| Matcher | Receiver | Repeat |
+|---------|----------|--------|
+| `severity=critical` | critical-email | 15m |
+| `category=traffic_spike, severity=critical` | critical-email | 15m |
+| `category=error_rate_spike` | ops-email | 30m |
+| `component=slo, severity=critical` | critical-email | 15m |
+| `category=latency_anomaly` | ops-email | 1h |
+| `category=availability_drop, severity=critical` | critical-email | 15m |
+| `category=circuit_breaker` | critical-email | 15m |
+| `category=model` | ops-email | 30m |
+| `category=logs` | ops-email | 30m |
+| _(default)_ | ops-email | 1h |
+
+---
+
+### Layer 2: Alertmanager Service
+
+The `alertmanager/` directory is a **standalone Docker/Railway service** (port 9093). Prometheus forwards its firing rules to Alertmanager via the `alerting:` block in `prometheus/prometheus.yml`. Alertmanager then applies its own routing tree and delivers email.
+
+This mirrors Layer 1 exactly — the same severity + category labels drive the same ops/critical split — so teams get alerts from both paths without reconfiguring anything.
+
+#### Routing tree (alertmanager/alertmanager.yml)
+
+| Category / Severity | Receiver | group_wait | repeat_interval |
+|--------------------|----------|------------|-----------------|
+| `severity=critical` | critical-email | 0s | 15m |
+| `category=slo, severity=critical` | critical-email | 0s | 15m |
+| `category=traffic_spike, severity=critical` | critical-email | 10s | 15m |
+| `category=error_rate_spike, severity=critical` | critical-email | 0s | 15m |
+| `category=server_errors` | critical-email | 0s | 15m |
+| `category=latency_spike` | critical-email | 0s | 15m |
+| `category=latency_anomaly, severity=critical` | critical-email | 10s | 15m |
+| `category=availability_drop, severity=critical` | critical-email | 0s | 15m |
+| `category=circuit_breaker` | critical-email | 0s | 15m |
+| `category=multi_provider_degradation` | critical-email | 0s | 15m |
+| _(traffic/latency/availability non-critical)_ | ops-email | 30s | 1h |
+| `category=model` | ops-email | 5m | 30m |
+| `category=backend` | ops-email | 5m | 30m |
+| `category=logs` | ops-email | 30s | 30m |
+| _(default)_ | ops-email | 30s | 1h |
+
+#### Inhibition rules
+
+- Suppress `warning` alerts when a `critical` fires for the same `alertname` + `instance`
+- Suppress `availability_drop` alerts when `multi_provider_degradation` fires (prevents flood from individual providers)
+
+#### Alertmanager service files
+
+| File | Purpose |
+|------|---------|
+| `alertmanager/Dockerfile` | `prom/alertmanager:v0.27.0`, exposes 9093 |
+| `alertmanager/alertmanager.yml` | Routing tree + email receivers (placeholders substituted at startup) |
+| `alertmanager/entrypoint.sh` | Substitutes env var placeholders → hands off to alertmanager binary |
+| `alertmanager/railway.toml` | Railway build + healthcheck config |
+
+---
+
+### Setting Up Email Alerts
+
+Both alerting layers share the same SMTP configuration. Set these once via environment variables.
+
+#### Required environment variables
+
+| Variable | Example | Notes |
+|----------|---------|-------|
+| `SMTP_FROM` | `alerts@gatewayz.ai` | From address for Alertmanager emails |
+| `SMTP_USER` | `alerts@gatewayz.ai` | SMTP auth username |
+| `SMTP_PASSWORD` | `app-password-here` | SMTP app-password (not your main password) |
+| `SMTP_HOST` | `smtp.gmail.com:465` | Default: `smtp.gmail.com:465` |
+| `ALERT_EMAIL_OPS` | `team@company.com` | Operational alerts recipient(s) |
+| `ALERT_EMAIL_CRIT` | `oncall@company.com` | Critical/pager alerts recipient(s) |
+
+> **For Grafana email** (Layer 1), also set `GF_SMTP_ENABLED=true`, `GF_SMTP_HOST`, `GF_SMTP_USER`, `GF_SMTP_PASSWORD`, `GF_SMTP_FROM_ADDRESS` on the Grafana service — or use the shared `GF_SMTP_*` vars which `alertmanager/entrypoint.sh` will fall back to automatically.
+
+#### Local (docker-compose.yml)
+
+The `alertmanager` service reads `SMTP_FROM`, `SMTP_USER`, `SMTP_PASSWORD` from the environment or docker-compose `environment:` block. No additional configuration needed — `entrypoint.sh` substitutes placeholders at startup.
+
+```bash
+# Test alertmanager is up
+curl http://localhost:9093/-/healthy
+
+# Check active alerts
+curl http://localhost:9093/api/v2/alerts
+
+# Send a test alert via Prometheus API (fires for 1 minute)
+curl -X POST http://localhost:9090/api/v1/alerts \
+  -H "Content-Type: application/json" \
+  -d '[{"labels":{"alertname":"TestAlert","severity":"warning"}}]'
+```
+
+#### Railway (Production)
+
+Deploy Alertmanager as a separate Railway service in the **same project** as Prometheus and Grafana so it shares the private `railway.internal` network.
+
+1. In the Railway dashboard, add a new service sourced from this repository
+2. Set the root directory to `alertmanager/` (or use the `alertmanager/railway.toml` config)
+3. Set required env vars on the **Alertmanager** service:
+   ```
+   SMTP_FROM=alerts@gatewayz.ai
+   SMTP_USER=alerts@gatewayz.ai
+   SMTP_PASSWORD=<app-password>
+   ALERT_EMAIL_OPS=team@company.com,oncall@company.com
+   ALERT_EMAIL_CRIT=oncall@company.com
+   ```
+4. Set the following env var on the **Prometheus** service so it routes alerts to Alertmanager:
+   ```
+   ALERTMANAGER_INTERNAL_URL=http://alertmanager.railway.internal:9093
+   ```
+   _(If not set, `prometheus/entrypoint.sh` auto-detects Railway environment and uses `alertmanager.railway.internal:9093` as the default.)_
+
+---
+
+### Prometheus Alert Rules
+
+**File:** `prometheus/alert.rules.yml`
 
 | Group | Alerts | Purpose |
 |-------|--------|---------|
@@ -551,142 +722,38 @@ GatewayZ uses **Prometheus Alert Rules** with Grafana for visualization. Alerts 
 | **provider_health** | 3 | Are upstream AI providers working? |
 | **infrastructure** | 5 | Is the monitoring stack itself healthy? |
 
-### Current Alerts
+#### Current Alerts
 
-#### Service Health (Critical)
-| Alert | Trigger | Action |
-|-------|---------|--------|
-| `GatewayZAPIDown` | Prometheus can't scrape API for 2m | Check Railway deployment |
-| `HighErrorRate` | >10% error rate for 5m | Check Loki logs, recent deployments |
-| `AvailabilitySLOBreach` | <99.5% success rate over 1h | Initiate incident response |
+| Alert | Severity | Trigger | Action |
+|-------|----------|---------|--------|
+| `GatewayZAPIDown` | critical | Prometheus can't scrape API for 2m | Check Railway deployment |
+| `HighErrorRate` | critical | >10% error rate for 5m | Check Loki logs, recent deployments |
+| `AvailabilitySLOBreach` | critical | <99.5% success rate over 1h | Initiate incident response |
+| `HighAPILatency` | warning | P95 > 3s for 5m | Check slow endpoints, providers |
+| `LatencyDegradation` | warning | 50% latency increase vs 1h ago | Check recent changes, resources |
+| `TrafficSpike` | warning | 3x traffic increase for 10m | Analyze traffic, check for abuse |
+| `ProviderHighErrorRate` | critical | >20% errors per provider for 5m | Check provider status, failover |
+| `SlowProviderResponse` | warning | P95 > 5s per provider for 10m | Monitor provider, adjust timeouts |
+| `LowModelHealthScore` | warning | <80% success rate for 5m | Review errors across providers |
+| `ScrapeTargetDown` | warning | Any scrape target down for 5m | Check target health, network |
+| `MimirRemoteWriteFailures` | warning | Failed samples to Mimir | Check Mimir health, storage |
+| `MimirDown` | critical | Mimir unreachable for 2m | Check container, storage volume |
+| `TempoNoTraces` | warning | No traces for 15m | Check OTLP endpoint, backend config |
+| `LokiNoLogs` | warning | No logs for 15m | Check Loki health, log shipping |
 
-#### API Performance (Warning)
-| Alert | Trigger | Action |
-|-------|---------|--------|
-| `HighAPILatency` | P95 > 3s for 5m | Check slow endpoints, providers |
-| `LatencyDegradation` | 50% latency increase vs 1h ago | Check recent changes, resources |
-| `TrafficSpike` | 3x traffic increase for 10m | Analyze traffic, check for abuse |
-
-#### Provider Health (Critical/Warning)
-| Alert | Trigger | Action |
-|-------|---------|--------|
-| `ProviderHighErrorRate` | >20% errors per provider for 5m | Check provider status, failover |
-| `SlowProviderResponse` | P95 > 5s per provider for 10m | Monitor provider, adjust timeouts |
-| `LowModelHealthScore` | <80% success rate for 5m | Review errors across providers |
-
-#### Infrastructure (Critical/Warning)
-| Alert | Trigger | Action |
-|-------|---------|--------|
-| `ScrapeTargetDown` | Any scrape target down for 5m | Check target health, network |
-| `MimirRemoteWriteFailures` | Failed samples to Mimir | Check Mimir health, storage |
-| `MimirDown` | Mimir unreachable for 2m | Check container, storage volume |
-| `TempoNoTraces` | No traces for 15m | Check OTLP endpoint, backend config |
-| `LokiNoLogs` | No logs for 15m | Check Loki health, log shipping |
-
-### Removed Alerts (Noise Reduction)
-
-The following alerts were removed to reduce alert fatigue:
-
-| Removed Alert | Reason |
-|---------------|--------|
-| `LowAPIRequestRate` | Fires during off-hours/weekends, not actionable |
-| `CriticalAPILatency` | Duplicate of HighAPILatency (consolidated) |
-| `APIErrorRateIncreasing` | Trend detection causes fatigue with absolute threshold |
-| Redis alerts (6) | redis_exporter not reliably scraped; re-add when fixed |
-| `HighModelInferenceLatency` | Per-model alerting too noisy for 100+ models |
-| `SLOLatencyBreach` (500ms) | Too aggressive for AI inference (2-5s typical) |
-
-### Contact Points Configuration
-
-**File:** `grafana/provisioning/alerting/contact_points.yml`
-
-```yaml
-contactPoints:
-  - name: ops-email
-    receivers:
-      - type: email
-        settings:
-          addresses: your-team@company.com
-          singleEmail: false
-
-  - name: critical-email
-    receivers:
-      - type: email
-        settings:
-          addresses: oncall@company.com
-          singleEmail: false
-
-  - name: observatory-pool-critical
-    receivers:
-      - type: email
-        settings:
-          addresses: alerts@company.com
-```
-
-### Notification Policies
-
-**File:** `grafana/provisioning/alerting/notification_policies.yml`
-
-Routes alerts to appropriate contact points based on labels:
-
-| Matcher | Contact Point | Group Interval |
-|---------|---------------|----------------|
-| `severity=critical` | critical-email | 5m |
-| `category=traffic_spike, severity=critical` | observatory-pool-critical | 5m |
-| `category=error_rate_spike` | observatory-pool-critical/warning | 3-5m |
-| `component=redis, severity=critical` | critical-email | 2m |
-| `component=slo` | critical-email | 5m |
-
-### Alert Rules
-
-**Directory:** `grafana/provisioning/alerting/rules/`
-
-| File | Alerts |
-|------|--------|
-| `traffic_anomalies.yml` | Traffic spikes, drops |
-| `error_rate_anomalies.yml` | Error rate spikes by provider |
-| `latency_anomalies.yml` | P99 latency spikes |
-| `availability_anomalies.yml` | Provider availability drops |
-| `redis_alerts.yml` | Redis cache issues |
-| `slo_burn_rate_alerts.yml` | SLO violation alerts |
-| `backend_alerts.yml` | Backend service health |
-| `model_alerts.yml` | Model-specific issues |
-
-### Setting Up Email Alerts
-
-1. **Configure SMTP in docker-compose.yml:**
-   ```yaml
-   grafana:
-     environment:
-       - GF_SMTP_ENABLED=true
-       - GF_SMTP_HOST=smtp.gmail.com:587
-       - GF_SMTP_USER=your-email@gmail.com
-       - GF_SMTP_PASSWORD=your-app-password
-       - GF_SMTP_FROM_ADDRESS=grafana@gatewayz.ai
-   ```
-
-2. **Update contact_points.yml with your email addresses:**
-   ```yaml
-   contactPoints:
-     - name: ops-email
-       receivers:
-         - type: email
-           settings:
-             addresses: your-team@company.com
-   ```
-
-3. **Test email delivery:**
-   - Go to Grafana → Alerting → Contact points
-   - Click "Test" on any contact point
-   - Verify email is received
+---
 
 ### Viewing Alerts
 
-- **Grafana UI:** Alerting → Alert rules
+- **Grafana Alerting UI:** Alerting → Alert rules → firing/pending
 - **Prometheus UI:** http://localhost:9090/alerts
+- **Alertmanager UI:** http://localhost:9093 (silence management, active alerts)
 - **API:**
   ```bash
-  # List firing alerts
+  # Firing alerts from Alertmanager
+  curl http://localhost:9093/api/v2/alerts | jq '.[].labels'
+
+  # Firing alerts from Grafana
   curl http://localhost:3000/api/alertmanager/grafana/api/v2/alerts \
     -H "Authorization: Bearer $GRAFANA_API_KEY"
   ```
@@ -736,14 +803,39 @@ git push railway main
 
 # 2. Or use Railway CLI
 railway up
+```
 
-# 3. Configure environment variables in Railway dashboard
-FASTAPI_TARGET=api.gatewayz.ai:443
+**Environment variables — set per service in the Railway dashboard:**
+
+**Grafana service:**
+```
 PROMETHEUS_INTERNAL_URL=http://prometheus.railway.internal:9090
 MIMIR_INTERNAL_URL=http://mimir.railway.internal:9009
 LOKI_INTERNAL_URL=http://loki.railway.internal:3100
 TEMPO_INTERNAL_URL=http://tempo.railway.internal:3200
 PYROSCOPE_INTERNAL_URL=http://pyroscope.railway.internal:4040
+GF_SMTP_ENABLED=true
+GF_SMTP_HOST=smtp.gmail.com:465
+GF_SMTP_USER=alerts@gatewayz.ai
+GF_SMTP_PASSWORD=<app-password>
+GF_SMTP_FROM_ADDRESS=alerts@gatewayz.ai
+```
+
+**Prometheus service:**
+```
+FASTAPI_TARGET=api.gatewayz.ai:443
+MIMIR_INTERNAL_URL=http://mimir.railway.internal:9009
+ALERTMANAGER_INTERNAL_URL=http://alertmanager.railway.internal:9093
+```
+
+**Alertmanager service** (deploy `alertmanager/` as a separate Railway service):
+```
+SMTP_FROM=alerts@gatewayz.ai
+SMTP_USER=alerts@gatewayz.ai
+SMTP_PASSWORD=<app-password>
+SMTP_HOST=smtp.gmail.com:465
+ALERT_EMAIL_OPS=team@company.com
+ALERT_EMAIL_CRIT=oncall@company.com
 ```
 
 ### Docker Compose (Local)
@@ -789,46 +881,55 @@ docker compose down -v
 
 ```
 railway-grafana-stack/
+├── alertmanager/
+│   ├── Dockerfile              # prom/alertmanager:v0.27.0, port 9093
+│   ├── alertmanager.yml        # Routing tree + email receivers (placeholders)
+│   ├── entrypoint.sh           # Substitutes env vars → execs alertmanager
+│   └── railway.toml            # Railway build + healthcheck config
 ├── grafana/
 │   ├── Dockerfile
 │   ├── dashboards/
-│   │   ├── model_performance/  # Model Performance metrics
+│   │   ├── golden-signals/     # Four Golden Signals (Latency/Traffic/Errors/Profiling)
+│   │   ├── model_performance/  # Inference-Call-Profile, Model-Usage, Cache-Layer-Profile
 │   │   ├── loki/               # Loki logs (pure logs)
-│   │   ├── prometheus/         # Prometheus metrics
+│   │   ├── prometheus/         # Prometheus self-monitoring
 │   │   ├── tempo/              # Tempo traces (pure traces)
 │   │   └── mimir/              # Mimir long-term metrics
 │   ├── datasources/
-│   │   └── datasources.yml     # Prometheus, Mimir, Loki, Tempo
+│   │   └── datasources.yml     # Prometheus, Mimir, Loki, Tempo, Pyroscope
 │   └── provisioning/
 │       ├── dashboards/
 │       │   └── dashboards.yml
 │       └── alerting/
-│           ├── rules/
-│           │   └── redis_alerts.yml
+│           ├── rules/          # Grafana alert rule YAML files (Layer 1)
+│           ├── contact_points.yml
 │           └── notification_policies.yml
 ├── prometheus/
 │   ├── Dockerfile
-│   ├── entrypoint.sh         # Environment-based configuration
-│   ├── prometheus.yml        # Scrape jobs + remote_write to Mimir
-│   └── alert.rules.yml       # Alert rules
+│   ├── entrypoint.sh           # Environment-based target resolution
+│   ├── prometheus.yml          # Scrape jobs + remote_write to Mimir + alerting block
+│   └── alert.rules.yml         # Prometheus alert rules (Layer 2 — sent to Alertmanager)
+├── pyroscope/
+│   ├── Dockerfile
+│   └── pyroscope.yml           # Self-hosted Pyroscope configuration
 ├── mimir/
 │   ├── Dockerfile
-│   └── mimir.yml             # Mimir configuration (30d retention)
+│   └── mimir.yml               # Mimir configuration (30d retention)
 ├── loki/
 │   ├── Dockerfile
-│   └── loki.yml              # Loki configuration
+│   └── loki.yml                # Loki configuration
 ├── tempo/
 │   ├── Dockerfile
-│   ├── entrypoint.sh         # Environment-based configuration
-│   └── tempo.yml             # Tempo configuration
+│   ├── entrypoint.sh           # Environment-based configuration
+│   └── tempo.yml               # Tempo configuration
 ├── scripts/
-│   ├── pre-build-cleanup.sh  # Railway pre-deploy cleanup
-│   └── ...                   # Other validation scripts
-├── tests/                    # Pytest test suite
-├── docs/                     # Documentation
-├── railway.toml              # Railway deployment configuration
-├── docker-compose.yml        # Local development
-└── README.md                 # This file
+│   ├── pre-build-cleanup.sh    # Railway pre-deploy cleanup
+│   └── ...                     # Other validation scripts
+├── tests/                      # Pytest test suite
+├── docs/                       # Documentation
+├── railway.toml                # Railway deployment configuration
+├── docker-compose.yml          # Local development
+└── README.md                   # This file
 ```
 
 ### Contributing
@@ -990,4 +1091,4 @@ Proprietary - GatewayZ Network
 
 ---
 
-**GatewayZ Observability Stack** · Enterprise-grade monitoring for AI infrastructure · Powered by Prometheus, Mimir, Loki, Tempo, and Grafana
+**GatewayZ Observability Stack** · Enterprise-grade monitoring for AI infrastructure · Powered by Prometheus, Alertmanager, Mimir, Loki, Tempo, Pyroscope, and Grafana
