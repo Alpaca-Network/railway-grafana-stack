@@ -70,17 +70,20 @@ else
 fi
 
 # ============================================================
-# Alertmanager Configuration (OPTIONAL)
-# Alertmanager is disabled by default. Grafana Alerting is used instead.
-# To enable, set ALERTMANAGER_INTERNAL_URL and uncomment in prometheus.yml
+# Alertmanager Configuration
+# Resolves target based on environment — no env var needed for docker-compose.
+# Railway: set ALERTMANAGER_INTERNAL_URL=http://alertmanager.railway.internal:9093
 # ============================================================
 
 if [ -n "$ALERTMANAGER_INTERNAL_URL" ]; then
     ALERTMANAGER_TARGET=$(echo "$ALERTMANAGER_INTERNAL_URL" | sed 's|http://||')
-    echo "Alertmanager enabled: $ALERTMANAGER_TARGET"
+    echo "Alertmanager target (env): $ALERTMANAGER_TARGET"
+elif [ -n "$RAILWAY_ENVIRONMENT" ]; then
+    ALERTMANAGER_TARGET="alertmanager.railway.internal:9093"
+    echo "Alertmanager target (Railway internal): $ALERTMANAGER_TARGET"
 else
     ALERTMANAGER_TARGET="alertmanager:9093"
-    echo "Alertmanager disabled (using Grafana Alerting instead)"
+    echo "Alertmanager target (docker-compose): $ALERTMANAGER_TARGET"
 fi
 
 # ============================================================
@@ -165,15 +168,10 @@ if grep -q "MIMIR_URL" /etc/prometheus/prometheus.yml; then
 else
     echo "  ✅ MIMIR_URL placeholder successfully replaced"
 fi
-# Alertmanager is optional - only check if enabled
-if grep -q "^alerting:" /etc/prometheus/prometheus.yml; then
-    if grep -q "ALERTMANAGER_TARGET" /etc/prometheus/prometheus.yml; then
-        echo "  ⚠️  ALERTMANAGER_TARGET placeholder not replaced (Alertmanager may not be configured)"
-    else
-        echo "  ✅ Alertmanager configured"
-    fi
+if grep -q "ALERTMANAGER_TARGET" /etc/prometheus/prometheus.yml; then
+    echo "  ❌ ALERTMANAGER_TARGET placeholder NOT replaced!"
 else
-    echo "  ℹ️  Alertmanager disabled (using Grafana Alerting)"
+    echo "  ✅ Alertmanager target: $ALERTMANAGER_TARGET"
 fi
 echo ""
 echo "Configured rule_files:"

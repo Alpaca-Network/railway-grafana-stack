@@ -4,9 +4,11 @@
 #
 # REQUIRED ENVIRONMENT VARIABLES (set in .env file):
 # - GF_SECURITY_ADMIN_PASSWORD: Grafana admin password (CHANGE FROM DEFAULT!)
-# - ALERT_EMAIL: Email for alert notifications
-# - SMTP_PASSWORD: SMTP password for sending alerts
-# - REDIS_PASSWORD: Redis password (if required)
+# - SMTP_FROM:      From address for alert emails (e.g. alerts@gatewayz.ai)
+# - SMTP_USER:      SMTP username
+# - SMTP_PASSWORD:  SMTP password / app-password
+# - ALERT_EMAIL_OPS:  Comma-separated ops team emails
+# - ALERT_EMAIL_CRIT: Comma-separated critical/pager emails
 #
 # Optional:
 # - API_BASE_URL: Backend API URL (default: https://api.gatewayz.ai)
@@ -88,6 +90,8 @@ services:
     depends_on:
       mimir:
         condition: service_healthy
+      alertmanager:
+        condition: service_healthy
     deploy:
       resources:
         limits:
@@ -97,8 +101,59 @@ services:
           cpus: '0.10'
           memory: 128M
 
-  # NOTE: Alertmanager removed - alerts are handled directly by Prometheus
-  # If you need Alertmanager, uncomment and configure in prometheus/alertmanager.yml
+  # --------------------------------------------------------------------------
+  # Alertmanager — Standalone alert routing and email delivery service
+  # --------------------------------------------------------------------------
+  # Receives firing alerts from Prometheus and routes them to the right
+  # contact points (ops-email vs critical-email) based on severity/category.
+  # Mirrors the policy tree in grafana/provisioning/alerting/ so both
+  # Grafana Alerting and Prometheus raw-metric alerts reach the same inboxes.
+  #
+  # Railway deployment: deploy as a separate service in the same Railway
+  # project so it can communicate with Prometheus via railway.internal.
+  # Set ALERTMANAGER_INTERNAL_URL=http://alertmanager.railway.internal:9093
+  # on the Prometheus service to enable forwarding.
+  alertmanager:
+    build:
+      context: ./alertmanager
+      dockerfile: Dockerfile
+    ports:
+      - "9093:9093"
+    volumes:
+      - alertmanager_data:/data/alertmanager
+    environment:
+      # SMTP — reuse the same vars already set for Grafana SMTP
+      - SMTP_HOST=${GF_SMTP_HOST:-smtp.gmail.com:465}
+      - SMTP_FROM=${SMTP_FROM:-${GF_SMTP_FROM_ADDRESS:-}}
+      - SMTP_USER=${SMTP_USER:-${GF_SMTP_USER:-}}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-${GF_SMTP_PASSWORD:-}}
+      # Alert recipients — override per-environment
+      - ALERT_EMAIL_OPS=${ALERT_EMAIL_OPS:-manjeshprasad21@gmail.com,vaughn@alpacanetwork.ai}
+      - ALERT_EMAIL_CRIT=${ALERT_EMAIL_CRIT:-${ALERT_EMAIL_OPS:-manjeshprasad21@gmail.com,vaughn@alpacanetwork.ai}}
+      # External URL shown in alert email links
+      - EXTERNAL_URL=${ALERTMANAGER_EXTERNAL_URL:-http://localhost:9093}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: false
+    tmpfs:
+      - /tmp
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9093/-/healthy"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+        reservations:
+          cpus: '0.05'
+          memory: 32M
 
   loki:
     build:
@@ -302,3 +357,4 @@ volumes:
   tempo_data:
   mimir_data:
   pyroscope_data:
+  alertmanager_data:
