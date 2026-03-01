@@ -1,5 +1,5 @@
 # ============================================================================
-# GatewayZ Alert Rules - Refactored for Clarity and Actionability
+# GatewayZ Alert Rules — Enterprise Reliability Benchmark Aligned
 # ============================================================================
 # Philosophy:
 #   1. Every alert MUST be actionable (if you can't fix it, don't alert on it)
@@ -7,19 +7,23 @@
 #   3. Use warning for "investigate soon", critical for "wake someone up"
 #   4. Avoid duplicate alerts for the same underlying issue
 #
-# Refactoring Summary:
-#   - Reduced from 25 alerts → 14 essential alerts
-#   - Removed: LowAPIRequestRate (noisy during off-hours)
-#   - Removed: Duplicate latency alerts (HighAPILatency + CriticalAPILatency → single HighAPILatency)
-#   - Removed: Redis alerts (metrics not currently scraped - add back when redis_exporter works)
-#   - Consolidated: Error rate alerts into single HighErrorRate
-#   - Added: Infrastructure self-monitoring (Mimir write failures, Tempo ingestion)
+# Enterprise Reliability Benchmark:
+#   - Maintain availability       → service_health: GatewayZAPIDown, AvailabilitySLOBreach
+#   - Meet performance targets    → api_performance: HighAPILatency, LatencyDegradation
+#   - Handle traffic variability  → api_performance: TrafficSpike
+#   - Recover quickly             → service_health: AvailabilitySLOBreach (budget burn signals)
+#   - Preserve data integrity     → (backend metrics required; cache hit rate surfaced in dashboard)
+#   - Protect security            → saturation_security: RateLimitSaturation, AuthFailureSpike
+#
+# Alert Count: 16 essential alerts (was 14 — added 2 security/saturation alerts,
+#              split HighErrorRate → ErrorBudgetWarning + HighErrorRate)
 #
 # Groups:
-#   1. service_health     - Is the service up and responding? (3 alerts)
-#   2. api_performance    - Are API responses healthy? (3 alerts)
-#   3. provider_health    - Are upstream AI providers working? (3 alerts)
-#   4. infrastructure     - Is the monitoring stack itself healthy? (5 alerts)
+#   1. service_health       - Is the service up and SLO-compliant? (4 alerts)
+#   2. api_performance      - Are API responses healthy? (3 alerts)
+#   3. provider_health      - Are upstream AI providers working? (3 alerts)
+#   4. saturation_security  - Capacity and security signals (2 alerts)
+#   5. infrastructure       - Is the monitoring stack itself healthy? (5 alerts)
 # ============================================================================
 
 groups:
@@ -49,27 +53,53 @@ groups:
           dashboard: "https://grafana.gatewayz.ai/d/executive-overview-v1/executive-overview"
 
       # -----------------------------------------------------------------------
-      # Alert: High Error Rate
-      # Reason: >10% errors indicates service degradation affecting users
-      # Action: Check logs for error patterns, recent deployments, provider issues
-      # Note: Combines 4xx + 5xx because both indicate failed requests from user perspective
+      # Alert: Error Budget Warning (5xx only, 0.5% threshold)
+      # Reason: SLO is 99.5% success. Any 5xx error rate above 0.5% starts
+      #         burning the error budget. Early warning before SLO breach.
+      # Action: Investigate 5xx errors — check logs, recent deployments
+      # Note: Uses 5xx only (not 4xx) — client errors don't burn SLO budget
+      # -----------------------------------------------------------------------
+      - alert: ErrorBudgetWarning
+        expr: |
+          (
+            sum(rate(fastapi_requests_total{status_code=~"5.."}[5m]))
+            /
+            sum(rate(fastapi_requests_total[5m]))
+          ) > 0.005
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+          category: error_rate
+          runbook: "Check Loki logs for 5xx error patterns, review recent deployments"
+        annotations:
+          summary: "Error budget burning: 5xx rate {{ $value | humanizePercentage }}"
+          description: "5xx error rate exceeds 0.5% — the SLO error budget is being consumed. Not yet a breach, but investigate before it escalates."
+          dashboard: "https://grafana.gatewayz.ai/d/gatewayz-four-golden-signals/gatewayz-four-golden-signals"
+
+      # -----------------------------------------------------------------------
+      # Alert: High Error Rate (5xx only, 5% threshold — significant degradation)
+      # Reason: >5% server errors indicates significant service degradation
+      # Action: Incident response — check logs, rollback if deployment-related
+      # Note: Reduced from 10% → 5% to match enterprise SLO expectations
       # -----------------------------------------------------------------------
       - alert: HighErrorRate
         expr: |
           (
-            sum(rate(fastapi_requests_total{status_code=~"4..|5.."}[5m]))
+            sum(rate(fastapi_requests_total{status_code=~"5.."}[5m]))
             /
             sum(rate(fastapi_requests_total[5m]))
-          ) > 0.10
+          ) > 0.05
         for: 5m
         labels:
           severity: critical
           component: api
-          runbook: "Check Loki logs for error patterns, review recent deployments"
+          category: error_rate
+          runbook: "Check Loki logs for error patterns, review recent deployments, consider rollback"
         annotations:
           summary: "High API error rate: {{ $value | humanizePercentage }}"
-          description: "More than 10% of API requests are failing. This indicates a significant service issue affecting users."
-          dashboard: "https://grafana.gatewayz.ai/d/executive-overview-v1/executive-overview"
+          description: "More than 5% of API requests are returning 5xx errors. Significant service degradation — SLO breach imminent or already in progress."
+          dashboard: "https://grafana.gatewayz.ai/d/gatewayz-four-golden-signals/gatewayz-four-golden-signals"
 
       # -----------------------------------------------------------------------
       # Alert: Service Availability SLO Breach
@@ -241,7 +271,64 @@ groups:
           dashboard: "https://grafana.gatewayz.ai/d/model-performance-v1/model-performance-analytics"
 
   # ==========================================================================
-  # GROUP 4: INFRASTRUCTURE
+  # GROUP 4: SATURATION & SECURITY
+  # Purpose: Detect capacity exhaustion and active security threats
+  # Benchmark: "Handle traffic variability" + "Protect against security vulnerabilities"
+  # Action: Investigate abuse, scale capacity, or tighten rate limit policies
+  # ==========================================================================
+  - name: saturation_security
+    interval: 30s
+    rules:
+      # -----------------------------------------------------------------------
+      # Alert: Rate Limit Saturation
+      # Reason: >10% of requests being rate-limited indicates the system is
+      #         under pressure from either legitimate traffic growth OR abuse.
+      #         At enterprise scale, silent rate-limiting = silent churn.
+      # Action: Check traffic source, review rate limit policy, scale if legit
+      # -----------------------------------------------------------------------
+      - alert: RateLimitSaturation
+        expr: |
+          (
+            sum(rate(fastapi_requests_total{status_code="429"}[5m]))
+            /
+            sum(rate(fastapi_requests_total[5m]))
+          ) > 0.10
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+          category: saturation
+          runbook: "Analyze traffic source for abuse patterns, review rate limit thresholds"
+        annotations:
+          summary: "Rate limit saturation: {{ $value | humanizePercentage }} requests throttled"
+          description: "More than 10% of API requests are being rate-limited (HTTP 429). This may indicate legitimate capacity demand requiring scaling, or an abuse/DDoS pattern requiring mitigation."
+          dashboard: "https://grafana.gatewayz.ai/d/gatewayz-four-golden-signals/gatewayz-four-golden-signals"
+
+      # -----------------------------------------------------------------------
+      # Alert: Auth Failure Spike
+      # Reason: A sudden spike in 401/403 errors compared to the 1h baseline
+      #         indicates credential stuffing, key compromise, or misconfigured
+      #         clients. Security vulnerabilities must be detected proactively.
+      # Action: Identify source IPs, check for leaked keys, review auth logs
+      # -----------------------------------------------------------------------
+      - alert: AuthFailureSpike
+        expr: |
+          sum(rate(fastapi_requests_total{status_code=~"401|403"}[5m]))
+          >
+          (sum(rate(fastapi_requests_total{status_code=~"401|403"}[5m] offset 1h)) * 3 + 0.1)
+        for: 10m
+        labels:
+          severity: warning
+          component: api
+          category: security
+          runbook: "Check Loki security logs for source IPs, review API key usage, check for credential leaks"
+        annotations:
+          summary: "Auth failure spike: 3x above baseline"
+          description: "Authentication/authorization failure rate is more than 3x higher than 1 hour ago. This may indicate credential stuffing, key compromise, or a misconfigured client integration."
+          dashboard: "https://grafana.gatewayz.ai/d/gatewayz-four-golden-signals/gatewayz-four-golden-signals"
+
+  # ==========================================================================
+  # GROUP 5: INFRASTRUCTURE
   # Purpose: Monitor the monitoring stack itself (meta-monitoring)
   # Action: Fix infrastructure issues to restore observability
   # ==========================================================================
