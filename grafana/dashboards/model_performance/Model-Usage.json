@@ -1166,7 +1166,7 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "topk(10, rate(model_inference_requests_total{status=\"error\"}[5m]) / clamp_min(rate(model_inference_requests_total[5m]), 0.001) by (model) * 100)",
+          "expr": "topk(10, sum by (model) (rate(model_inference_requests_total{status=\"error\"}[5m])) / clamp_min(sum by (model) (rate(model_inference_requests_total[5m])), 0.001) * 100)",
           "legendFormat": "{{model}}"
         }
       ],
