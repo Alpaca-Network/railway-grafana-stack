@@ -1,5 +1,5 @@
 {
-  "title": "GatewayZ \u2014 Model Usage (All Tiers)",
+  "title": "GatewayZ — Model Usage (All Tiers)",
   "uid": "gatewayz-model-usage",
   "description": "Unified model usage dashboard covering all user tiers (paid, trial, free). Replaces the separate Paid-Model-LLM-Usage and Free-Model-Usage dashboards. Filter by $tier to isolate a cohort.",
   "tags": [
@@ -10,7 +10,7 @@
     "tiers"
   ],
   "schemaVersion": 41,
-  "version": 1,
+  "version": 2,
   "refresh": "1m",
   "time": {
     "from": "now-24h",
@@ -109,7 +109,7 @@
       "transparent": true,
       "options": {
         "mode": "markdown",
-        "content": "## \ud83d\udce6  Model Usage \u2014 All Tiers\nConsolidated view of LLM model usage across paid, trial, and free users. Use the **$tier** filter to isolate a cohort. Use **$model** to focus on a specific model. This dashboard replaced the separate Paid-Model-LLM-Usage and Free-Model-Usage dashboards \u2014 their unique panels are preserved here with the addition of a tier filter."
+        "content": "## 📦  Model Usage — All Tiers\nConsolidated view of LLM model usage across paid, trial, and free users. Use the **$tier** filter to isolate a cohort. Use **$model** to focus on a specific model. This dashboard replaced the separate Paid-Model-LLM-Usage and Free-Model-Usage dashboards — their unique panels are preserved here with the addition of a tier filter."
       },
       "fieldConfig": {
         "defaults": {},
@@ -126,7 +126,7 @@
         "x": 0,
         "y": 3
       },
-      "title": "\ud83d\udcca  Overview \u2014 All Tiers at a Glance"
+      "title": "📊  Overview — All Tiers at a Glance"
     },
     {
       "id": 3,
@@ -463,12 +463,12 @@
         "x": 0,
         "y": 8
       },
-      "title": "\ud83d\udcc8  Usage Trends \u2014 Request Rate & Token Consumption Over Time"
+      "title": "📈  Usage Trends — Request Rate & Token Consumption Over Time"
     },
     {
       "id": 10,
       "type": "timeseries",
-      "title": "Request Rate by Model  (top 10 \u2014 which models are driving volume?)",
+      "title": "Request Rate by Model  (top 10 — which models are driving volume?)",
       "description": "Request rate per second for the top 10 most-used models. Use $model to isolate. A model surging relative to others indicates a product feature using it heavily. Sudden drops for a model = provider circuit breaker may have tripped.",
       "datasource": {
         "uid": "grafana_prometheus",
@@ -524,8 +524,8 @@
     {
       "id": 11,
       "type": "timeseries",
-      "title": "Token Rate \u2014 Input vs Output by Model  (tokens/sec \u2014 cost and throughput signal)",
-      "description": "Input and output token throughput per second. Input tokens rising faster than output = prompts are growing (more context, system instructions). Output tokens rising faster = model is generating longer responses. Both rising = usage is growing. The ratio of output/input is the 'amplification factor' \u2014 higher means the model is doing more work per prompt.",
+      "title": "Token Rate — Input vs Output by Model  (tokens/sec — cost and throughput signal)",
+      "description": "Input and output token throughput per second. Input tokens rising faster than output = prompts are growing (more context, system instructions). Output tokens rising faster = model is generating longer responses. Both rising = usage is growing. The ratio of output/input is the 'amplification factor' — higher means the model is doing more work per prompt.",
       "datasource": {
         "uid": "grafana_prometheus",
         "type": "prometheus"
@@ -596,13 +596,13 @@
         "x": 0,
         "y": 18
       },
-      "title": "\ud83c\udfc6  Top Models \u2014 Which Models Are Used Most?"
+      "title": "🏆  Top Models — Which Models Are Used Most?"
     },
     {
       "id": 13,
       "type": "bargauge",
       "title": "Top 10 Models by Request Volume",
-      "description": "Absolute request count per model over the selected window. This is the popularity ranking. Models at the top are the ones users are choosing \u2014 or the ones the router defaults to when no preference is specified.",
+      "description": "Absolute request count per model over the selected window. This is the popularity ranking. Models at the top are the ones users are choosing — or the ones the router defaults to when no preference is specified.",
       "datasource": {
         "uid": "grafana_prometheus",
         "type": "prometheus"
@@ -664,7 +664,7 @@
       "id": 14,
       "type": "bargauge",
       "title": "Top 10 Models by Input Tokens",
-      "description": "Input token consumption per model \u2014 measures prompt volume. Large input-token models are expensive from an API cost perspective. Cross-reference with the cost metrics to see if a high-input model is also high-cost.",
+      "description": "Input token consumption per model — measures prompt volume. Large input-token models are expensive from an API cost perspective. Cross-reference with the cost metrics to see if a high-input model is also high-cost.",
       "datasource": {
         "uid": "grafana_prometheus",
         "type": "prometheus"
@@ -726,7 +726,7 @@
       "id": 15,
       "type": "bargauge",
       "title": "Top 10 Models by Output Tokens",
-      "description": "Output token generation per model \u2014 measures response volume and cost. High-output models are expensive and generate longer streaming sessions. A spike in a model's output tokens while input tokens stay flat means the model is being asked to generate longer responses.",
+      "description": "Output token generation per model — measures response volume and cost. High-output models are expensive and generate longer streaming sessions. A spike in a model's output tokens while input tokens stay flat means the model is being asked to generate longer responses.",
       "datasource": {
         "uid": "grafana_prometheus",
         "type": "prometheus"
@@ -794,13 +794,13 @@
         "x": 0,
         "y": 29
       },
-      "title": "\ud83c\udd93  Free / Trial Tier \u2014 Usage Patterns & Abuse Signals"
+      "title": "🆓  Free / Trial Tier — Usage Patterns & Abuse Signals"
     },
     {
       "id": 17,
       "type": "timeseries",
       "title": "Free Model Usage by User Status  (trial active vs expired vs anonymous)",
-      "description": "Breakdown of free-tier usage by user status. 'expired_trial' usage is suspicious \u2014 users whose trial has ended should not be making free-tier calls. 'anonymous' spikes indicate unauthenticated access or scraping. Use this panel alongside the Security & Rate Limiting dashboard for abuse investigation.",
+      "description": "Breakdown of free-tier usage by user status. 'expired_trial' usage is suspicious — users whose trial has ended should not be making free-tier calls. 'anonymous' spikes indicate unauthenticated access or scraping. Use this panel alongside the Security & Rate Limiting dashboard for abuse investigation.",
       "datasource": {
         "uid": "grafana_prometheus",
         "type": "prometheus"
@@ -859,8 +859,8 @@
     {
       "id": 18,
       "type": "timeseries",
-      "title": "API Key Lookup Rate  (tracking quality \u2014 are requests being attributed correctly?)",
-      "description": "Rate of API key lookup attempts, successes, retries, and failures. A high failure rate means requests are not being attributed to users \u2014 credits may not be deducted correctly. Retry spikes indicate Redis latency during high-traffic periods.",
+      "title": "API Key Lookup Rate  (tracking quality — are requests being attributed correctly?)",
+      "description": "Rate of API key lookup attempts, successes, retries, and failures. A high failure rate means requests are not being attributed to users — credits may not be deducted correctly. Retry spikes indicate Redis latency during high-traffic periods.",
       "datasource": {
         "uid": "grafana_prometheus",
         "type": "prometheus"
@@ -931,13 +931,13 @@
         "x": 0,
         "y": 39
       },
-      "title": "\ud83d\udd0d  Trace Drill-Down \u2014 Recent Model Completions (Tempo)"
+      "title": "🔍  Trace Drill-Down — Recent Model Completions (Tempo)"
     },
     {
       "id": 20,
       "type": "traces",
       "title": "Recent Stream Completions  (click a row to open the full span waterfall in Tempo)",
-      "description": "Recent traces for streaming inference calls. Each row is one completion request. Useful for debugging unexpected model behaviour \u2014 click to see the exact tokens, timings, and provider response within the trace.",
+      "description": "Recent traces for streaming inference calls. Each row is one completion request. Useful for debugging unexpected model behaviour — click to see the exact tokens, timings, and provider response within the trace.",
       "datasource": {
         "uid": "grafana_tempo",
         "type": "tempo"
@@ -968,6 +968,303 @@
           "tableType": "spans"
         }
       ]
+    },
+    {
+      "id": 21,
+      "type": "row",
+      "title": "💰  Cost & Quality Intelligence — USD · TTFC · Error Rate · Cache Savings",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 52
+      },
+      "collapsed": false
+    },
+    {
+      "id": 22,
+      "type": "timeseries",
+      "title": "Cost Rate by Model (USD/s)",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 53
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "topk(10, rate(gatewayz_api_cost_usd_total[5m]) by (model))",
+          "legendFormat": "{{model}}"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 23,
+      "type": "bargauge",
+      "title": "Daily Cost Estimate by Provider",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 53
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "gatewayz_daily_cost_estimate_usd",
+          "legendFormat": "{{provider}}"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "valueMode": "color",
+        "showUnfilled": true,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "displayName": "${__field.labels.provider}",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 60
+              },
+              {
+                "color": "orange",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 95
+              }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 24,
+      "type": "timeseries",
+      "title": "TTFC P95 by Model — Top 10",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 62
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "topk(10, histogram_quantile(0.95, sum(rate(time_to_first_chunk_seconds_bucket[5m])) by (le, model)))",
+          "legendFormat": "{{model}}"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 25,
+      "type": "timeseries",
+      "title": "Error Rate by Model (%) — Top 10",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 62
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "topk(10, rate(model_inference_requests_total{status=\"error\"}[5m]) / clamp_min(rate(model_inference_requests_total[5m]), 0.001) by (model) * 100)",
+          "legendFormat": "{{model}}"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 26,
+      "type": "bargauge",
+      "title": "Cache Cost Savings by Provider (USD/s)",
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 71
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "sum(rate(gatewayz_cache_cost_savings_usd_total[5m])) by (provider)",
+          "legendFormat": "{{provider}}"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "valueMode": "color",
+        "showUnfilled": true,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "displayName": "${__field.labels.provider}",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 60
+              },
+              {
+                "color": "orange",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 95
+              }
+            ]
+          }
+        },
+        "overrides": []
+      }
     }
   ]
 }

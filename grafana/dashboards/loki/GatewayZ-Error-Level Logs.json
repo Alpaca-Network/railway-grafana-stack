@@ -747,6 +747,168 @@
       ],
       "title": "Value Errors",
       "type": "logs"
+    },
+    {
+      "id": 33,
+      "type": "row",
+      "title": "📊  Cross-Signal Validation — Metrics + Traces",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 54
+      },
+      "collapsed": false
+    },
+    {
+      "id": 34,
+      "type": "timeseries",
+      "title": "Exception Rate by Type (Prometheus Metric)",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 55
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "rate(fastapi_exceptions_total[5m]) by (exception_type)",
+          "legendFormat": "{{exception_type}}"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 35,
+      "type": "timeseries",
+      "title": "Metric Exception Rate vs Log ERROR Rate — Dual-Signal Correlation",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Mixed --"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 55
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "sum(rate(fastapi_exceptions_total[5m]))",
+          "legendFormat": "Exceptions/s (Prometheus)"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "loki",
+            "uid": "grafana_loki"
+          },
+          "expr": "sum(count_over_time({app=~\"gatewayz.*\"} | level=\"ERROR\" [$__interval]))",
+          "legendFormat": "Log ERROR rate (Loki)"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 36,
+      "type": "table",
+      "title": "Recent Error Traces (click to open waterfall)",
+      "datasource": {
+        "type": "tempo",
+        "uid": "grafana_tempo"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 64
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "tempo",
+            "uid": "grafana_tempo"
+          },
+          "query": "{status=error}",
+          "queryType": "traceql",
+          "limit": 20,
+          "tableType": "traces"
+        }
+      ],
+      "options": {
+        "frameIndex": 0,
+        "showHeader": true
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
     }
   ],
   "preload": false,
@@ -780,6 +942,6 @@
   "timezone": "browser",
   "title": "GatewayZ Error Analysis",
   "uid": "gatewayz-error-analysis",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }
