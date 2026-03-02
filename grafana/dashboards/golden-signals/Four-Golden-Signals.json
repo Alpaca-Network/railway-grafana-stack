@@ -12,7 +12,7 @@
       }
     ]
   },
-  "description": "SRE Four Golden Signals \u2014 Latency, Traffic, Errors \u2014 plus Pillar IV: Continuous Profiling via Pyroscope. Redis saturation metrics have moved to the dedicated Cache & Redis CPU Profile dashboard.",
+  "description": "SRE Four Golden Signals — Latency · Traffic · Errors · Saturation — mapped to the enterprise reliability benchmark: availability, performance, traffic variability, recovery velocity, data integrity, and security. Supplementary: Continuous Profiling via Pyroscope.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -54,7 +54,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "## GatewayZ \u2014 AI Inference Gateway Health\nThis dashboard answers one question: **is the gateway healthy enough to route LLM requests right now?** It is the first screen to open during an incident and the last to close when the incident ends.\n\n| Pillar | What it measures for GatewayZ specifically |\n|--------|--------------------------------------------|\n| **\u26a1 Latency** | Round-trip from client request \u2192 gateway response. Dominated by provider inference time \u2014 P99 can legitimately exceed 30 s for long-generation streaming. The poison-check panel isolates 5xx responses so a wave of instant provider rejections does not drag the success percentiles down. |\n| **\ud83d\udea6 Traffic** | Inbound LLM requests per second. Each request may hold an open connection for the full streaming duration, so RPS alone understates concurrency. A gap between total RPS and success RPS tells you how much capacity errors are wasting. |\n| **\ud83d\udea8 Errors** | Three kinds: **explicit** (5xx the gateway emits), **policy** (200 OK responses that took longer than the 2 s SLO \u2014 valid for short completions, not for streaming), **client** (4xx \u2014 mostly rate-limit hits from the 40 k+ trial users managed in Redis). |\n| **\ud83d\udcca Saturation** | Redis is the single most constrained shared resource. It enforces rate limits, caches the model catalog, and tracks trial-user state. When Redis memory approaches its cap, keys are evicted silently \u2014 rate limiting breaks without raising an explicit error. |",
+        "content": "## GatewayZ — AI Inference Gateway\n\n| Signal | SLI Target |\n|--------|------------|\n| ⚡ **Latency** | P50 < 1 s · **P90 < 2 s** · P95 < 3 s |\n| 🚦 **Traffic** | Baseline ± 3× (TrafficSpike alert) |\n| 🚨 **Errors** | < 0.5% error rate — 99.5% availability SLO |\n| 📊 **Saturation** | CPU < 80% · 429 rate < 10% |\n\n**Error Budget**: 0.5% / month · ~21.9 min allowed downtime  \n_Reliability: SLI/SLO-driven · Error budget burn alerting · Multi-layer detection (Metrics · Logs · Traces · Anomaly) · Recovery tracking (MTTR · restart velocity)_",
         "mode": "markdown"
       },
       "pluginVersion": "11.5.2",
@@ -72,7 +72,7 @@
       },
       "id": 10,
       "panels": [],
-      "title": "\u26a1  Pillar I \u2014 Latency (The Speed Pillar)  |  Successful Requests vs HTTP 5xx \u2014 P50 / P95 / P99 only, no averages",
+      "title": "⚡  Pillar I — Latency",
       "type": "row"
     },
     {
@@ -109,7 +109,7 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
+        "w": 4,
         "x": 0,
         "y": 7
       },
@@ -138,7 +138,7 @@
           "refId": "A"
         }
       ],
-      "title": "P50 Latency \u2014 Successful",
+      "title": "P50",
       "type": "stat"
     },
     {
@@ -175,8 +175,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
-        "x": 6,
+        "w": 4,
+        "x": 4,
         "y": 7
       },
       "id": 12,
@@ -204,7 +204,7 @@
           "refId": "A"
         }
       ],
-      "title": "P95 Latency \u2014 Successful",
+      "title": "P95",
       "type": "stat"
     },
     {
@@ -241,8 +241,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
-        "x": 12,
+        "w": 4,
+        "x": 8,
         "y": 7
       },
       "id": 13,
@@ -270,7 +270,7 @@
           "refId": "A"
         }
       ],
-      "title": "P99 Latency \u2014 Successful (Tail)",
+      "title": "P99",
       "type": "stat"
     },
     {
@@ -308,8 +308,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
-        "x": 18,
+        "w": 4,
+        "x": 12,
         "y": 7
       },
       "id": 14,
@@ -337,8 +337,141 @@
           "refId": "A"
         }
       ],
-      "title": "P95 Latency \u2014 HTTP 5xx (Poison Check)",
-      "description": "P95 of only failed (5xx) requests. A low value here means errors are failing fast (good). A high value means errors are also slow \u2014 double punishment for your users.",
+      "title": "P95 (5xx)",
+      "description": "P95 of only failed (5xx) requests. A low value here means errors are failing fast (good). A high value means errors are also slow — double punishment for your users.",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.8
+              },
+              {
+                "color": "red",
+                "value": 2.0
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 7
+      },
+      "id": 126,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.90, sum(rate(fastapi_requests_duration_seconds_bucket{status_code!~\"5..\"}[5m])) by (le))",
+          "legendFormat": "P50 (success)",
+          "refId": "A"
+        }
+      ],
+      "title": "P90",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 95.0
+              },
+              {
+                "color": "green",
+                "value": 99.0
+              }
+            ]
+          },
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 7
+      },
+      "id": 127,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "expr": "sum(rate(fastapi_requests_duration_seconds_bucket{status_code!~\"5..\", le=\"2.0\"}[5m])) / clamp_min(sum(rate(fastapi_requests_duration_seconds_bucket{status_code!~\"5..\", le=\"+Inf\"}[5m])), 0.001) * 100",
+          "legendFormat": "P50 (success)",
+          "refId": "A"
+        }
+      ],
+      "title": "SLI < 2s %",
       "type": "stat"
     },
     {
@@ -394,6 +527,10 @@
               {
                 "color": "rgba(255, 152, 0, 0.1)",
                 "value": 2.0
+              },
+              {
+                "color": "rgba(255, 80, 0, 0.08)",
+                "value": 3.0
               }
             ]
           },
@@ -403,7 +540,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "P50 \u2014 Success"
+              "options": "P50 — Success"
             },
             "properties": [
               {
@@ -422,7 +559,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "P95 \u2014 Success"
+              "options": "P95 — Success"
             },
             "properties": [
               {
@@ -441,7 +578,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "P99 \u2014 Success (Tail)"
+              "options": "P99 — Success (Tail)"
             },
             "properties": [
               {
@@ -460,7 +597,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "P95 \u2014 HTTP 5xx (Poison)"
+              "options": "P95 — HTTP 5xx (Poison)"
             },
             "properties": [
               {
@@ -515,27 +652,32 @@
       "targets": [
         {
           "expr": "histogram_quantile(0.50, sum(rate(fastapi_requests_duration_seconds_bucket{status_code!~\"5..\"}[5m])) by (le))",
-          "legendFormat": "P50 \u2014 Success",
+          "legendFormat": "P50 — Success",
           "refId": "A"
         },
         {
+          "refId": "E",
+          "expr": "histogram_quantile(0.90, sum(rate(fastapi_requests_duration_seconds_bucket{status_code!~\"5..\"}[5m])) by (le))",
+          "legendFormat": "P90 — Success"
+        },
+        {
           "expr": "histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket{status_code!~\"5..\"}[5m])) by (le))",
-          "legendFormat": "P95 \u2014 Success",
+          "legendFormat": "P95 — Success",
           "refId": "B"
         },
         {
           "expr": "histogram_quantile(0.99, sum(rate(fastapi_requests_duration_seconds_bucket{status_code!~\"5..\"}[5m])) by (le))",
-          "legendFormat": "P99 \u2014 Success (Tail)",
+          "legendFormat": "P99 — Success (Tail)",
           "refId": "C"
         },
         {
           "expr": "histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket{status_code=~\"5..\"}[5m])) by (le))",
-          "legendFormat": "P95 \u2014 HTTP 5xx (Poison)",
+          "legendFormat": "P95 — HTTP 5xx (Poison)",
           "refId": "D"
         }
       ],
-      "title": "Latency Percentiles Over Time \u2014 Success vs 5xx Errors",
-      "description": "Dashed red line shows the P95 of failed (5xx) requests. If this line spikes independently of the success lines, errors are triggering immediately and poisoning your overall latency average \u2014 exactly why we never trust the mean.",
+      "title": "Latency Percentiles Over Time — P50 · P90 · P95 · P99",
+      "description": "Dashed red line shows the P95 of failed (5xx) requests. If this line spikes independently of the success lines, errors are triggering immediately and poisoning your overall latency average — exactly why we never trust the mean.",
       "type": "timeseries"
     },
     {
@@ -548,7 +690,7 @@
       },
       "id": 20,
       "panels": [],
-      "title": "\ud83d\udea6  Pillar II \u2014 Traffic (The Demand Pillar)  |  Distinguishes capacity problems from code problems",
+      "title": "🚦  Pillar II — Traffic",
       "type": "row"
     },
     {
@@ -614,7 +756,7 @@
           "refId": "A"
         }
       ],
-      "title": "HTTP Request Rate (RPS)",
+      "title": "RPS",
       "description": "Total inbound requests per second across all endpoints and HTTP methods.",
       "type": "stat"
     },
@@ -673,7 +815,7 @@
           "refId": "A"
         }
       ],
-      "title": "Total Requests (last 5 min)",
+      "title": "Requests (5m)",
       "description": "Absolute count of requests received in the last 5-minute window. Use alongside RPS for traffic shape analysis.",
       "type": "stat"
     },
@@ -740,8 +882,8 @@
           "refId": "A"
         }
       ],
-      "title": "Successful Request Rate (RPS)",
-      "description": "RPS for only non-5xx responses. Compare with total RPS \u2014 a large gap means errors are eating into real capacity.",
+      "title": "Success RPS",
+      "description": "RPS for only non-5xx responses. Compare with total RPS — a large gap means errors are eating into real capacity.",
       "type": "stat"
     },
     {
@@ -808,7 +950,7 @@
           "refId": "A"
         }
       ],
-      "title": "Inbound Bandwidth (bytes/sec)",
+      "title": "Bandwidth In",
       "description": "Data volume flowing into the service per second. Critical for data-heavy workloads (LLM token streams). Requires request_size instrumentation to be enabled on the backend.",
       "type": "stat"
     },
@@ -1046,7 +1188,7 @@
           "refId": "B"
         }
       ],
-      "title": "Bandwidth \u2014 Inbound & Outbound (bytes/sec)",
+      "title": "Bandwidth — Inbound & Outbound (bytes/sec)",
       "description": "Critical for LLM token streaming workloads. Shows if you are approaching network saturation. Will read 0 if request/response size instrumentation is not enabled on the FastAPI backend.",
       "type": "timeseries"
     },
@@ -1060,7 +1202,7 @@
       },
       "id": 30,
       "panels": [],
-      "title": "\ud83d\udea8  Pillar III \u2014 Errors (The Correctness Pillar)  |  Explicit (5xx) \u00b7 Implicit (wrong body) \u00b7 Policy (SLO breach)",
+      "title": "🚨  Pillar III — Errors",
       "type": "row"
     },
     {
@@ -1128,7 +1270,7 @@
           "refId": "A"
         }
       ],
-      "title": "Overall Error Rate %  (Errors / Total Traffic)",
+      "title": "Error Rate %",
       "description": "The primary SRE correctness signal. Green < 1%, Yellow 1-5%, Red > 5%. This is the 'rate' in your error budget burn.",
       "type": "stat"
     },
@@ -1195,7 +1337,7 @@
           "refId": "A"
         }
       ],
-      "title": "Explicit Errors \u2014 HTTP 5xx Rate/sec",
+      "title": "5xx Rate/s",
       "description": "Server-side failures: connection timeouts, unhandled exceptions, upstream provider failures. These are your loudest, most actionable errors.",
       "type": "stat"
     },
@@ -1264,7 +1406,7 @@
           "refId": "A"
         }
       ],
-      "title": "Policy Violations % \u2014 SLO Breach (> 2s)",
+      "title": "SLO Breach %",
       "description": "Requests that completed successfully (200 OK) but exceeded the 2-second SLO threshold. A 10-second '200 OK' is still a functional failure from the user's perspective.",
       "type": "stat"
     },
@@ -1331,7 +1473,7 @@
           "refId": "A"
         }
       ],
-      "title": "Client Errors \u2014 HTTP 4xx Rate/sec",
+      "title": "4xx Rate/s",
       "description": "Client-initiated errors (auth failures, bad input, rate limiting). High 4xx rate can indicate abuse, broken clients, or API contract changes.",
       "type": "stat"
     },
@@ -1482,8 +1624,8 @@
           "refId": "C"
         }
       ],
-      "title": "Error Rate by Type \u2014 Explicit \u00b7 Policy Breach \u00b7 Client",
-      "description": "Three error categories: Explicit (server failures), Policy (slow 200s violating SLO), Client (bad requests). Separating these avoids alert fatigue \u2014 4xx spikes are usually abuse, not outages.",
+      "title": "Error Rate by Type — Explicit · Policy Breach · Client",
+      "description": "Three error categories: Explicit (server failures), Policy (slow 200s violating SLO), Client (bad requests). Separating these avoids alert fatigue — 4xx spikes are usually abuse, not outages.",
       "type": "timeseries"
     },
     {
@@ -1573,6 +1715,531 @@
     },
     {
       "collapsed": false,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 48
+      },
+      "id": 119,
+      "panels": [],
+      "title": "🔍  Error Detection — Multi-Layered",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_mimir"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.1
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "ops",
+          "mappings": [],
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 49
+      },
+      "id": 120,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_mimir"
+          },
+          "expr": "sum(rate(fastapi_exceptions_total[5m])) or vector(0)",
+          "legendFormat": "Exceptions/s",
+          "refId": "A"
+        }
+      ],
+      "title": "Exceptions/s",
+      "description": "Rate of unhandled exceptions reported via the FastAPI prometheus instrumentation. The first detection layer. Any non-zero value indicates application-level errors.",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "grafana_loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "ops",
+          "mappings": [],
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 49
+      },
+      "id": 121,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafana_loki"
+          },
+          "expr": "sum(rate({job=~\".*gatewayz.*\"} |= \"ERROR\" [5m]))",
+          "legendFormat": "Log Errors/s",
+          "refId": "A"
+        }
+      ],
+      "title": "Log ERRORs/s",
+      "description": "Rate of log lines containing 'ERROR' from the GatewayZ application logs via Loki. Captures stack traces, exception messages, and unstructured error events. Complements metric-based detection.",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_mimir"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.05
+              },
+              {
+                "color": "red",
+                "value": 0.5
+              }
+            ]
+          },
+          "unit": "ops",
+          "mappings": [],
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 49
+      },
+      "id": 122,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_mimir"
+          },
+          "expr": "sum(rate(traces_service_graph_request_failed_total[$__rate_interval])) or vector(0)",
+          "legendFormat": "Failed Spans/s",
+          "refId": "A"
+        }
+      ],
+      "title": "Trace Fails/s",
+      "description": "Rate of failed spans from Tempo's service graph (downstream dependency failures). Detects errors in external calls — provider APIs, DB, cache — that may not surface in application metrics.",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_mimir"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 2
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 1,
+          "noValue": "1×",
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 49
+      },
+      "id": 123,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_mimir"
+          },
+          "expr": "(\n  errors:rate:percentage\n  /\n  clamp_min(errors:rate:percentage:1h_avg, 0.001)\n) or vector(1)",
+          "legendFormat": "vs 1h baseline",
+          "refId": "A"
+        }
+      ],
+      "title": "Error Anomaly (× base)",
+      "description": "Current error rate as a multiple of the 1h baseline. 1x = normal. 2x = double normal error rate. 5x+ = anomaly. Detects spikes that are statistically abnormal even when absolute error rate is low.",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Mixed --"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 8,
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 14,
+        "x": 0,
+        "y": 53
+      },
+      "id": 124,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_mimir"
+          },
+          "expr": "sum(rate(fastapi_requests_total{status_code=~\"5..\"}[5m])) or vector(0)",
+          "legendFormat": "📊 Metrics — 5xx/s",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_mimir"
+          },
+          "expr": "sum(rate(fastapi_exceptions_total[5m])) or vector(0)",
+          "legendFormat": "📊 Metrics — Exceptions/s",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafana_loki"
+          },
+          "expr": "sum(rate({job=~\".*gatewayz.*\"} |= \"ERROR\" [5m]))",
+          "legendFormat": "📜 Logs — ERROR/s",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_mimir"
+          },
+          "expr": "sum(rate(traces_service_graph_request_failed_total[$__rate_interval])) or vector(0)",
+          "legendFormat": "🧵 Traces — Failed Spans/s",
+          "refId": "D"
+        }
+      ],
+      "title": "Multi-Layer Error Signal Correlation  |  Metrics · Logs · Traces",
+      "description": "Overlays error signals from all three observable layers on a single timeline. Signal correlation (two or more layers spiking together) confirms a real error event and speeds up root-cause triage. A spike on Traces but not Metrics = downstream dependency. A spike on Logs but not Metrics = unhandled exception without HTTP error code.",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_mimir"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 8,
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          },
+          "unit": "percentunit",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 0.01
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 10,
+        "x": 14,
+        "y": 53
+      },
+      "id": 125,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_mimir"
+          },
+          "expr": "errors:rate:percentage or vector(0)",
+          "legendFormat": "Current Error Rate %",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_mimir"
+          },
+          "expr": "errors:rate:percentage:1h_avg or vector(0)",
+          "legendFormat": "1h Baseline",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_mimir"
+          },
+          "expr": "errors:rate:percentage:24h_avg or vector(0)",
+          "legendFormat": "24h Baseline",
+          "refId": "C"
+        }
+      ],
+      "title": "Data-Level Anomaly — Error Rate vs Baseline",
+      "description": "Current error rate (%) against 1h and 24h rolling baselines computed by recording rules. A current line rising above both baselines indicates a statistically abnormal error event even if the absolute value appears small. Early detection at low absolute error rates is critical for maintaining the 99.5% SLO.",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1581,7 +2248,7 @@
       },
       "id": 50,
       "panels": [],
-      "title": "\ud83d\uddfa\ufe0f  Service Graph & Topology \u2014 Upstream vs Downstream Failure Analysis  |  Powered by Tempo metrics-generator \u2192 Mimir",
+      "title": "🗺️  Service Graph & Topology — Upstream vs Downstream Failure Analysis  |  Powered by Tempo metrics-generator → Mimir",
       "type": "row"
     },
     {
@@ -1602,7 +2269,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "### Service Graph \u2014 what it shows and why the panels may read \"No data\"\n\nThis section reads from `traces_service_graph_*` metrics that Tempo's `metrics_generator` writes to Mimir. **These metrics only exist when Tempo receives a trace that contains spans from at least two different `service.name` values.** GatewayZ is a single-service gateway \u2014 the AI providers it calls (OpenAI, Anthropic, OpenRouter, etc.) are external HTTP endpoints that do not participate in OTel tracing and do not propagate `traceparent` headers back. Every trace Tempo receives therefore has only one `service.name`, so the service-graphs processor has no edges to draw.\n\n**What would make data appear here:** If the backend adds a child span with `peer.service = \"openai\"` (or the provider name) for each outbound call, Tempo will generate `gatewayz-backend \u2192 openai` edges. That is the accurate framing \u2014 not \"Service A vs Service B\" in a microservices sense, but **\"gateway processing time vs provider inference time\"** on a per-request basis.\n\n**Cross-signal navigation (works today):** Click the blue \u25c6 exemplar dot on any latency graph to jump to the exact Tempo trace. In Loki log panels click **\"View Trace\"** next to any `trace_id` to open the Tempo waterfall. In Tempo, click any span \u2192 **\"Related metrics\"** links to Mimir, **\"Related logs\"** links to Loki.",
+        "content": "### Service Graph — what it shows and why the panels may read \"No data\"\n\nThis section reads from `traces_service_graph_*` metrics that Tempo's `metrics_generator` writes to Mimir. **These metrics only exist when Tempo receives a trace that contains spans from at least two different `service.name` values.** GatewayZ is a single-service gateway — the AI providers it calls (OpenAI, Anthropic, OpenRouter, etc.) are external HTTP endpoints that do not participate in OTel tracing and do not propagate `traceparent` headers back. Every trace Tempo receives therefore has only one `service.name`, so the service-graphs processor has no edges to draw.\n\n**What would make data appear here:** If the backend adds a child span with `peer.service = \"openai\"` (or the provider name) for each outbound call, Tempo will generate `gatewayz-backend → openai` edges. That is the accurate framing — not \"Service A vs Service B\" in a microservices sense, but **\"gateway processing time vs provider inference time\"** on a per-request basis.\n\n**Cross-signal navigation (works today):** Click the blue ◆ exemplar dot on any latency graph to jump to the exact Tempo trace. In Loki log panels click **\"View Trace\"** next to any `trace_id` to open the Tempo waterfall. In Tempo, click any span → **\"Related metrics\"** links to Mimir, **\"Related logs\"** links to Loki.",
         "mode": "markdown"
       },
       "pluginVersion": "11.5.2",
@@ -1639,7 +2306,7 @@
         }
       ],
       "title": "Live Service Dependency Map",
-      "description": "Auto-generated from Tempo span data. Node size = request volume. Edge color = error rate (green\u2192yellow\u2192red). Click a node to filter Tempo traces to that service. Requires Tempo metrics_generator service-graphs processor (already enabled).",
+      "description": "Auto-generated from Tempo span data. Node size = request volume. Edge color = error rate (green→yellow→red). Click a node to filter Tempo traces to that service. Requires Tempo metrics_generator service-graphs processor (already enabled).",
       "type": "nodeGraph"
     },
     {
@@ -1724,12 +2391,12 @@
             "uid": "grafana_mimir"
           },
           "expr": "sum by(client, server) (rate(traces_service_graph_request_total[$__rate_interval]))",
-          "legendFormat": "{{client}} \u2192 {{server}}",
+          "legendFormat": "{{client}} → {{server}}",
           "refId": "A"
         }
       ],
       "title": "Service-to-Service Request Rate (RPS)",
-      "description": "Traffic volume on each service edge observed by Tempo. A sudden drop to zero on an edge means that dependency is completely unreachable \u2014 a leading indicator of a cascading failure.",
+      "description": "Traffic volume on each service edge observed by Tempo. A sudden drop to zero on an edge means that dependency is completely unreachable — a leading indicator of a cascading failure.",
       "type": "timeseries"
     },
     {
@@ -1824,7 +2491,7 @@
             "uid": "grafana_mimir"
           },
           "expr": "sum by(client, server) (rate(traces_service_graph_request_failed_total[$__rate_interval])) / sum by(client, server) (rate(traces_service_graph_request_total[$__rate_interval]))",
-          "legendFormat": "{{client}} \u2192 {{server}}",
+          "legendFormat": "{{client}} → {{server}}",
           "refId": "A"
         }
       ],
@@ -1923,7 +2590,7 @@
             "uid": "grafana_mimir"
           },
           "expr": "histogram_quantile(0.95, sum by(client, server, le) (rate(traces_service_graph_request_duration_seconds_bucket[$__rate_interval])))",
-          "legendFormat": "P95 \u00b7 {{client}} \u2192 {{server}}",
+          "legendFormat": "P95 · {{client}} → {{server}}",
           "refId": "A"
         },
         {
@@ -1932,18 +2599,18 @@
             "uid": "grafana_mimir"
           },
           "expr": "histogram_quantile(0.99, sum by(client, server, le) (rate(traces_service_graph_request_duration_seconds_bucket[$__rate_interval])))",
-          "legendFormat": "P99 \u00b7 {{client}} \u2192 {{server}}",
+          "legendFormat": "P99 · {{client}} → {{server}}",
           "refId": "B"
         }
       ],
-      "title": "Cross-Service Latency \u2014 P95 & P99 per Edge",
-      "description": "P95/P99 latency for every client\u2192server pair in the service graph. Separates upstream provider slowness from gateway processing time \u2014 the key to distinguishing capacity problems from code problems.",
+      "title": "Cross-Service Latency — P95 & P99 per Edge",
+      "description": "P95/P99 latency for every client→server pair in the service graph. Separates upstream provider slowness from gateway processing time — the key to distinguishing capacity problems from code problems.",
       "type": "timeseries"
     },
     {
       "id": 60,
       "type": "row",
-      "title": "\ud83c\udfaf  SLO Compliance & Error Budget  |  99.5% Success Rate \u00b7 Error Budget Burn Rate Tracking",
+      "title": "🎯  SLO Compliance & Error Budget  |  99.5% Success Rate · Error Budget Burn Rate Tracking",
       "collapsed": false,
       "gridPos": {
         "h": 1,
@@ -1956,7 +2623,7 @@
     {
       "id": 61,
       "type": "stat",
-      "title": "SLO Compliance \u2014 Success Rate % (window)",
+      "title": "SLO Compliance — Success Rate % (window)",
       "description": "% of requests that returned non-5xx. SLO target: 99.5%. Uses Mimir for long-range queries.",
       "datasource": {
         "type": "prometheus",
@@ -1964,7 +2631,7 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
+        "w": 4,
         "x": 0,
         "y": 110
       },
@@ -2035,8 +2702,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
-        "x": 6,
+        "w": 4,
+        "x": 4,
         "y": 110
       },
       "options": {
@@ -2102,16 +2769,16 @@
     {
       "id": 63,
       "type": "stat",
-      "title": "Burn Rate \u2014 1h  (page if > 14.4\u00d7)",
-      "description": "Error burn rate relative to SLO error budget. >14.4\u00d7 means you'll exhaust the 30-day budget in ~2h. >6\u00d7 means ~5h.",
+      "title": "Burn Rate — 1h  (page if > 14.4×)",
+      "description": "Error burn rate relative to SLO error budget. >14.4× means you'll exhaust the 30-day budget in ~2h. >6× means ~5h.",
       "datasource": {
         "type": "prometheus",
         "uid": "grafana_prometheus"
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
-        "x": 12,
+        "w": 4,
+        "x": 8,
         "y": 110
       },
       "options": {
@@ -2173,16 +2840,16 @@
     {
       "id": 64,
       "type": "stat",
-      "title": "Burn Rate \u2014 6h  (page if > 6\u00d7)",
-      "description": "Slower burn rate. >6\u00d7 sustained for 6h will exhaust the 30-day budget in ~5 days.",
+      "title": "Burn Rate — 6h  (page if > 6×)",
+      "description": "Slower burn rate. >6× sustained for 6h will exhaust the 30-day budget in ~5 days.",
       "datasource": {
         "type": "prometheus",
         "uid": "grafana_prometheus"
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
-        "x": 18,
+        "w": 4,
+        "x": 12,
         "y": 110
       },
       "options": {
@@ -2242,9 +2909,80 @@
       "pluginVersion": "11.5.2"
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_mimir"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "green",
+                "value": 85
+              }
+            ]
+          },
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 110
+      },
+      "id": 113,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_mimir"
+          },
+          "expr": "(\n  sum(rate(cache_hits_total[5m]))\n  /\n  clamp_min(sum(rate(cache_hits_total[5m])) + sum(rate(cache_misses_total[5m])), 1)\n) * 100 or vector(0)",
+          "legendFormat": "Cache Hit %",
+          "refId": "A"
+        }
+      ],
+      "title": "Cache Hit Rate % — Data Integrity Signal",
+      "description": "Low cache hit rate means more DB reads, risking stale or inconsistent data. A sudden drop is a data integrity and performance warning.",
+      "type": "stat"
+    },
+    {
       "id": 65,
       "type": "timeseries",
-      "title": "Error Budget Burn Rate Over Time  (1h \u00b7 6h windows)",
+      "title": "Error Budget Burn Rate Over Time  (1h · 6h windows)",
       "description": "Values above the threshold lines indicate fast error budget consumption. Burn Rate 1 = consuming at exactly SLO-defined pace.",
       "datasource": {
         "type": "prometheus",
@@ -2288,7 +3026,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Page Threshold (14.4\u00d7)"
+              "options": "Page Threshold (14.4×)"
             },
             "properties": [
               {
@@ -2317,7 +3055,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Ticket Threshold (6\u00d7)"
+              "options": "Ticket Threshold (6×)"
             },
             "properties": [
               {
@@ -2400,7 +3138,7 @@
             "uid": "grafana_prometheus"
           },
           "expr": "vector(14.4)",
-          "legendFormat": "Page Threshold (14.4\u00d7)",
+          "legendFormat": "Page Threshold (14.4×)",
           "refId": "C"
         },
         {
@@ -2409,16 +3147,30 @@
             "uid": "grafana_prometheus"
           },
           "expr": "vector(6)",
-          "legendFormat": "Ticket Threshold (6\u00d7)",
+          "legendFormat": "Ticket Threshold (6×)",
           "refId": "D"
         }
       ],
       "pluginVersion": "11.5.2"
     },
     {
+      "collapsed": false,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 64
+      },
+      "id": 110,
+      "panels": [],
+      "title": "📊  Pillar IV — Saturation",
+      "type": "row"
+    },
+    {
       "id": 74,
       "type": "gauge",
-      "title": "CPU Usage % (5m avg)",
+      "title": "CPU %",
       "description": "FastAPI/uvicorn CPU usage. Sustained >80% causes event loop lag and tail latency blowup.",
       "datasource": {
         "type": "prometheus",
@@ -2426,7 +3178,7 @@
       },
       "gridPos": {
         "h": 7,
-        "w": 6,
+        "w": 4,
         "x": 0,
         "y": 65
       },
@@ -2493,7 +3245,7 @@
     {
       "id": 75,
       "type": "gauge",
-      "title": "In-Flight Requests (Active)",
+      "title": "In-Flight",
       "description": "Requests currently being processed. Sustained high values indicate back-pressure or slow providers.",
       "datasource": {
         "type": "prometheus",
@@ -2501,8 +3253,8 @@
       },
       "gridPos": {
         "h": 7,
-        "w": 6,
-        "x": 6,
+        "w": 4,
+        "x": 4,
         "y": 65
       },
       "options": {
@@ -2568,7 +3320,7 @@
     {
       "id": 76,
       "type": "gauge",
-      "title": "Open File Descriptors %",
+      "title": "File Descriptors %",
       "description": "File descriptor exhaustion causes 'too many open files' errors and connection failures. >90% = imminent danger.",
       "datasource": {
         "type": "prometheus",
@@ -2576,8 +3328,8 @@
       },
       "gridPos": {
         "h": 7,
-        "w": 6,
-        "x": 12,
+        "w": 4,
+        "x": 8,
         "y": 65
       },
       "options": {
@@ -2643,16 +3395,16 @@
     {
       "id": 77,
       "type": "stat",
-      "title": "Process Uptime (restarts = drop to 0)",
-      "description": "Time since last process start. A sudden drop to 0 indicates a crash/restart. Track alongside OOM kills and crash loops.",
+      "title": "Uptime",
+      "description": "Continuous uptime since last restart. A drop to zero followed by recovery shows an unplanned restart event. Primary MTTR proxy.",
       "datasource": {
         "type": "prometheus",
         "uid": "grafana_prometheus"
       },
       "gridPos": {
         "h": 7,
-        "w": 6,
-        "x": 18,
+        "w": 4,
+        "x": 12,
         "y": 65
       },
       "options": {
@@ -2712,13 +3464,151 @@
       "pluginVersion": "11.5.2"
     },
     {
-      "id": 78,
-      "type": "timeseries",
-      "title": "CPU & Memory Saturation Over Time",
-      "description": "CPU throttling and memory pressure both degrade tail latency. Watch for RSS growth (memory leak).",
       "datasource": {
         "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "uid": "grafana_mimir"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 15
+              }
+            ]
+          },
+          "unit": "percent",
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 4,
+        "x": 16,
+        "y": 65
+      },
+      "id": 111,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_mimir"
+          },
+          "expr": "sum(rate(fastapi_requests_total{status_code=\"429\"}[5m])) / sum(rate(fastapi_requests_total[5m])) * 100 or vector(0)",
+          "legendFormat": "Rate-Limited %",
+          "refId": "A"
+        }
+      ],
+      "title": "Rate Limit %",
+      "description": "% of requests being rate-limited. >10% indicates capacity pressure or abuse pattern. Both a saturation and security signal.",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_mimir"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "reqps",
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 4,
+        "x": 20,
+        "y": 65
+      },
+      "id": 112,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_mimir"
+          },
+          "expr": "sum(rate(fastapi_requests_total{status_code=~\"401|403\"}[5m])) or vector(0)",
+          "legendFormat": "Auth Failures/s",
+          "refId": "A"
+        }
+      ],
+      "title": "Auth Failures/s",
+      "description": "Auth failure rate per second. A spike indicates credential stuffing, key compromise, or misconfigured clients. Security reliability requirement.",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "uid": "grafana_pyroscope",
+        "type": "grafana-pyroscope-datasource"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
       },
       "gridPos": {
         "h": 9,
@@ -2726,95 +3616,67 @@
         "x": 0,
         "y": 72
       },
+      "id": 128,
       "options": {
-        "legend": {
-          "calcs": [
-            "last",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
+        "collapseConfig": false,
+        "disableCollapsing": false,
+        "disableFocusOnClick": false,
+        "disableTooltip": false,
+        "extraColors": false,
+        "keepDisplayedInTree": false,
+        "nameLocation": "topLeft"
+      },
+      "title": "🔥  CPU Flamegraph — What’s Hot Right Now",
+      "description": "Live CPU flamegraph for the current time window. Immediately shows which function/call-stack is consuming the most CPU. Use this the moment a saturation stat turns red.",
+      "type": "flamegraph",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "uid": "grafana_pyroscope",
+            "type": "grafana-pyroscope-datasource"
+          },
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "labelSelector": "{service_name=\"gatewayz-backend\",provider=~\"$provider\",model=~\"$model\"}",
+          "queryType": "profile"
         }
+      ]
+    },
+    {
+      "datasource": {
+        "uid": "grafana_pyroscope",
+        "type": "grafana-pyroscope-datasource"
       },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "custom": {
-            "drawStyle": "line",
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "fillOpacity": 8,
-            "gradientMode": "opacity",
-            "showPoints": "never",
-            "spanNulls": true
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Memory RSS (bytes)"
-            },
-            "properties": [
+          "displayName": "${__field.labels.endpoint}",
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
               {
-                "id": "unit",
-                "value": "bytes"
+                "color": "green",
+                "value": null
               },
               {
-                "id": "custom.axisPlacement",
-                "value": "right"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "CPU % (5m)"
-            },
-            "properties": [
+                "color": "yellow",
+                "value": 60
+              },
               {
-                "id": "unit",
-                "value": "percent"
+                "color": "orange",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 95
               }
             ]
+          },
+          "color": {
+            "mode": "thresholds"
           }
-        ]
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "rate(process_cpu_seconds_total{job=\"gatewayz_production\"}[5m]) * 100",
-          "legendFormat": "CPU % (5m)",
-          "refId": "A"
         },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "process_resident_memory_bytes{job=\"gatewayz_production\"}",
-          "legendFormat": "Memory RSS (bytes)",
-          "refId": "B"
-        }
-      ],
-      "pluginVersion": "11.5.2"
-    },
-    {
-      "id": 79,
-      "type": "timeseries",
-      "title": "In-Flight Requests & File Descriptors Over Time",
-      "description": "Correlated view: rising in-flight requests cause rising FD usage (socket connections). If FDs hit max, new connections fail.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "grafana_prometheus"
+        "overrides": []
       },
       "gridPos": {
         "h": 9,
@@ -2822,96 +3684,42 @@
         "x": 12,
         "y": 72
       },
+      "id": 129,
       "options": {
-        "legend": {
+        "orientation": "horizontal",
+        "reduceOptions": {
           "calcs": [
-            "last",
-            "max"
+            "sum"
           ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
+          "fields": "",
+          "values": false
         },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
+        "displayMode": "gradient",
+        "valueMode": "color",
+        "showUnfilled": true,
+        "minVizWidth": 0,
+        "minVizHeight": 16,
+        "namePlacement": "auto",
+        "text": {}
       },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "custom": {
-            "drawStyle": "line",
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "fillOpacity": 8,
-            "gradientMode": "opacity",
-            "showPoints": "never",
-            "spanNulls": true
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Max FDs"
-            },
-            "properties": [
-              {
-                "id": "custom.lineStyle",
-                "value": {
-                  "fill": "dash",
-                  "dash": [
-                    6,
-                    4
-                  ]
-                }
-              },
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "red",
-                  "mode": "fixed"
-                }
-              },
-              {
-                "id": "custom.lineWidth",
-                "value": 1
-              }
-            ]
-          }
-        ]
-      },
+      "title": "📊  CPU Load by Endpoint — Saturation Source",
+      "description": "Which API endpoint is responsible for the saturation? High CPU share on one endpoint points directly to the traffic causing the pressure. Cross-reference with the RPS stat above.",
+      "type": "bargauge",
       "targets": [
         {
+          "refId": "A",
           "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
+            "uid": "grafana_pyroscope",
+            "type": "grafana-pyroscope-datasource"
           },
-          "expr": "sum(fastapi_requests_in_progress)",
-          "legendFormat": "In-Flight Requests",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "process_open_fds{job=\"gatewayz_production\"}",
-          "legendFormat": "Open FDs",
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "grafana_prometheus"
-          },
-          "expr": "process_max_fds{job=\"gatewayz_production\"}",
-          "legendFormat": "Max FDs",
-          "refId": "C"
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "labelSelector": "{service_name=\"gatewayz-backend\"}",
+          "groupBy": [
+            "endpoint"
+          ],
+          "queryType": "metrics"
         }
-      ],
-      "pluginVersion": "11.5.2"
+      ]
     },
     {
       "collapsed": true,
@@ -2928,7 +3736,7 @@
             "type": "prometheus",
             "uid": "grafana_mimir"
           },
-          "description": "Tenants whose 5-min error rate exceeds 0.5% \u2014 the SLO error-budget boundary.",
+          "description": "Tenants whose 5-min error rate exceeds 0.5% — the SLO error-budget boundary.",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -3208,7 +4016,7 @@
             "type": "prometheus",
             "uid": "grafana_mimir"
           },
-          "description": "Each row = one tenant.  Colour = error rate: green < 0.5%  |  yellow 0.5\u20131%  |  orange 1\u20135%  |  red > 5%.  A sustained red/orange band = active SLO breach.  Pinpoints which tenant is affected and exactly when it started \u2014 no other dashboard needed for initial incident triage.",
+          "description": "Each row = one tenant.  Colour = error rate: green < 0.5%  |  yellow 0.5–1%  |  orange 1–5%  |  red > 5%.  A sustained red/orange band = active SLO breach.  Pinpoints which tenant is affected and exactly when it started — no other dashboard needed for initial incident triage.",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -3286,11 +4094,11 @@
               "refId": "A"
             }
           ],
-          "title": "\ud83d\uddfa\ufe0f  SLO Status by Tenant \u2014 Error Rate % Over Time  (red band = active breach)",
+          "title": "🗺️  SLO Status by Tenant — Error Rate % Over Time  (red band = active breach)",
           "type": "state-timeline"
         }
       ],
-      "title": "\ud83d\udce1  Tenant Breach Detection  |  Multi-Tenant SLO Health  (expand for state timeline)",
+      "title": "📡  Tenant Breach Detection  |  Multi-Tenant SLO Health  (expand for state timeline)",
       "type": "row"
     },
     {
@@ -3298,7 +4106,7 @@
         "type": "prometheus",
         "uid": "grafana_mimir"
       },
-      "description": "Tenants whose 5-min error rate exceeds 0.5% \u2014 the SLO error-budget boundary.",
+      "description": "Tenants whose 5-min error rate exceeds 0.5% — the SLO error-budget boundary.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -3578,7 +4386,7 @@
         "type": "prometheus",
         "uid": "grafana_mimir"
       },
-      "description": "Each row = one tenant.  Colour = error rate: green < 0.5%  |  yellow 0.5\u20131%  |  orange 1\u20135%  |  red > 5%.  A sustained red/orange band = active SLO breach.  Pinpoints which tenant is affected and exactly when it started \u2014 no other dashboard needed for initial incident triage.",
+      "description": "Each row = one tenant.  Colour = error rate: green < 0.5%  |  yellow 0.5–1%  |  orange 1–5%  |  red > 5%.  A sustained red/orange band = active SLO breach.  Pinpoints which tenant is affected and exactly when it started — no other dashboard needed for initial incident triage.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -3656,8 +4464,376 @@
           "refId": "A"
         }
       ],
-      "title": "\ud83d\uddfa\ufe0f  SLO Status by Tenant \u2014 Error Rate % Over Time  (red band = active breach)",
+      "title": "🗺️  SLO Status by Tenant — Error Rate % Over Time  (red band = active breach)",
       "type": "state-timeline"
+    },
+    {
+      "collapsed": false,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 140
+      },
+      "id": 114,
+      "panels": [],
+      "title": "🔄  Recovery & Resilience  |  Restart Velocity · MTTR Proxy · Error Budget Velocity",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_mimir"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          },
+          "unit": "short",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "Stable",
+                  "color": "green",
+                  "index": 0
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 141
+      },
+      "id": 115,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_mimir"
+          },
+          "expr": "changes(process_start_time_seconds{job=\"gatewayz_production\"}[1h]) or vector(0)",
+          "legendFormat": "Restarts (1h)",
+          "refId": "A"
+        }
+      ],
+      "title": "Process Restarts (last 1h)",
+      "description": "0 = Stable. Non-zero = unplanned restart occurred. Repeated restarts signal an unresolved root cause requiring investigation.",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_mimir"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 300
+              },
+              {
+                "color": "green",
+                "value": 3600
+              }
+            ]
+          },
+          "unit": "s",
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 141
+      },
+      "id": 116,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_mimir"
+          },
+          "expr": "time() - max(process_start_time_seconds{job=\"gatewayz_production\"})",
+          "legendFormat": "Uptime (s)",
+          "refId": "A"
+        }
+      ],
+      "title": "Time Since Last Restart (MTTR Proxy)",
+      "description": "Green = stable > 1h. Low value just after an incident confirms recovery has started. The rate of increase shows recovery velocity.",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_mimir"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 146
+      },
+      "id": 117,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_mimir"
+          },
+          "expr": "changes(process_start_time_seconds{job=\"gatewayz_production\"}[5m]) or vector(0)",
+          "legendFormat": "Restart Events (5m)",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_mimir"
+          },
+          "expr": "(time() - max(process_start_time_seconds{job=\"gatewayz_production\"})) / 60",
+          "legendFormat": "Uptime (minutes)",
+          "refId": "B"
+        }
+      ],
+      "title": "Recovery Velocity — Restart History & Uptime Over Time",
+      "description": "Spikes in restart events mark incidents. Rising uptime after a spike shows recovery. Flat, rising uptime = stable system.",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_mimir"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "line+area"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 14.4
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 146
+      },
+      "id": 118,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_mimir"
+          },
+          "expr": "sum(rate(fastapi_requests_total{status_code=~\"5..\"}[5m])) / sum(rate(fastapi_requests_total[5m])) / 0.005 or vector(0)",
+          "legendFormat": "Burn Rate (5m)",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_mimir"
+          },
+          "expr": "vector(14.4)",
+          "legendFormat": "Page threshold (14.4x)",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_mimir"
+          },
+          "expr": "vector(1)",
+          "legendFormat": "Normal (1x)",
+          "refId": "C"
+        }
+      ],
+      "title": "Error Budget Velocity — Burn Rate (Recovery Context)",
+      "description": "During recovery, burn rate should fall back toward 1x. Above 14.4x = critical SLO burn; still in incident.",
+      "type": "timeseries"
     },
     {
       "collapsed": false,
@@ -3665,11 +4841,11 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 140
+        "y": 154
       },
       "id": 100,
       "panels": [],
-      "title": "\ud83d\udcca  Pillar IV \u2014 Continuous Profiling (Pyroscope)  |  Root-Cause Layer",
+      "title": "📊  Supplementary — Continuous Profiling (Pyroscope)  |  Root-Cause Analysis",
       "type": "row"
     },
     {
@@ -3681,7 +4857,7 @@
         "h": 4,
         "w": 24,
         "x": 0,
-        "y": 141
+        "y": 155
       },
       "id": 101,
       "options": {
@@ -3690,7 +4866,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "## \ud83d\udd2c  Pyroscope \u2014 Continuous CPU Profiling\n\nThis section ties the profiling layer directly to each of the four golden signal pillars above.\n\n| Golden Signal | What Pyroscope answers |\n|---|---|\n| **\u26a1 Latency** | *Which Python functions are burning CPU during slow requests?* Flamegraph filtered by `endpoint` reveals the hot path \u2014 provider HTTP call? token chunking? Redis rate-limit? |\n| **\ud83d\udea6 Traffic** | *Which endpoints / providers drive the most CPU load as RPS climbs?* The `CPU by Endpoint` bar chart correlates directly with the Traffic RPS panel above. |\n| **\ud83d\udea8 Errors** | *When the error rate spikes, is it a hot retry loop?* A sudden CPU spike correlated with an error spike means the gateway is hammering a failing provider. |\n| **\ud83d\udcca Saturation** | *What is consuming process CPU heading into saturation?* The full flamegraph shows the exact stack frames. Use `$provider` and `$model` dropdowns to isolate. |\n\nSampling rate: **100 Hz** (every 10 ms). Flush interval: **15 s**. Tags: `service_name`, `environment`, `endpoint`, `method`, `provider`, `model`.",
+        "content": "## 🔬  Pyroscope — Continuous CPU Profiling\n\nThis section ties the profiling layer directly to each of the four golden signal pillars above.\n\n| Golden Signal | What Pyroscope answers |\n|---|---|\n| **⚡ Latency** | *Which Python functions are burning CPU during slow requests?* Flamegraph filtered by `endpoint` reveals the hot path — provider HTTP call? token chunking? Redis rate-limit? |\n| **🚦 Traffic** | *Which endpoints / providers drive the most CPU load as RPS climbs?* The `CPU by Endpoint` bar chart correlates directly with the Traffic RPS panel above. |\n| **🚨 Errors** | *When the error rate spikes, is it a hot retry loop?* A sudden CPU spike correlated with an error spike means the gateway is hammering a failing provider. |\n| **📊 Saturation** | *What is consuming process CPU heading into saturation?* The full flamegraph shows the exact stack frames. Use `$provider` and `$model` dropdowns to isolate. |\n\nSampling rate: **100 Hz** (every 10 ms). Flush interval: **15 s**. Tags: `service_name`, `environment`, `endpoint`, `method`, `provider`, `model`.",
         "mode": "markdown"
       },
       "pluginVersion": "11.5.2",
@@ -3711,7 +4887,7 @@
         "h": 18,
         "w": 24,
         "x": 0,
-        "y": 145
+        "y": 159
       },
       "id": 102,
       "options": {
@@ -3723,7 +4899,7 @@
         "keepDisplayedInTree": false,
         "nameLocation": "topLeft"
       },
-      "title": "\ud83d\udd25  CPU Flamegraph \u2014 Full Process (All Pillars)  |  service_name=gatewayz-backend",
+      "title": "🔥  CPU Flamegraph — Full Process (All Pillars)  |  service_name=gatewayz-backend",
       "description": "Process-wide flamegraph for the selected time window. Combines samples from every request. Use this to answer: what function is consuming the most CPU right now? This is the single most powerful root-cause tool for all four golden signal pillars.",
       "type": "flamegraph",
       "targets": [
@@ -3745,11 +4921,11 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 163
+        "y": 177
       },
       "id": 103,
       "panels": [],
-      "title": "\ud83d\udcca  CPU Load by Pillar Dimension  |  Endpoint (Traffic) \u00b7 Provider (Latency) \u00b7 Model (Saturation)",
+      "title": "📊  CPU Load by Pillar Dimension  |  Endpoint (Traffic) · Provider (Latency) · Model (Saturation)",
       "type": "row"
     },
     {
@@ -3792,7 +4968,7 @@
         "h": 10,
         "w": 8,
         "x": 0,
-        "y": 164
+        "y": 178
       },
       "id": 104,
       "options": {
@@ -3812,8 +4988,8 @@
         "namePlacement": "auto",
         "text": {}
       },
-      "title": "\ud83d\udea6  Traffic \u2192 CPU by Endpoint  (top endpoints driving load)",
-      "description": "Pyroscope CPU samples accumulated per endpoint. Directly correlates with the Traffic RPS panel \u2014 high RPS on an endpoint means high CPU here. An endpoint with disproportionate CPU vs RPS is inefficient.",
+      "title": "🚦  Traffic → CPU by Endpoint  (top endpoints driving load)",
+      "description": "Pyroscope CPU samples accumulated per endpoint. Directly correlates with the Traffic RPS panel — high RPS on an endpoint means high CPU here. An endpoint with disproportionate CPU vs RPS is inefficient.",
       "type": "bargauge",
       "targets": [
         {
@@ -3871,7 +5047,7 @@
         "h": 10,
         "w": 8,
         "x": 8,
-        "y": 164
+        "y": 178
       },
       "id": 105,
       "options": {
@@ -3891,7 +5067,7 @@
         "namePlacement": "auto",
         "text": {}
       },
-      "title": "\u26a1  Latency \u2192 CPU by Provider  (which providers cost the most CPU?)",
+      "title": "⚡  Latency → CPU by Provider  (which providers cost the most CPU?)",
       "description": "CPU samples per upstream provider. A provider with high CPU samples that also has high P99 latency (see Latency pillar) is the root cause. Cross-reference with the P99 latency panel above.",
       "type": "bargauge",
       "targets": [
@@ -3950,7 +5126,7 @@
         "h": 10,
         "w": 8,
         "x": 16,
-        "y": 164
+        "y": 178
       },
       "id": 106,
       "options": {
@@ -3970,7 +5146,7 @@
         "namePlacement": "auto",
         "text": {}
       },
-      "title": "\ud83d\udcca  Saturation \u2192 CPU by Model  (which models saturate the process?)",
+      "title": "📊  Saturation → CPU by Model  (which models saturate the process?)",
       "description": "CPU samples per model. When process CPU is high (Saturation pillar), this panel identifies whether it is one model type dominating. Useful for detecting runaway streaming requests for large models.",
       "type": "bargauge",
       "targets": [
@@ -4014,7 +5190,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 174
+        "y": 188
       },
       "id": 107,
       "options": {
@@ -4032,7 +5208,7 @@
           ]
         }
       },
-      "title": "\ud83d\udcc8  CPU Sample Rate Over Time \u2014 by Provider  (correlate spikes with Latency / Error pillars above)",
+      "title": "📈  CPU Sample Rate Over Time — by Provider  (correlate spikes with Latency / Error pillars above)",
       "description": "Pyroscope CPU sample rate (samples/sec) over time, stacked by provider. A spike here that coincides with a P99 latency spike (Latency pillar) or error rate spike (Errors pillar) confirms the hot provider. Flat line when PYROSCOPE_ENABLED=false.",
       "type": "timeseries",
       "targets": [
@@ -4057,11 +5233,11 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 184
+        "y": 198
       },
       "id": 108,
       "panels": [],
-      "title": "\ud83d\udd0d  Drill-Down Flamegraph \u2014 Filter by $provider / $model",
+      "title": "🔍  Drill-Down Flamegraph — Filter by $provider / $model",
       "type": "row"
     },
     {
@@ -4077,7 +5253,7 @@
         "h": 18,
         "w": 24,
         "x": 0,
-        "y": 185
+        "y": 199
       },
       "id": 109,
       "options": {
@@ -4089,7 +5265,7 @@
         "keepDisplayedInTree": false,
         "nameLocation": "topLeft"
       },
-      "title": "\ud83d\udd2c  CPU Flamegraph \u2014 Filtered by $provider / $model  (use dropdowns to zoom into specific calls)",
+      "title": "🔬  CPU Flamegraph — Filtered by $provider / $model  (use dropdowns to zoom into specific calls)",
       "description": "Drill-down flamegraph scoped to the selected provider and model. Use the $provider and $model template variables at the top of this dashboard. When a specific provider is causing latency (Latency pillar) or errors (Errors pillar), set $provider to that provider here to see exactly which Python code is running during its calls.",
       "type": "flamegraph",
       "targets": [
@@ -4196,7 +5372,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "GatewayZ \u2014 Four Golden Signals (SRE)",
+  "title": "GatewayZ — Four Golden Signals (SRE)",
   "uid": "gatewayz-four-golden-signals",
-  "version": 1
+  "version": 3
 }
