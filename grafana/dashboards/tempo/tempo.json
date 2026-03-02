@@ -49,7 +49,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "## GatewayZ \u2014 Distributed Tracing\nTempo traces and derived span metrics for every LLM request routed through the gateway.\n\n| Section | What it shows |\n|---------|---------------|\n| RED Metrics | Rate, Errors, Duration \u2014 computed from span metrics stored in Mimir; available even when no live trace is selected |\n| Trace Search | Filterable list of individual traces \u2014 click any trace to see the full span waterfall from client \u2192 gateway \u2192 provider |\n| Span Analysis | Per-span duration breakdown \u2014 isolates whether latency is in routing logic, the provider call, or response serialization |",
+        "content": "## GatewayZ — Distributed Tracing\nTempo traces and derived span metrics for every LLM request routed through the gateway.\n\n| Section | What it shows |\n|---------|---------------|\n| RED Metrics | Rate, Errors, Duration — computed from span metrics stored in Mimir; available even when no live trace is selected |\n| Trace Search | Filterable list of individual traces — click any trace to see the full span waterfall from client → gateway → provider |\n| Span Analysis | Per-span duration breakdown — isolates whether latency is in routing logic, the provider call, or response serialization |",
         "mode": "markdown"
       },
       "pluginVersion": "11.5.2",
@@ -1557,7 +1557,7 @@
       },
       "id": 500,
       "panels": [],
-      "title": "\ud83d\udd78\ufe0f  Visual Topology & Latency Distribution",
+      "title": "🕸️  Visual Topology & Latency Distribution",
       "type": "row"
     },
     {
@@ -1682,7 +1682,7 @@
           "refId": "A"
         }
       ],
-      "title": "Span Duration Heatmap \u2014 Latency Distribution Over Time",
+      "title": "Span Duration Heatmap — Latency Distribution Over Time",
       "type": "heatmap"
     },
     {
@@ -1752,8 +1752,231 @@
           "refId": "A"
         }
       ],
-      "title": "Error Trace Scatter \u2014 Duration vs Time (click to open waterfall)",
+      "title": "Error Trace Scatter — Duration vs Time (click to open waterfall)",
       "type": "xychart"
+    },
+    {
+      "id": 504,
+      "type": "row",
+      "title": "🔥  CPU Profiling Correlation — Flamegraph + Provider Breakdown",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 151
+      },
+      "collapsed": false
+    },
+    {
+      "id": 505,
+      "type": "flamegraph",
+      "title": "CPU Flamegraph — Trace Window",
+      "datasource": {
+        "type": "grafana-pyroscope-datasource",
+        "uid": "grafana_pyroscope"
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 14,
+        "x": 0,
+        "y": 152
+      },
+      "options": {
+        "collapseConfig": false,
+        "disableCollapsing": false,
+        "disableFocusOnClick": false,
+        "disableTooltip": false,
+        "extraColors": false,
+        "keepDisplayedInTree": false,
+        "nameLocation": "topLeft"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-pyroscope-datasource",
+            "uid": "grafana_pyroscope"
+          },
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "labelSelector": "{service_name=\"gatewayz-backend\",provider=~\".*\",model=~\".*\"}"
+        }
+      ]
+    },
+    {
+      "id": 506,
+      "type": "bargauge",
+      "title": "CPU Load by Provider",
+      "datasource": {
+        "type": "grafana-pyroscope-datasource",
+        "uid": "grafana_pyroscope"
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 10,
+        "x": 14,
+        "y": 152
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "valueMode": "color",
+        "showUnfilled": true,
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "displayName": "${__field.labels.provider}",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 60
+              },
+              {
+                "color": "orange",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 95
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-pyroscope-datasource",
+            "uid": "grafana_pyroscope"
+          },
+          "profileTypeId": "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+          "labelSelector": "{service_name=\"gatewayz-backend\"}",
+          "groupBy": [
+            "provider"
+          ],
+          "queryType": "metrics"
+        }
+      ]
+    },
+    {
+      "id": 507,
+      "type": "row",
+      "title": "📜  Log Context — Errors Time-Synced to Trace Window",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 166
+      },
+      "collapsed": false
+    },
+    {
+      "id": 508,
+      "type": "logs",
+      "title": "Error Logs (time-synced with traces)",
+      "datasource": {
+        "type": "loki",
+        "uid": "grafana_loki"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 167
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "grafana_loki"
+          },
+          "expr": "{app=~\"gatewayz.*\"} | level=~\"ERROR|CRITICAL\" | logfmt"
+        }
+      ],
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      }
+    },
+    {
+      "id": 509,
+      "type": "timeseries",
+      "title": "TTFC Span P95 by AI Provider (from Mimir)",
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 167
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_mimir"
+          },
+          "expr": "histogram_quantile(0.95, sum(rate(traces_spanmetrics_duration_seconds_bucket{span_name=~\".*chat.*|.*complet.*\"}[$__rate_interval])) by (le, gen_ai_system))",
+          "legendFormat": "{{gen_ai_system}}"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      }
     }
   ],
   "preload": false,
@@ -1788,6 +2011,6 @@
   "timezone": "browser",
   "title": "GatewayZ Distributed Tracing",
   "uid": "gatewayz-distributed-tracing",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }

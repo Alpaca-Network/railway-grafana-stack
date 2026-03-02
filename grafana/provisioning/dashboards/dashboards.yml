@@ -81,3 +81,23 @@ providers:
     options:
       path: /etc/grafana/provisioning/dashboards/golden-signals
 
+  - name: 'Infrastructure'
+    orgId: 1
+    folder: 'Infrastructure'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/infrastructure
+
+  - name: 'Streaming'
+    orgId: 1
+    folder: 'Streaming'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/streaming
+
