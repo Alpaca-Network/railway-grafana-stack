@@ -47,6 +47,9 @@ Production observability stack for the GatewayZ AI Inference Gateway.
 ✅ DONE — This Session
   - dashboards.yml: System Quality provisioner added
   - grafana/dashboards/reliability/ folder created
+  - MASTER.md: Backend Telemetry Architecture section (section 16) added
+  - README.md: Backend Telemetry Pipeline section added
+  - ACCEPTANCE_CRITERIA.md: Created with criteria for all 25 Kanban cards
 
 🔄 IN PROGRESS
   - TASK-2: System-Reliability-Dashboard.json (scaffold + 8 pillar rows)
@@ -80,8 +83,9 @@ Production observability stack for the GatewayZ AI Inference Gateway.
 
 ```
 railway-grafana-stack/
-├── MASTER.md                          ← Full project wiki (this audit)
+├── MASTER.md                          ← Full project wiki (see §16 for backend telemetry)
 ├── CLAUDE.md                          ← This file
+├── ACCEPTANCE_CRITERIA.md             ← Acceptance criteria for all 25 Kanban cards
 ├── docker-compose.yml                 ← Service orchestration
 ├── prometheus/
 │   ├── prometheus.yml                 ← Scrape targets + remote write

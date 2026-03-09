@@ -414,5 +414,262 @@ All Alerts
 
 ---
 
+---
+
+## 16. Backend Telemetry Architecture — Deep Reference
+
+> This section maps how `gatewayz-backend` generates, ships, and exposes observability data. Read this before modifying dashboards, alert queries, or adding new metrics. Every panel in this stack ultimately depends on what the backend emits.
+
+### 16.1 Conceptual Data Flow (Backend Internal)
+
+```
+gatewayz-backend (FastAPI, Railway)
+  │
+  ├── ObservabilityMiddleware (ASGI)
+  │     Wraps every HTTP request:
+  │     ├── Records: fastapi_requests_total, fastapi_requests_duration_seconds
+  │     ├── Records: fastapi_requests_in_progress, fastapi_exceptions_total
+  │     ├── Correlates Pyroscope profiling labels (endpoint, method)
+  │     └── Attaches exemplars (trace_id → Tempo linkage)
+  │
+  ├── TraceContextMiddleware (ASGI)
+  │     Injects x-trace-id, x-span-id response headers
+  │     Enriches structlog context with OTel trace/span IDs
+  │
+  ├── SecurityMiddleware (ASGI — Layer 1 rate limiting)
+  │     Velocity Mode: if error_rate > 25% in 1 min → reduce rate limits 50% for 3 min
+  │     Metric: velocity_mode_activations_total
+  │
+  ├── OpenTelemetry SDK (opentelemetry_config.py)
+  │     Service: gatewayz-api
+  │     Auto-instruments: FastAPI routes, HTTPX (AI provider calls), Redis
+  │     Processor: ResilientSpanProcessor (circuit breaker, 5 fail → OPEN, 60s cooldown)
+  │     └── OTLP HTTP export ──────────────────────► Tempo :4318
+  │
+  ├── OpenLLMetry / Traceloop (traceloop_config.py)
+  │     LLM SDK tracing with gen_ai.* semantic conventions
+  │     Associates spans with customer.id for user-level trace filtering
+  │     └── OTLP HTTP export ──────────────────────► Tempo :4318
+  │
+  ├── Structured Logging (logging_config.py)
+  │     Format: JSON with trace_id, span_id, level, service, app labels
+  │     Async queue → non-blocking Loki push ───────► Loki :3100
+  │     Labels: app="gatewayz", level, service
+  │
+  ├── PrometheusRemoteWriter (prometheus_remote_write.py)
+  │     Protobuf + Snappy compression
+  │     Circuit breaker: 5 failures → OPEN, 5 min cooldown
+  │     └── Remote write ──────────────────────────► Mimir (direct, bypasses Prometheus)
+  │
+  ├── /metrics endpoint (grafana_metrics.py + prometheus_metrics.py)
+  │     Exposes all Prometheus metrics in text format
+  │     └── Scraped by Prometheus every 15s ────────► Prometheus → Mimir
+  │
+  └── /prometheus/data/metrics endpoint (prometheus_data.py)
+        Provider health scores, circuit breaker states, error rates
+        └── Scraped by Prometheus every 30s ─────────► JSON-API-Proxy → Grafana
+```
+
+### 16.2 All Backend-Emitted Prometheus Metrics
+
+#### HTTP / Request Layer
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `fastapi_requests_total` | Counter | `method`, `path`, `status_code`, `status_class` | Every HTTP request; denominator for error rate |
+| `fastapi_requests_duration_seconds` | Histogram | `method`, `path` | Request latency; use for P50/P95/P99 |
+| `fastapi_requests_in_progress` | Gauge | `method`, `path` | Active concurrent requests |
+| `fastapi_exceptions_total` | Counter | `exception_type` | Unhandled exceptions by type |
+| `fastapi_request_size_bytes` | Histogram | `method`, `path` | Incoming request payload size |
+| `fastapi_response_size_bytes` | Histogram | `method`, `path` | Outgoing response size |
+
+**Path normalization:** Dynamic segments are normalized → `{id}` (e.g. `/v1/chat/completions/abc123` → `/v1/chat/completions/{id}`) to prevent label cardinality explosion.
+
+#### Model Inference Layer
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `model_inference_requests_total` | Counter | `provider`, `model`, `status` | Per-model traffic + error tracking |
+| `model_inference_duration_seconds` | Histogram | `provider`, `model` | End-to-end AI provider latency |
+| `tokens_used_total` | Counter | `provider`, `model`, `token_type` | Token consumption (prompt / completion) |
+| `time_to_first_chunk_seconds` | Histogram | `provider`, `model` | Streaming time-to-first-token |
+
+#### Cost & Billing
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `gatewayz_api_cost_usd_total` | Counter | `provider`, `model` | Cumulative USD spend |
+| `gatewayz_credit_deduction_total` | Counter | `status`, `endpoint` | Credit deductions (success/failure rate) |
+| `gatewayz_credit_refunds_total` | Counter | `reason` | Refund events |
+| `gatewayz_cache_cost_savings_usd_total` | Counter | `provider`, `model`, `cache_type` | Cache ROI in USD |
+
+#### Provider Health (exposed via /prometheus/data/metrics)
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `provider_health_score` | Gauge | `provider` | 0–100 health score per AI provider |
+| `provider_circuit_breaker_state` | Gauge | `provider` | 0=CLOSED, 1=OPEN, 2=HALF_OPEN |
+| `provider_error_rate` | Gauge | `provider` | Current error rate per provider (0–1) |
+| `provider_availability` | Gauge | `provider` | Availability % per provider |
+
+#### Cache & Infrastructure
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `catalog_cache_hits_total` | Counter | `gateway` | Cache hit events |
+| `catalog_cache_misses_total` | Counter | `gateway` | Cache miss events |
+| `gatewayz_pricing_cache_hits_total` | Counter | `cache_name` | Pricing tier cache hits |
+| `redis_memory_used_bytes` | Gauge | — | Redis memory usage |
+| `redis_memory_max_bytes` | Gauge | — | Redis max memory capacity |
+| `read_replica_queries_total` | Counter | `table`, `status` | PostgreSQL read replica query routing |
+
+#### Security / Velocity Mode
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `velocity_mode_activations_total` | Counter | — | Times velocity mode was triggered |
+| `rate_limit_rejections_total` | Counter | `endpoint`, `limit_type` | Layer-1 rate limit rejections |
+
+#### Internal Observability Pipeline Health
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `loki_log_queue_size` | Gauge | — | Async Loki push queue depth |
+| `prometheus_remote_write_total` | Counter | `status` | Remote write success/failure count |
+| `otel_export_circuit_breaker_state` | Gauge | — | OTEL exporter circuit breaker (0/1/2) |
+
+### 16.3 OpenTelemetry (Traces) Configuration
+
+```python
+# Service identity (resource attributes)
+service.name          = "gatewayz-api"
+deployment.environment = os.getenv("ENVIRONMENT", "production")
+service.version       = os.getenv("SERVICE_VERSION", "1.0.0")
+
+# Export endpoint
+TEMPO_OTLP_HTTP_ENDPOINT = os.getenv("TEMPO_OTLP_HTTP_ENDPOINT")
+# Example: "http://tempo:4318/v1/traces"
+
+# Auto-instrumented libraries
+- FastAPI (all routes, request/response attributes)
+- HTTPX (all outbound AI provider HTTP calls)
+- Redis (all cache operations)
+- SQLAlchemy (if enabled)
+
+# LLM-specific (via OpenLLMetry/Traceloop)
+- gen_ai.system          (openai / anthropic / etc.)
+- gen_ai.request.model   (model name)
+- gen_ai.usage.prompt_tokens
+- gen_ai.usage.completion_tokens
+- ai.cost.usd            (cost per call)
+- customer.id            (user association for per-user trace filtering)
+```
+
+**ResilientSpanProcessor** (`utils/resilient_span_processor.py`):
+```
+State machine: CLOSED → OPEN → HALF_OPEN → CLOSED
+CLOSED:    All spans exported normally
+OPEN:      Export failures exceed threshold (5) → exports dropped for 60s
+HALF_OPEN: After 60s cooldown, try export — if 2 successes → CLOSED, else → OPEN
+```
+
+### 16.4 Loki Structured Log Format
+
+Every log line from `gatewayz-backend` is JSON with this schema:
+
+```json
+{
+  "timestamp": "2026-03-08T12:34:56.789Z",
+  "level": "INFO",
+  "service": "gatewayz",
+  "message": "Inference request completed",
+  "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+  "span_id": "00f067aa0ba902b7",
+  "endpoint": "/v1/chat/completions",
+  "method": "POST",
+  "status_code": 200,
+  "duration_ms": 1243,
+  "user_id": "usr_abc123",
+  "model": "gpt-4o",
+  "provider": "openai",
+  "tokens_prompt": 512,
+  "tokens_completion": 128,
+  "cost_usd": 0.0024
+}
+```
+
+**Loki stream labels** (low cardinality — used for indexing):
+- `app="gatewayz"` — primary filter for all GatewayZ log queries
+- `level` — log level (INFO / WARNING / ERROR / CRITICAL)
+- `service` — service name
+
+**Loki JSON fields** (high cardinality — searchable via LogQL `| json`):
+- `trace_id`, `span_id` — enables Log→Trace correlation in Grafana
+- `endpoint`, `model`, `provider`, `user_id`, `status_code`
+
+**Dashboard dependency:** All Loki dashboards filter with `{app="gatewayz"}`. If the backend is not setting this label, log panels show no data. Verify via BACKEND-3.
+
+### 16.5 Health Monitoring Architecture
+
+**IntelligentHealthMonitor** (`services/intelligent_health_monitor.py`):
+
+| Tier | Traffic Share | Check Interval | Providers |
+|------|-------------|---------------|-----------|
+| Tier 1 | Top 5% traffic | Every 5 min | ~2–3 providers |
+| Tier 2 | Frequent use | Every 15 min | ~5–8 providers |
+| Tier 3 | Occasional use | Every 30 min | ~10–15 providers |
+| Tier 4 | On-demand only | Only when called | remaining ~10 |
+
+**Provider Circuit Breaker** (state tracked per provider):
+```
+CLOSED (normal)
+  │ failure_count > threshold (default: 5)
+  ▼
+OPEN (blocking calls)
+  │ cooldown elapsed (default: 60s)
+  ▼
+HALF_OPEN (test with 1 call)
+  │ success ──► CLOSED
+  └ failure ──► OPEN (reset timer)
+```
+Exposed as `provider_circuit_breaker_state{provider="openai"}` = 0/1/2
+
+**AutonomousMonitor** (`services/autonomous_monitor.py`):
+- Reads error patterns from Loki (LogQL queries)
+- AI-powered root cause analysis
+- Can generate auto-fix PRs for known error patterns
+
+### 16.6 Velocity Mode (Security Circuit Breaker)
+
+**Trigger:** Error rate > 25% in any 1-minute window
+**Effect:** Rate limits reduced by 50% for 3 minutes
+**Recovery:** Automatic after 3-minute window expires
+**Metric:** `velocity_mode_activations_total` — spikes here indicate a security event or provider cascade failure
+
+### 16.7 Backend Environment Variables for Observability
+
+| Variable | Where Used | Description |
+|----------|-----------|-------------|
+| `TEMPO_OTLP_HTTP_ENDPOINT` | `opentelemetry_config.py` | Tempo OTLP HTTP ingest URL (e.g. `http://tempo:4318`) |
+| `LOKI_URL` | `logging_config.py` | Loki push API URL (e.g. `http://loki:3100`) |
+| `PROMETHEUS_REMOTE_WRITE_URL` | `prometheus_remote_write.py` | Mimir push URL (optional — Prometheus also scrapes) |
+| `ENVIRONMENT` | OTEL resource attrs | Sets `deployment.environment` span attribute |
+| `SERVICE_VERSION` | OTEL resource attrs | Sets `service.version` span attribute |
+| `SENTRY_DSN` | Error tracking | Sentry error reporting (separate from Loki) |
+| `ARIZE_API_KEY` | ML observability | Arize AI model monitoring (separate pipeline) |
+| `REDIS_URL` | Redis client | Required for cache metrics |
+
+### 16.8 Dashboard → Backend Metric Mapping
+
+| Dashboard | Primary Metrics Used | Backend Source |
+|-----------|---------------------|----------------|
+| Four Golden Signals | `fastapi_requests_total`, `fastapi_requests_duration_seconds` | ObservabilityMiddleware |
+| Inference Call Profile | `model_inference_requests_total`, `model_inference_duration_seconds`, `tokens_used_total` | prometheus_metrics.py |
+| Model Usage | `tokens_used_total`, `gatewayz_api_cost_usd_total`, `model_inference_requests_total` | prometheus_metrics.py |
+| Streaming Performance | `time_to_first_chunk_seconds`, `fastapi_requests_duration_seconds` | prometheus_metrics.py |
+| Security & Rate Limiter Logs | `{app="gatewayz", level="WARNING"}` LogQL | logging_config.py → Loki |
+| Error-Level Logs | `{app="gatewayz"} \| json \| level="ERROR"` | logging_config.py → Loki |
+| Distributed Tracing | `service.name="gatewayz-api"` TraceQL | opentelemetry_config.py → Tempo |
+| Cache Layer Profile | `catalog_cache_hits_total`, `gatewayz_pricing_cache_hits_total` | prometheus_metrics.py |
+| Infrastructure Health | `provider_health_score`, `provider_circuit_breaker_state` | prometheus_data.py |
+| Reliability (Sentry Replacement) | `fastapi_requests_total`, `fastapi_exceptions_total`, Loki errors | Mixed |
+| Developer Observability | All of the above + Tempo service graphs + Pyroscope flamegraphs | Full stack |
+
+---
+
 *This document is auto-generated from a full codebase audit. Update it whenever major changes land.*
 *See `CLAUDE.md` for agent quick-reference and critical rules.*
+*See `ACCEPTANCE_CRITERIA.md` for acceptance criteria on every Kanban task.*
