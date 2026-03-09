@@ -101,3 +101,13 @@ providers:
     options:
       path: /etc/grafana/provisioning/dashboards/streaming
 
+  - name: 'System Quality'
+    orgId: 1
+    folder: 'System Quality'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/reliability
+
