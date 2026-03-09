@@ -134,6 +134,68 @@ open http://localhost:9093  # Alertmanager (alert routing UI)
 
 ---
 
+## 🔭 Backend Telemetry Pipeline
+
+The `gatewayz-backend` (FastAPI) emits telemetry on **three channels** that feed this stack:
+
+| Channel | Protocol | Destination | Grafana Datasource |
+|---------|----------|-------------|-------------------|
+| **Metrics** | Prometheus scrape (`/metrics`) | Prometheus → Mimir | `grafana_prometheus` / `grafana_mimir` |
+| **Logs** | Async Loki push (JSON) | Loki | `grafana_loki` |
+| **Traces** | OTLP HTTP (`/v1/traces`) | Tempo | `grafana_tempo` |
+| **Provider health** | HTTP scrape (`/prometheus/data/metrics`) | JSON-API-Proxy | `grafana_json_api` |
+
+### How Metrics Get to Grafana
+
+```
+gatewayz-backend /metrics
+        │
+        └─► Prometheus scrapes every 15s
+                  │
+                  ├─► Stored locally (short-term, 15d)
+                  └─► Remote write → Mimir (long-term, 30d)
+                                         │
+                                         └─► Grafana queries Mimir for all panels
+```
+
+### How Traces Get to Grafana
+
+```
+gatewayz-backend
+  ├── FastAPI / HTTPX / Redis auto-instrumented by OpenTelemetry
+  ├── LLM calls traced via OpenLLMetry (gen_ai.* semantic conventions)
+  └── ResilientSpanProcessor (circuit breaker) → OTLP HTTP → Tempo :4318
+                                                                    │
+                                                             Grafana queries Tempo
+                                                             (+ Pyroscope flamegraphs
+                                                              linked via service.name)
+```
+
+### How Logs Get to Grafana
+
+```
+gatewayz-backend structlog (JSON format)
+  └── Async queue → Loki push :3100
+        Labels: app="gatewayz", level, service
+        Fields: trace_id, span_id, endpoint, model, provider, user_id
+                    │
+            Grafana queries Loki
+            Log→Trace correlation via trace_id field → Tempo
+```
+
+### Key Backend Identifiers
+
+| Identifier | Value | Used In |
+|-----------|-------|---------|
+| OTEL service name | `gatewayz-api` | Tempo trace search, Pyroscope linking |
+| Loki app label | `app="gatewayz"` | All Loki dashboard queries |
+| Prometheus job | `gatewayz_production` | Prometheus target filter |
+| Scrape target | `$FASTAPI_TARGET` | Must be set in Railway env vars |
+
+> **Full backend telemetry reference:** See [MASTER.md — Section 16](MASTER.md) for all metrics, OTEL config, Loki log format, health monitoring tiers, and dashboard-to-metric mapping.
+
+---
+
 ## 🎯 Dashboard Folders
 
 All dashboards use **real API endpoints** with live data from Prometheus/Mimir - no mock data.
