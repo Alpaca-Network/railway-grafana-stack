@@ -1,12 +1,99 @@
 # GatewayZ Observability Stack
 
-**Production-ready observability platform for GatewayZ AI Backend** - Centralized metrics, logs, traces, and visualization with horizontal scaling via Grafana Mimir.
+**Production-ready observability platform for GatewayZ AI Backend** — Centralized metrics, logs, traces, profiles, and alerting deployed on Railway.
 
 [![Railway Deploy](https://railway.app/button.svg)](https://railway.app)
 
 ---
 
-## 🚀 Quick Start
+## The Epic — What This Is and Why It Exists
+
+### What is GatewayZ?
+
+GatewayZ is an AI inference gateway. It sits between your application and the LLM providers (OpenAI, Anthropic, OpenRouter, Groq, Cerebras, and 25+ more), handling routing, load balancing, rate limiting, circuit breaking, and token tracking across all of them in one FastAPI service.
+
+### The Observability Problem
+
+When you route production AI traffic through 30+ providers, you quickly hit questions that standard logging can't answer:
+
+- Which provider is degrading right now — and is it affecting only one model or all of them?
+- My P99 latency spiked to 8 seconds. Is it the provider HTTP call, the token counter, or the Redis cache layer?
+- A circuit breaker opened on `openrouter/claude-3-5-sonnet`. How long has it been open and when did it first fire?
+- My token budget burned 40% faster this week. Which model and which user drove that?
+- Is the spike in errors a transient provider blip or a real regression in my routing logic?
+
+None of these questions have simple answers if all you have is basic application logging or a generic APM tool. You need **four separate observability signals** working together:
+
+| Signal | What it tells you | Stored in |
+|--------|------------------|-----------|
+| **Metrics** | Counts, rates, and percentiles over time | Prometheus → Mimir |
+| **Logs** | Detailed text events per request | Loki |
+| **Traces** | The exact path and timing of each request through each service | Tempo |
+| **Profiles** | Which lines of Python code are burning the CPU | Pyroscope |
+
+### What This Stack Provides
+
+This repository is the complete observability stack for GatewayZ — 8 services deployed together, pre-wired, pre-configured, with 15 Grafana dashboards covering every aspect of AI inference operations:
+
+- **400+ dashboard panels** across Four Golden Signals, Model Performance, Provider Directory, Infrastructure Health, and more
+- **Two-tier alerting**: 40+ Grafana alert rules + 16 standalone Prometheus rules, both routing to ops/critical email
+- **32 recording rules** that pre-compute anomaly detection baselines so alert queries are instant
+- **Cross-signal navigation**: click a slow metric → jump to the Tempo trace → jump to the Pyroscope flamegraph at that exact timestamp
+- **Provider/model tagged CPU profiles** — every inference call in the backend is tagged with `provider` and `model` so you can filter flamegraphs to exactly the calls you care about
+
+---
+
+## Why This Stack? — Tool Selection Rationale
+
+If you're new to this stack, here's why each tool was chosen over the alternatives:
+
+| Tool | Why we use it | What we considered instead |
+|------|--------------|--------------------------|
+| **Grafana 11.5.2** | Industry-standard visualization with native plugins for every service in this stack. Alerting, dashboards, and datasource management in one place. | Datadog / New Relic — expensive SaaS with per-host pricing that doesn't scale for inference volume |
+| **Prometheus** | De-facto standard for metrics scraping. Native `prometheus_client` integration for FastAPI. Rich PromQL ecosystem. | OpenTelemetry Collector alone — doesn't provide the same scrape model or alerting rules |
+| **Mimir 2.11.0** | Long-term Prometheus-compatible storage (30-day retention). Prometheus alone only holds 15 days and loses data on restart. Mimir is drop-in compatible — same PromQL, same API. | Prometheus-only — too short retention, no HA; VictoriaMetrics — slightly different API surface |
+| **Loki 3.4** | Log aggregation built for Kubernetes/container labels. No full-text indexing cost — only indexes labels (app, level, service), which is enough for correlation. Native Grafana integration. | Elasticsearch / Splunk — full-text indexing is expensive and overkill when you have trace_id correlation; self-managed ELK is heavyweight |
+| **Tempo** | Distributed tracing with native OTLP receiver (the OpenTelemetry standard). Generates span metrics (`traces_spanmetrics_*`) that feed directly into Mimir. No per-span billing. | Jaeger — doesn't generate span metrics, less Grafana integration; Zipkin — limited OpenTelemetry support |
+| **Pyroscope 1.7.1** | Always-on continuous profiling at 100 Hz. Catches every P99 CPU outlier, not just sampled transactions. Supports provider/model tags on flamegraphs. Links directly from Tempo spans. | py-spy / sampling profilers — miss tail latency; Sentry performance (5% sample rate, no flamegraphs) |
+| **Alertmanager v0.27.0** | Standalone alert routing service. Fires even if Grafana is down. Provides inhibition rules (suppress warning floods when a critical fires). Mirrors Grafana's notification policy tree for two-tier ops/critical routing. | Grafana alerting only — single point of failure; no inhibition rules |
+| **Railway** | Zero-ops container hosting with internal private DNS (`.railway.internal`) for free inter-service networking. Services in the same Railway project can reach each other without public URLs or VPNs. | AWS ECS / GCP Cloud Run — more infrastructure overhead; Fly.io — no built-in internal networking for free |
+
+---
+
+## New Developer Onboarding
+
+If you just joined and have no background in any of these tools, start here:
+
+**Step 1 — Understand the system conceptually**
+Read the Architecture Overview section below. Focus on the data flow diagram and the data type separation table. The key insight: each service stores a different data type and is optimized for it. Do not try to store logs in Prometheus or metrics in Loki.
+
+**Step 2 — Read the full architectural wiki**
+Open [MASTER.md](MASTER.md) — it's the single source of truth for every architectural decision, every datasource UID, every dashboard, every alert rule, and every known gap. Pay attention to §16 (Backend Telemetry Architecture) if you're integrating the backend.
+
+**Step 3 — Understand what the backend must expose**
+Read [docs/backend/BACKEND_METRICS_REQUIREMENTS.md](docs/backend/BACKEND_METRICS_REQUIREMENTS.md). This tells you exactly which Prometheus metrics, Loki labels, and OTLP attributes the backend must emit for the dashboards to show data.
+
+**Step 4 — Run it locally**
+```bash
+export FASTAPI_TARGET="host.docker.internal:8000"  # or your backend's address
+docker compose up --build
+open http://localhost:3000  # Grafana — admin / yourpassword123
+```
+All 8 services will start. Check `http://localhost:9090/targets` to confirm Prometheus is scraping your backend.
+
+**Step 5 — Explore the dashboards**
+- **Four Golden Signals** — Start here. Latency, Traffic, Errors, Pyroscope profiling row.
+- **Provider Directory** — Per-provider health scores, circuit breaker states, availability matrix.
+- **Inference Call Profile** — CPU cost anatomy broken down by provider and model.
+- **Infrastructure Health** — Stack health, Mimir remote write, Loki ingestion rates.
+
+**For deployment to Railway:** Follow [docs/deployment/RAILWAY_DEPLOYMENT_QUICK_START.md](docs/deployment/RAILWAY_DEPLOYMENT_QUICK_START.md).
+
+**Acceptance criteria for all 25 project tasks:** See [ACCEPTANCE_CRITERIA.md](ACCEPTANCE_CRITERIA.md).
+
+---
+
+## Quick Start
 
 ### Production Access
 - **Grafana Dashboard:** [https://logs.gatewayz.ai](https://logs.gatewayz.ai)
@@ -33,16 +120,31 @@ open http://localhost:9009  # Mimir
 open http://localhost:9093  # Alertmanager (alert routing UI)
 ```
 
-**📖 Documentation:**
-- **[Complete Documentation Index](docs/docs-index.md)** - Start here for all guides and references
-- Quick Links:
-  - **[Cheatsheet](docs/cheatsheet.md)** - Common commands and queries
-  - **[Troubleshooting](docs/troubleshooting/REMOTE_WRITE_DEBUG.md)** - Fix common issues
-  - **[Architecture](docs/architecture/MIMIR.md)** - System design and components
+**Documentation:**
+- **[Complete Documentation Index](docs/docs-index.md)** — Start here for all guides and references
+- **[Cheatsheet](docs/cheatsheet.md)** — Common commands and queries
+- **[Troubleshooting](docs/troubleshooting/REMOTE_WRITE_DEBUG.md)** — Fix common issues
+- **[Architecture](docs/architecture/MIMIR.md)** — System design and components
 
 ---
 
-## 📊 Architecture Overview
+## Architecture Overview
+
+### How the Data Types Work Together
+
+Before looking at the diagram, here's the conceptual model:
+
+**Metrics** are numbers sampled over time — request counts, error rates, latency percentiles. Prometheus scrapes them from your backend's `/metrics` endpoint every 15 seconds and stores them locally (15-day retention). Prometheus then remote-writes everything to **Mimir**, which holds 30 days of history and survives Prometheus restarts.
+
+**Logs** are text events — structured JSON lines your backend emits for every request, error, and state change. The backend pushes them directly to **Loki** over HTTP. Loki stores them for 30 days, indexed only by labels (`app`, `level`, `service`) rather than full-text, keeping storage costs low.
+
+**Traces** are maps of a request's journey through your system — which functions ran, in what order, how long each took. The backend uses the OpenTelemetry SDK to push OTLP-format traces to **Tempo** on every request. Tempo also generates derived span metrics (`traces_spanmetrics_*`) and writes them to Mimir.
+
+**Profiles** are CPU and memory flamegraphs — a continuous record of which functions are consuming CPU at 100Hz sampling. The backend uses the Pyroscope SDK to push profiles to **Pyroscope** every 15 seconds, tagged by provider and model. This tells you *which line of code* causes that 8-second P99 latency.
+
+**Provider health** is computed data — health scores, circuit breaker states, and availability percentages calculated server-side by the backend and exposed via `/prometheus/data/metrics`. The **JSON-API-Proxy** (a small Flask service) polls this endpoint and translates it into the Simple JSON format that Grafana can query directly for real-time provider status panels.
+
+The key rule: **each service stores only its own data type**. Loki does not write to Mimir (logs ≠ metrics). Prometheus does not store traces. Grafana queries each service for its own data type.
 
 ### Data Flow Diagram
 
@@ -108,13 +210,13 @@ open http://localhost:9093  # Alertmanager (alert routing UI)
               └──────────┘ └──────────┘ └──────────┘ └──────────┘
 ```
 
-### Important: Data Type Separation
+### Data Type Separation
 
 | Component | Stores | Writes To | Notes |
 |-----------|--------|-----------|-------|
 | **Prometheus** | Metrics (time-series) | **Mimir** via remote_write | Short-term storage, scrapes every 15-30s |
 | **Mimir** | Metrics (time-series) | Local filesystem | Long-term storage, 30-day retention |
-| **Loki** | Logs (text lines) | Local filesystem | **Does NOT write to Mimir** - logs ≠ metrics |
+| **Loki** | Logs (text lines) | Local filesystem | **Does NOT write to Mimir** — logs ≠ metrics |
 | **Tempo** | Traces (spans) | Local filesystem + **Mimir** (span metrics only) | Traces stored locally, derived metrics to Mimir |
 
 > **Why Loki doesn't write to Mimir:** Loki stores **log lines** (text data), while Mimir stores **metrics** (numeric time-series). These are fundamentally different data types. Grafana queries Loki directly for logs.
@@ -130,13 +232,13 @@ open http://localhost:9093  # Alertmanager (alert routing UI)
 | **Loki 3.4** | 3100 | Log aggregation | ✅ 30-day retention |
 | **Tempo** | 3200, 4317, 4318 | Distributed tracing | ✅ OTLP endpoints |
 | **Pyroscope 1.7.1** | 4040 | Continuous CPU profiling | ✅ Provider/model/cache tagged flamegraphs |
-| **Redis Exporter** | 9121 | Redis metrics | ✅ Integrated |
+| **JSON-API-Proxy** | 5050 | Provider health bridge (Flask → Grafana Simple JSON) | ✅ Circuit breaker states, health scores |
 
 ---
 
-## 🔭 Backend Telemetry Pipeline
+## Backend Telemetry Pipeline
 
-The `gatewayz-backend` (FastAPI) emits telemetry on **three channels** that feed this stack:
+The `gatewayz-backend` (FastAPI) emits telemetry on **four channels** that feed this stack:
 
 | Channel | Protocol | Destination | Grafana Datasource |
 |---------|----------|-------------|-------------------|
@@ -196,9 +298,9 @@ gatewayz-backend structlog (JSON format)
 
 ---
 
-## 🎯 Dashboard Folders
+## Dashboard Folders
 
-All dashboards use **real API endpoints** with live data from Prometheus/Mimir - no mock data.
+All dashboards use **real API endpoints** with live data from Prometheus/Mimir — no mock data.
 
 | Folder | Dashboard(s) | Purpose | Status |
 |--------|-------------|---------|--------|
@@ -222,7 +324,7 @@ All dashboards use **real API endpoints** with live data from Prometheus/Mimir -
 - **Log Search**: Real-time filtering and search
 - **Log Volume**: Count by level, service, severity
 
-#### 3. Tempo (Tracing)
+#### Tempo (Tracing)
 - **Pure trace data** from Tempo datasource
 - **Service Graph**: Distributed tracing visualization
 - **Span Metrics**: Request duration, error rates by service
@@ -233,7 +335,7 @@ All dashboards use **real API endpoints** with live data from Prometheus/Mimir -
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 ### Prometheus Scrape Jobs
 
@@ -243,11 +345,12 @@ All dashboards use **real API endpoints** with live data from Prometheus/Mimir -
 |----------|--------|----------|---------|
 | `prometheus` | localhost:9090 | 15s | Self-monitoring |
 | `gatewayz_production` | `${FASTAPI_TARGET}` | 15s | **Production API metrics** |
-| `redis_exporter` | redis-exporter:9121 | 30s | Redis metrics |
-| `gatewayz_data_metrics_production` | `${FASTAPI_TARGET}` | 30s | Provider health, circuit breakers |
+| `gatewayz_data_metrics_production` | `${FASTAPI_TARGET}/prometheus/data/metrics` | 30s | Provider health, circuit breakers |
+| `health_service_exporter` | :8002 | 30s | Health service exporter |
 | `mimir` | mimir:9009 | 30s | Mimir self-monitoring |
+| `tempo` | `${TEMPO_TARGET}` | 15s | Tempo self-monitoring |
 
-#### ⚠️ **IMPORTANT: `FASTAPI_TARGET` Configuration**
+#### IMPORTANT: `FASTAPI_TARGET` Configuration
 
 The `${FASTAPI_TARGET}` placeholder **MUST be set** for local development:
 
@@ -275,6 +378,8 @@ curl http://localhost:9090/api/v1/targets
 | **Loki** | `grafana_loki` | loki | `${LOKI_INTERNAL_URL}` | Logs |
 | **Tempo** | `grafana_tempo` | tempo | `${TEMPO_INTERNAL_URL}` | Traces |
 | **Pyroscope** | `grafana_pyroscope` | grafana-pyroscope-datasource | `${PYROSCOPE_INTERNAL_URL}` | Continuous profiling / flamegraphs |
+| **Alertmanager** | `alertmanager` | alertmanager | `${ALERTMANAGER_INTERNAL_URL}` | Alert state visibility |
+| **JSON API** | `grafana_json_api` | simplejson | `${JSON_API_URL}` | Provider health scores, circuit breaker states |
 
 > **Datasource rule:** `grafana_prometheus` = standard app metrics. `grafana_mimir` = ONLY Tempo-generated `traces_spanmetrics_*` / `traces_service_graph_*` metrics. Never mix them in dashboards.
 
@@ -289,7 +394,7 @@ curl http://localhost:9090/api/v1/targets
 
 ---
 
-## 🔌 Backend Integration
+## Backend Integration
 
 ### 1. Expose Metrics Endpoint
 
@@ -382,11 +487,11 @@ with tracer.start_as_current_span("model_inference") as span:
     result = await call_model_api()
 ```
 
-**📖 Complete Integration Guide:** [docs/backend/BACKEND_METRICS_REQUIREMENTS.md](docs/backend/BACKEND_METRICS_REQUIREMENTS.md)
+**Complete Integration Guide:** [docs/backend/BACKEND_METRICS_REQUIREMENTS.md](docs/backend/BACKEND_METRICS_REQUIREMENTS.md)
 
 ---
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### Issue: Backend Services Dashboard Shows "No Data"
 
@@ -423,7 +528,7 @@ open http://localhost:9090/targets
    ```
 3. Check query syntax in dashboard (LogQL, not PromQL)
 
-**📖 More Solutions:** [docs/troubleshooting/](docs/troubleshooting/)
+**More Solutions:** [docs/troubleshooting/](docs/troubleshooting/)
 
 ### Issue: Grafana Datasource Connection Failed
 
@@ -434,13 +539,13 @@ open http://localhost:9090/targets
    ```bash
    # Prometheus
    curl http://localhost:9090/-/healthy
-   
+
    # Mimir
    curl http://localhost:9009/ready
-   
+
    # Loki
    curl http://localhost:3100/ready
-   
+
    # Tempo
    curl http://localhost:3200/ready
    ```
@@ -499,37 +604,37 @@ open http://localhost:9090/targets
    curl -H "X-Scope-OrgID: anonymous" "http://localhost:9009/prometheus/api/v1/query?query=up"
    ```
 
-**📖 More Solutions:** [docs/troubleshooting/REMOTE_WRITE_DEBUG.md](docs/troubleshooting/REMOTE_WRITE_DEBUG.md)
+**More Solutions:** [docs/troubleshooting/REMOTE_WRITE_DEBUG.md](docs/troubleshooting/REMOTE_WRITE_DEBUG.md)
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-### 🚀 Horizontal Scaling with Mimir
+### Horizontal Scaling with Mimir
 - Long-term metrics storage with 30-day retention.
 - Horizontally scalable architecture.
 - Remote write from Prometheus.
 
-### 📊 Golden Signals Monitoring
+### Golden Signals Monitoring
 - **Latency**: P50/P95/P99 percentiles + trends.
 - **Traffic**: Request volume and rates by provider and model.
 - **Errors**: Error rate gauge + trends per provider.
 - **Profiling (Pillar IV)**: Continuous Pyroscope flamegraphs replace traditional saturation metrics — tells you *which line of code* is the bottleneck.
 
-### 🔍 Specialized Dashboards
+### Specialized Dashboards
 - **Inference Call Profile**: Per-request CPU anatomy by provider/model.
 - **Cache Layer Profile**: Redis CPU cost by cache layer (`auth`, `rate_limit`, `model_catalog`, `response_cache`, `trial_analytics`) via Pyroscope tags.
 - **Loki Logs**: Deep log search without metrics noise.
 - **Tempo Traces**: Distributed tracing and service graphs.
 
-### 🛡️ Production Grade
+### Production Grade
 - **Two-layer alerting**: Grafana Alerting (dashboard rules) + standalone Alertmanager (Prometheus rules) — both route to ops/critical email via the same severity/category label convention.
 - **Testing**: Comprehensive integration test suite (90+ tests).
 - **Security**: No hardcoded credentials; fully environment-variable driven.
 
 ---
 
-## 📊 Mimir Long-term Storage Setup
+## Mimir Long-term Storage Setup
 
 Mimir provides **30-day metric retention** with horizontal scaling. This is critical for:
 - Historical trend analysis
@@ -606,7 +711,7 @@ limits:
 
 ---
 
-## 🔔 Alerting Setup
+## Alerting Setup
 
 GatewayZ uses a **two-layer alerting architecture** — both layers send email using the same routing logic, so no alert falls through whether it originates from a Grafana rule or a raw Prometheus rule.
 
@@ -625,10 +730,10 @@ GatewayZ uses a **two-layer alerting architecture** — both layers send email u
 
 ### Alert Philosophy
 
-1. **Every alert MUST be actionable** - if you can't fix it, don't alert on it
-2. **Fewer high-quality alerts** - 14 essential alerts instead of 25+ noisy ones
-3. **Warning vs Critical** - warning = investigate soon, critical = wake someone up
-4. **No duplicates** - consolidated overlapping alerts into single actionable items
+1. **Every alert MUST be actionable** — if you can't fix it, don't alert on it
+2. **Fewer high-quality alerts** — 14 essential alerts instead of 25+ noisy ones
+3. **Warning vs Critical** — warning = investigate soon, critical = wake someone up
+4. **No duplicates** — consolidated overlapping alerts into single actionable items
 
 ---
 
@@ -762,7 +867,7 @@ Deploy Alertmanager as a separate Railway service in the **same project** as Pro
    SMTP_FROM=alerts@gatewayz.ai
    SMTP_USER=alerts@gatewayz.ai
    SMTP_PASSWORD=<app-password>
-   ALERT_EMAIL_OPS=team@company.com,oncall@company.com
+   ALERT_EMAIL_OPS=team@company.com
    ALERT_EMAIL_CRIT=oncall@company.com
    ```
 4. Set the following env var on the **Prometheus** service so it routes alerts to Alertmanager:
@@ -822,14 +927,14 @@ Deploy Alertmanager as a separate Railway service in the **same project** as Pro
 
 ---
 
-## 🧪 Testing & Quality Assurance
+## Testing & Quality Assurance
 
 ### Test Coverage
 
-- **25+ Real API Endpoints** - Integration tests with performance validation
-- **7 Production Dashboards** - Schema validation and configuration checks
-- **90+ Test Methods** - Comprehensive coverage across all components
-- **GitHub Actions Workflows** - Automated validation on every deployment
+- **25+ Real API Endpoints** — Integration tests with performance validation
+- **7 Production Dashboards** — Schema validation and configuration checks
+- **90+ Test Methods** — Comprehensive coverage across all components
+- **GitHub Actions Workflows** — Automated validation on every deployment
 
 ### Quick Testing Commands
 
@@ -855,7 +960,7 @@ pytest tests/test_api_endpoints.py -v -m endpoint
 
 ---
 
-## 🚀 Deployment
+## Deployment
 
 ### Railway Deployment
 
@@ -876,6 +981,7 @@ MIMIR_INTERNAL_URL=http://mimir.railway.internal:9009
 LOKI_INTERNAL_URL=http://loki.railway.internal:3100
 TEMPO_INTERNAL_URL=http://tempo.railway.internal:3200
 PYROSCOPE_INTERNAL_URL=http://pyroscope.railway.internal:4040
+JSON_API_URL=http://json-api-proxy.railway.internal:5050
 GF_SMTP_ENABLED=true
 GF_SMTP_HOST=smtp.gmail.com:465
 GF_SMTP_USER=alerts@gatewayz.ai
@@ -900,6 +1006,11 @@ ALERT_EMAIL_OPS=team@company.com
 ALERT_EMAIL_CRIT=oncall@company.com
 ```
 
+**JSON-API-Proxy service:**
+```
+GATEWAYZ_API_URL=https://api.gatewayz.ai
+```
+
 ### Docker Compose (Local)
 
 ```bash
@@ -919,25 +1030,30 @@ docker compose down
 docker compose down -v
 ```
 
-**📖 Deployment Guide:** [docs/deployment/RAILWAY_DEPLOYMENT_QUICK_START.md](docs/deployment/RAILWAY_DEPLOYMENT_QUICK_START.md)
+**Deployment Guide:** [docs/deployment/RAILWAY_DEPLOYMENT_QUICK_START.md](docs/deployment/RAILWAY_DEPLOYMENT_QUICK_START.md)
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 ### Core Documentation
 
-- **[Documentation Index](docs/docs-index.md)** - Start here for all docs
-- **[Backend Integration](docs/backend/BACKEND_METRICS_REQUIREMENTS.md)** - Required metrics and instrumentation
-- **[Railway Deployment](docs/deployment/RAILWAY_DEPLOYMENT_QUICK_START.md)** - Deploy to Railway
-- **[Mimir Integration](MIMIR_INTEGRATION_SUMMARY.md)** - Horizontal scaling guide
-- **[Troubleshooting](docs/troubleshooting/)** - Service-specific fix guides
+- **[Documentation Index](docs/docs-index.md)** — Start here for all docs
+- **[MASTER.md](MASTER.md)** — Full architectural wiki (16 sections)
+- **[ACCEPTANCE_CRITERIA.md](ACCEPTANCE_CRITERIA.md)** — Acceptance criteria for all 25 project tasks
+- **[Backend Integration](docs/backend/BACKEND_METRICS_REQUIREMENTS.md)** — Required metrics and instrumentation
+- **[Railway Deployment](docs/deployment/RAILWAY_DEPLOYMENT_QUICK_START.md)** — Deploy to Railway
+- **[Troubleshooting](docs/troubleshooting/)** — Service-specific fix guides
 
+### Architecture Docs
 
+- **[Mimir Architecture](docs/architecture/MIMIR.md)** — Long-term metrics storage
+- **[Pyroscope Architecture](docs/architecture/PYROSCOPE.md)** — Continuous profiling setup
+- **[JSON-API-Proxy Architecture](docs/architecture/JSON_API_PROXY.md)** — Provider health bridge
 
 ---
 
-## 🛠️ Development
+## Development
 
 ### Project Structure
 
@@ -958,7 +1074,7 @@ railway-grafana-stack/
 │   │   ├── tempo/              # Tempo traces (pure traces)
 │   │   └── mimir/              # Mimir long-term metrics
 │   ├── datasources/
-│   │   └── datasources.yml     # Prometheus, Mimir, Loki, Tempo, Pyroscope
+│   │   └── datasources.yml     # Prometheus, Mimir, Loki, Tempo, Pyroscope, JSON API
 │   └── provisioning/
 │       ├── dashboards/
 │       │   └── dashboards.yml
@@ -966,11 +1082,16 @@ railway-grafana-stack/
 │           ├── rules/          # Grafana alert rule YAML files (Layer 1)
 │           ├── contact_points.yml
 │           └── notification_policies.yml
+├── json-api-proxy/
+│   ├── Dockerfile
+│   ├── app.py                  # Flask service translating /prometheus/data/metrics → Simple JSON
+│   └── railway.toml
 ├── prometheus/
 │   ├── Dockerfile
 │   ├── entrypoint.sh           # Environment-based target resolution
 │   ├── prometheus.yml          # Scrape jobs + remote_write to Mimir + alerting block
-│   └── alert.rules.yml         # Prometheus alert rules (Layer 2 — sent to Alertmanager)
+│   ├── alert.rules.yml         # Prometheus alert rules (Layer 2 — sent to Alertmanager)
+│   └── recording_rules_baselines.yml  # 32 recording rules for anomaly detection
 ├── pyroscope/
 │   ├── Dockerfile
 │   └── pyroscope.yml           # Self-hosted Pyroscope configuration
@@ -989,6 +1110,8 @@ railway-grafana-stack/
 │   └── ...                     # Other validation scripts
 ├── tests/                      # Pytest test suite
 ├── docs/                       # Documentation
+├── MASTER.md                   # Full architectural wiki
+├── ACCEPTANCE_CRITERIA.md      # Acceptance criteria for all 25 Kanban tasks
 ├── railway.toml                # Railway deployment configuration
 ├── docker-compose.yml          # Local development
 └── README.md                   # This file
@@ -999,13 +1122,14 @@ railway-grafana-stack/
 1. Create feature branch: `git checkout -b feature/my-feature`
 2. Make changes and test locally with `docker compose up`
 3. Run tests: `pytest tests/ -v`
-4. Create pull request to `main`
+4. Validate dashboards: `./scripts/validate_dashboards.sh strict`
+5. Create pull request to `main`
 
 ---
 
-## 🔗 Cross-Signal Navigation (Breaking Down the Silos)
+## Cross-Signal Navigation (Breaking Down the Silos)
 
-The biggest mistake in any LGTM observability setup is treating each panel as a silo. The stack is configured for end-to-end click-through navigation so you always move toward the root cause rather than copy-pasting IDs between tabs.
+The biggest mistake in any observability setup is treating each panel as a silo. The stack is configured for end-to-end click-through navigation so you always move toward the root cause rather than copy-pasting IDs between tabs.
 
 ### How the links are wired
 
@@ -1016,6 +1140,7 @@ The biggest mistake in any LGTM observability setup is treating each panel as a 
 | **Loki log label** | **Tempo trace** | Derived Field on `trace_id` Loki label | Click **"View Trace"** button in label sidebar |
 | **Tempo span** | **Mimir metric** | `tracesToMetrics` → `grafana_mimir` | In Tempo, click a span → "Related metrics" |
 | **Tempo span** | **Loki logs** | `tracesToLogs` → `grafana_loki` | In Tempo, click a span → "Related logs" |
+| **Tempo span** | **Pyroscope flamegraph** | `tracesToProfiles` → `grafana_pyroscope` | In Tempo, click a span → "View Profile" |
 | **Tempo service graph** | **Node topology** | `serviceMap` → `grafana_mimir` | Service Graph & Topology section in dashboard |
 
 ### Implementation details
@@ -1031,15 +1156,15 @@ The biggest mistake in any LGTM observability setup is treating each panel as a 
 For the `$service` template variable and cross-signal filtering to work reliably, the backend must emit consistent resource attributes across all four signals:
 
 ```
-service.name  = "gatewayz-backend"   # must match in spans, logs, and metrics
-instance.id   = "<pod-or-host-id>"   # must match for per-instance filtering
+service.name  = "gatewayz-api"      # must match in spans, logs, and metrics
+instance.id   = "<pod-or-host-id>"  # must match for per-instance filtering
 ```
 
 Configure this once in the OpenTelemetry SDK resource at process startup — it propagates to Tempo (spans), Loki (log labels via the OTEL log handler), and Prometheus (target labels via relabeling).
 
 ---
 
-## 🔬 Continuous Profiling (Self-hosted Pyroscope)
+## Continuous Profiling (Self-hosted Pyroscope)
 
 The stack is **LGTMP**: Loki · Grafana · Tempo · Mimir · **Pyroscope**.
 
@@ -1127,7 +1252,7 @@ With `docker compose up`, Pyroscope starts automatically. Grafana uses the `http
 
 ---
 
-## 📞 Support & Resources
+## Support & Resources
 
 ### External Documentation
 
@@ -1137,6 +1262,7 @@ With `docker compose up`, Pyroscope starts automatically. Grafana uses the `http
 - [Loki Documentation](https://grafana.com/docs/loki/latest/)
 - [Tempo Documentation](https://grafana.com/docs/tempo/latest/)
 - [OpenTelemetry Documentation](https://opentelemetry.io/docs/)
+- [Pyroscope Documentation](https://grafana.com/docs/pyroscope/latest/)
 - [Railway Documentation](https://docs.railway.app/)
 
 ### Getting Help
@@ -1144,12 +1270,13 @@ With `docker compose up`, Pyroscope starts automatically. Grafana uses the `http
 - **Documentation Issues:** Check [docs/troubleshooting/](docs/troubleshooting/)
 - **Backend Integration:** See [docs/backend/BACKEND_METRICS_REQUIREMENTS.md](docs/backend/BACKEND_METRICS_REQUIREMENTS.md)
 - **Deployment Help:** Review [docs/deployment/RAILWAY_DEPLOYMENT_QUICK_START.md](docs/deployment/RAILWAY_DEPLOYMENT_QUICK_START.md)
+- **Architecture Questions:** See [MASTER.md](MASTER.md)
 
 ---
 
-## 📄 License
+## License
 
-Proprietary - GatewayZ Network
+Proprietary — GatewayZ Network
 
 ---
 
