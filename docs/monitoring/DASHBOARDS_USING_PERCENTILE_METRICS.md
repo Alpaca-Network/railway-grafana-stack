@@ -11,7 +11,12 @@
 
 **Location**: `grafana/dashboards/executive/latency-analytics-v1.json`
 
-**API Endpoint**: `/api/monitoring/stats/realtime?hours=1`
+> **March 2026 update:** Percentile panels now use PromQL `histogram_quantile()` against `fastapi_requests_duration_seconds` via the `grafana_prometheus` datasource — NOT the `/api/monitoring/stats/realtime` REST endpoint. PromQL is the authoritative source for all latency panels in this stack.
+>
+> Confirmed metric: `fastapi_requests_duration_seconds_bucket` (labels: `method`, `path`)
+> Example query: `histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le))`
+
+**API Endpoint** *(deprecated — historical reference only)*: `/api/monitoring/stats/realtime?hours=1`
 
 **Panels Using Percentile Metrics**:
 

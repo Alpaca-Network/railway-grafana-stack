@@ -43,20 +43,13 @@ Two different pages cause confusion:
 
 If they want “http event logs” in Grafana, that requires **GatewayZ** to log HTTP events and ship them into Loki.
 
-### 2) Confirm labels actually present in Railway Loki
-If the Grafana dashboard still shows no data on Railway, likely label mismatch:
-- dashboard now queries `{app="gatewayz"}`
-- but production streams may not include `app=gatewayz`; they might include `service_name=gatewayz` or `compose_service=gatewayz` etc.
+### 2) Loki labels — confirmed March 2026
+The backend (`gatewayz-backend/src/config/logging_config.py`) is confirmed to set these Loki stream labels:
+- `app="gatewayz"` — primary filter label used by ALL Loki dashboard queries
+- `level` — INFO / WARNING / ERROR / CRITICAL
+- `service` — service name
 
-To quickly diagnose on Railway:
-- Use Grafana Explore → Loki
-- Run `{}` then filter by label browser
-- Identify canonical label(s) for GatewayZ logs
-
-Then update `grafana/dashboards/loki/loki.json` query to match reality, e.g.:
-- `{service_name="gatewayz"}` or `{compose_service="gatewayz"}`
-
-(Keep tests constraints in mind; datasource UIDs must remain `grafana_loki` etc.)
+All Loki dashboards correctly use `{app="gatewayz"}` as the base selector. **Do not change this label in dashboard queries.** If logs aren't appearing in Railway, the issue is the backend env var (`LOKI_URL`), not the label — see BACKEND-3 in `ACCEPTANCE_CRITERIA.md`.
 
 ### 3) Tempo robustness still pending
 Tempo dashboard currently uses TraceQL:

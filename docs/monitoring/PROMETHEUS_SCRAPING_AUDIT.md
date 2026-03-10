@@ -9,18 +9,18 @@
 
 ### **File**: `prometheus/prom.yml`
 
-### **Scrape Jobs Configured** (6 jobs):
+### **Scrape Jobs Configured** (6 jobs — verified March 2026 from `prometheus/prometheus.yml`):
+
+> **Note:** Staging jobs (`gatewayz_staging`, `gatewayz_data_metrics_staging`) were removed. The current config has 6 production jobs only.
 
 | Job Name | Target | Metrics Path | Interval | Status |
 |----------|--------|--------------|----------|--------|
 | `prometheus` | localhost:9090 | /metrics | 15s | ✅ Self-monitoring |
-| **`gatewayz_production`** | **api.gatewayz.ai** | **/metrics** | **15s** | ✅ **PRIMARY SOURCE** |
-| `redis_exporter` | redis-exporter:9121 | /metrics | 30s | ✅ Redis metrics |
-| `gatewayz_staging` | gatewayz-staging.up.railway.app | /metrics | 15s | ✅ Staging env |
+| **`gatewayz_production`** | **`$FASTAPI_TARGET`** | **/metrics** | **15s** | ✅ **PRIMARY SOURCE** |
 | `health_service_exporter` | health-service-exporter:8002 | /metrics | 30s | ✅ Health checks |
-| `gatewayz_data_metrics_production` | api.gatewayz.ai | /prometheus/data/metrics | 30s | ✅ Custom metrics |
-| `gatewayz_data_metrics_staging` | gatewayz-staging.up.railway.app | /prometheus/data/metrics | 30s | ✅ Staging custom |
-| `mimir` | mimir:9009 | /metrics | 30s | ✅ Storage metrics |
+| `gatewayz_data_metrics_production` | `$FASTAPI_TARGET` | /prometheus/data/metrics | 30s | ✅ Provider health + circuit breakers |
+| `mimir` | `$MIMIR_TARGET` | /metrics | 30s | ✅ Storage metrics |
+| `tempo` | `$TEMPO_TARGET` | /metrics | 15s | ✅ Span metrics from traces |
 
 ---
 

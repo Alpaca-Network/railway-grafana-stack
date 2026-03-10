@@ -19,8 +19,17 @@
 │  │  ✅ Tempo (http://tempo:3200)                                      │  │
 │  │     └─ Traces: Distributed tracing with span correlation          │  │
 │  │                                                                     │  │
-│  │  ✅ Sentry (http://sentry.railway.internal:9000)                   │  │
-│  │     └─ Errors: Error tracking and alerting                        │  │
+│  │  ✅ Mimir (http://mimir:9009)                                      │  │
+│  │     └─ Long-term metrics (30d) + Tempo span metrics               │  │
+│  │                                                                     │  │
+│  │  ✅ Pyroscope (http://pyroscope:4040)                              │  │
+│  │     └─ CPU/memory flamegraphs (provider/model tagged)             │  │
+│  │                                                                     │  │
+│  │  ✅ Alertmanager (http://alertmanager:9093)                        │  │
+│  │     └─ Alert state visibility                                      │  │
+│  │                                                                     │  │
+│  │  ✅ JSON API (http://json-api-proxy:5050)                          │  │
+│  │     └─ Provider health scores, circuit breaker states              │  │
 │  │                                                                     │  │
 │  └─────────────────────────────────────────────────────────────────────┘  │
 │                                                                             │
@@ -160,14 +169,17 @@ Tempo Distributed Tracing Dashboard
 
 ### ✅ All Connected
 
-| Component | Type | URL | Status | Data Flow |
-|-----------|------|-----|--------|-----------|
-| Prometheus | Metrics | http://prometheus:9090 | ✅ UP | Real-time metrics |
-| Loki | Logs | http://loki:3100 | ✅ UP | Real-time logs |
-| Tempo | Traces | http://tempo:3200 | ✅ UP | Real-time traces |
-| Sentry | Errors | http://sentry.railway.internal:9000 | ✅ UP | Error tracking |
-| Redis Exporter | Metrics | redis-exporter:9121 | ✅ UP | Redis metrics |
-| Provider Exporter | Metrics | provider-metrics-exporter:8001 | ✅ UP | Provider metrics |
+| Component | UID | URL | Status | Data Flow |
+|-----------|-----|-----|--------|-----------|
+| Prometheus | `grafana_prometheus` | http://prometheus:9090 | ✅ UP | Real-time metrics (15s scrape) |
+| Mimir | `grafana_mimir` | http://mimir:9009 | ✅ UP | Long-term metrics (30d) + span metrics |
+| Loki | `grafana_loki` | http://loki:3100 | ✅ UP | Log aggregation (30d) |
+| Tempo | `grafana_tempo` | http://tempo:3200 | ✅ UP | Distributed traces (48h) |
+| Pyroscope | `grafana_pyroscope` | http://pyroscope:4040 | ✅ UP | CPU/memory flamegraphs |
+| Alertmanager | `alertmanager` | http://alertmanager:9093 | ✅ UP | Alert state visibility |
+| JSON API | `grafana_json_api` | http://json-api-proxy:5050 | ✅ UP | Provider health data |
+
+> **Note:** Sentry is no longer a Grafana datasource. Error tracking is handled by the `gatewayz_reliability_v1` dashboard using Prometheus + Loki. See [SENTRY_SETUP.md](SENTRY_SETUP.md) for migration notes.
 
 ## Dashboard Status
 
@@ -263,10 +275,12 @@ curl -s -u admin:yourpassword123 http://localhost:3000/api/dashboards/uid/gatewa
 
 ✅ **Everything is connected to Grafana**
 
-- **4 Data Sources:** Prometheus, Loki, Tempo, Sentry
-- **5 Dashboards:** Provider Management, Redis Services, Application Health, Loki Logs, Tempo Traces
-- **Real Data:** All dashboards pulling real data from backend services
-- **Correlations:** All data sources correlated for cross-service analysis
-- **Local & Railway:** Both environments fully configured and working
+- **7 Data Sources:** Prometheus, Mimir, Loki, Tempo, Pyroscope, Alertmanager, JSON API
+- **15 Dashboards:** 400+ panels across all dashboard folders
+- **Real Data:** All dashboards pulling live data — no mock data
+- **Cross-signal navigation:** Metrics → Traces (exemplars), Logs → Traces (trace_id), Traces → Profiles (Pyroscope)
+- **Local & Railway:** Both environments fully configured
+
+> Last updated: March 2026. See [../MASTER.md](../MASTER.md) for full architecture reference.
 
 **No mock data on Railway** - All dashboards show real data from your backend API and services.

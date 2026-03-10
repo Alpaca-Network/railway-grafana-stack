@@ -19,7 +19,9 @@ railway-grafana-stack/
 │   │
 │   ├── deployment/                     # Deployment & Workflows
 │   │   ├── RAILWAY_DEPLOYMENT_QUICK_START.md  # Deploy to Railway
-│   │   └── STAGING_WORKFLOW.md         # Testing before production
+│   │   ├── QUICKSTART.md              # 5-minute local setup
+│   │   ├── ALERTING_SETUP.md          # Email alerts & Gmail SMTP setup
+│   │   └── DEPLOYMENT_CHECKLIST.md    # Pre/post deployment checks
 │   │
 │   ├── dashboards/                     # Dashboard Documentation
 │   │   ├── MODELS_MONITORING_SETUP.md  # AI model monitoring
@@ -66,7 +68,7 @@ railway-grafana-stack/
 - 🔗 Datasource problems → [docs/troubleshooting/GRAFANA_CONNECTIONS.md](troubleshooting/GRAFANA_CONNECTIONS.md)
 - 📝 Logs not showing → [docs/troubleshooting/LOKI_FIX_GUIDE.md](troubleshooting/LOKI_FIX_GUIDE.md)
 - 🔍 Tracing not working → [docs/troubleshooting/TEMPO_INTEGRATION.md](troubleshooting/TEMPO_INTEGRATION.md)
-- 🐛 Setup error tracking → [docs/troubleshooting/SENTRY_SETUP.md](troubleshooting/SENTRY_SETUP.md)
+- 🐛 Error tracking (deprecated Sentry) → [docs/troubleshooting/SENTRY_SETUP.md](troubleshooting/SENTRY_SETUP.md) ⚠️ deprecated — use Reliability dashboard
 
 #### **Understand Recent Changes**
 - 📋 See what changed → [CHANGES_SUMMARY.md](../CHANGES_SUMMARY.md)
@@ -89,8 +91,8 @@ Priority reading order:
 Priority reading order:
 1. [QUICK_START.md](../QUICK_START.md) - Local setup
 2. [docs/deployment/RAILWAY_DEPLOYMENT_QUICK_START.md](deployment/RAILWAY_DEPLOYMENT_QUICK_START.md) - Deployment
-3. [docs/deployment/STAGING_WORKFLOW.md](deployment/STAGING_WORKFLOW.md) - Testing workflow
-4. [CHANGES_SUMMARY.md](../CHANGES_SUMMARY.md) - Recent optimizations
+3. [docs/deployment/DEPLOYMENT_CHECKLIST.md](deployment/DEPLOYMENT_CHECKLIST.md) - Pre/post deployment checks
+4. [../MASTER.md](../MASTER.md) - Full architecture wiki
 5. [docs/troubleshooting/](troubleshooting/) - All fix guides
 
 ### For **Product / Managers**
@@ -195,7 +197,7 @@ Content...
 | File | Purpose | Audience |
 |------|---------|----------|
 | [RAILWAY_DEPLOYMENT_QUICK_START.md](deployment/RAILWAY_DEPLOYMENT_QUICK_START.md) | Railway deployment guide | DevOps |
-| [STAGING_WORKFLOW.md](deployment/STAGING_WORKFLOW.md) | Staging testing process | DevOps |
+| [DEPLOYMENT_CHECKLIST.md](deployment/DEPLOYMENT_CHECKLIST.md) | Pre/post deployment checks | DevOps |
 
 ### docs/dashboards/
 
@@ -261,5 +263,5 @@ Content...
 
 ---
 
-**Last updated:** 2025-12-23
-**Documentation version:** 2.0 (Reorganized structure)
+**Last updated:** March 2026
+**Documentation version:** 3.0 (Aligned with production LGTM stack)

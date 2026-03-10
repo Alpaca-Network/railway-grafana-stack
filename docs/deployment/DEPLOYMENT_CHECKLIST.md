@@ -5,26 +5,28 @@
 ### 1. Email Configuration ✉️
 
 - [ ] **Gmail Account Ready**
-  - Using: manjeshprasad21@gmail.com
+  - Using: `<your-smtp-email>` (set in env vars — do not hardcode)
   - [ ] 2-Factor Authentication enabled
   - [ ] App Password created (16 characters)
   - [ ] App Password saved securely
 
 - [ ] **Environment Variables Set**
   ```bash
-  # For local Docker Compose
-  cd railway-grafana-stack
-  cat .env
-  # Should contain:
-  # SMTP_USERNAME=manjeshprasad21@gmail.com
-  # SMTP_PASSWORD=xxxx xxxx xxxx xxxx
+  # For local Docker Compose (.env file)
+  SMTP_FROM=<your-smtp-email>
+  SMTP_USER=<your-smtp-email>
+  SMTP_PASSWORD=<app-password>
+  ALERT_EMAIL_OPS=<ops-team-email>
+  ALERT_EMAIL_CRIT=<oncall-email>
   ```
 
   ```bash
-  # For Railway Production
-  # Set in Railway dashboard → Service → Variables:
-  # SMTP_USERNAME = manjeshprasad21@gmail.com
-  # SMTP_PASSWORD = your-app-password
+  # For Railway Production — set on the Alertmanager service:
+  SMTP_FROM=<your-smtp-email>
+  SMTP_USER=<your-smtp-email>
+  SMTP_PASSWORD=<app-password>
+  ALERT_EMAIL_OPS=<ops-team-email>
+  ALERT_EMAIL_CRIT=<oncall-email>
   ```
 
 ### 2. File Verification 📁
