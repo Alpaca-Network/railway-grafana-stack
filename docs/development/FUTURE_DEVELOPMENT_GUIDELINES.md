@@ -32,11 +32,12 @@ Backend API → Prometheus → Mimir (long-term storage)
 |-----------|---------|---------|--------|
 | **Grafana** | 11.5.2+ | Visualization | ✅ Keep |
 | **Prometheus** | 3.2.1+ | Metrics collection | ✅ Keep |
-| **Mimir** | 2.11.0+ | Long-term storage | ✅ Keep (NEW, DO NOT REMOVE) |
+| **Mimir** | 2.11.0+ | Long-term storage | ✅ Keep (DO NOT REMOVE) |
 | **Loki** | 3.4+ | Log aggregation | ✅ Keep |
 | **Tempo** | Latest | Distributed tracing | ✅ Keep |
-| **Redis Exporter** | Latest | Redis metrics | ✅ Keep |
-| **Alertmanager** | Latest | Alert routing | ✅ Keep |
+| **Alertmanager** | v0.27.0+ | Alert routing | ✅ Keep (deployed March 2026) |
+| **Pyroscope** | 1.7.1+ | CPU/memory profiling | ✅ Keep — linked from Tempo |
+| **JSON-API-Proxy** | custom Flask | Provider health bridge | ✅ Keep — port 5050 |
 
 ### Architecture Rules
 
@@ -47,6 +48,8 @@ Backend API → Prometheus → Mimir (long-term storage)
 - Remove any existing services
 - Change port assignments without documentation
 - Remove datasources from Grafana
+- Change `schemaVersion` in any dashboard JSON (must stay at **39** — Railway Grafana compatibility)
+- Modify datasource UIDs (`grafana_prometheus`, `grafana_mimir`, `grafana_loki`, `grafana_tempo`, `grafana_pyroscope`, `alertmanager`, `grafana_json_api`) — all 15 dashboards depend on these exact values
 
 ✅ **DO**:
 - Add new scrape jobs to Prometheus (document in prom.yml)
@@ -139,6 +142,51 @@ railway-grafana-stack/
 - Link to related documentation
 - Include troubleshooting sections
 - Keep language clear and concise
+
+---
+
+## 📊 Dashboard JSON Rules (CRITICAL — March 2026)
+
+These rules apply to every file in `grafana/dashboards/`:
+
+### schemaVersion: 39 — DO NOT CHANGE
+```json
+// Every dashboard JSON must have this exact value:
+"schemaVersion": 39
+```
+Railway's Grafana instance (11.5.2) requires schema 39. Changing this value causes dashboard import failures.
+
+### Datasource UIDs — DO NOT CHANGE
+All 15 dashboards and 40+ alert rules reference these exact UIDs:
+
+| UID | Type | Use |
+|-----|------|-----|
+| `grafana_prometheus` | Prometheus | Real-time metrics |
+| `grafana_mimir` | Prometheus/Mimir | Long-term + span metrics |
+| `grafana_loki` | Loki | Logs |
+| `grafana_tempo` | Tempo | Traces |
+| `grafana_pyroscope` | Pyroscope | Flamegraphs |
+| `alertmanager` | Alertmanager | Alert state |
+| `grafana_json_api` | Simple JSON | Provider health data |
+
+### Division safety — clamp_min denominator
+All PromQL expressions that divide must protect against zero division:
+```promql
+# ✅ CORRECT
+rate(fastapi_requests_total{status_code=~"5.."}[5m])
+/ clamp_min(rate(fastapi_requests_total[5m]), 0.001)
+
+# ❌ WRONG — panics when no traffic
+rate(fastapi_requests_total{status_code=~"5.."}[5m])
+/ rate(fastapi_requests_total[5m])
+```
+
+### Panel ID namespacing
+The System Quality dashboard reserves blocks by pillar:
+- 100s = Reliability, 200s = Performance, 300s = Scalability, 400s = Availability
+- 500s = Observability, 600s = Fault Tolerance, 700s = Security, 800s = Maintainability
+
+Do not use IDs from these blocks in other dashboards.
 
 ---
 

@@ -4,20 +4,28 @@ Start here after reading the root [README.md](../README.md).
 
 ---
 
-## 🆕 Latest Updates (January 2026)
+## 🆕 Latest Updates (March 2026)
 
-**Branch**: `feat/feat-mimir-took`
+**Branch**: `refactor/refactor-master-markdowns`
 
-### New Features & Documentation
+### New Documentation (March 2026)
 
 | Document | Description |
 |----------|-------------|
-| [MIMIR_INTEGRATION_SUMMARY.md](MIMIR_INTEGRATION_SUMMARY.md) | **NEW** Grafana Mimir for horizontal scaling & long-term storage |
-| [../BRANCH_CHANGES_SUMMARY.md](../BRANCH_CHANGES_SUMMARY.md) | **NEW** Complete summary of all branch changes |
-| [deployment/ALERTING_SETUP.md](deployment/ALERTING_SETUP.md) | **NEW** Email alert configuration & Gmail setup |
-| [deployment/DEPLOYMENT_CHECKLIST.md](deployment/DEPLOYMENT_CHECKLIST.md) | **NEW** Deployment procedures & verification |
-| [deployment/DIAGNOSTICS_AND_FIXES.md](deployment/DIAGNOSTICS_AND_FIXES.md) | **NEW** Comprehensive troubleshooting guide |
-| [deployment/QUICKSTART.md](deployment/QUICKSTART.md) | **NEW** 5-minute local quick start |
+| [../MASTER.md](../MASTER.md) | **NEW** Master project wiki — full architecture, dashboards, alerts, env vars, backend telemetry |
+| [../ACCEPTANCE_CRITERIA.md](../ACCEPTANCE_CRITERIA.md) | **NEW** Acceptance criteria for all 25 Kanban cards |
+| [architecture/PYROSCOPE.md](architecture/PYROSCOPE.md) | **NEW** Pyroscope 1.7.1 — continuous profiling setup & datasource |
+| [architecture/JSON_API_PROXY.md](architecture/JSON_API_PROXY.md) | **NEW** JSON-API-Proxy — provider health data bridge to Grafana |
+
+### Previous Updates (January 2026)
+
+| Document | Description |
+|----------|-------------|
+| [MIMIR_INTEGRATION_SUMMARY.md](MIMIR_INTEGRATION_SUMMARY.md) | Grafana Mimir for horizontal scaling & long-term storage |
+| [deployment/ALERTING_SETUP.md](deployment/ALERTING_SETUP.md) | Email alert configuration & Gmail setup |
+| [deployment/DEPLOYMENT_CHECKLIST.md](deployment/DEPLOYMENT_CHECKLIST.md) | Deployment procedures & verification |
+| [deployment/DIAGNOSTICS_AND_FIXES.md](deployment/DIAGNOSTICS_AND_FIXES.md) | Historical troubleshooting (Jan 16, 2026 — issues resolved) |
+| [deployment/QUICKSTART.md](deployment/QUICKSTART.md) | 5-minute local quick start |
 
 ---
 
@@ -80,22 +88,41 @@ Start here after reading the root [README.md](../README.md).
 
 ## 🏗️ Architecture
 
-### Stack Components
-- **Grafana 11.5.2** - Visualization (7 dashboards)
+### Stack Components (March 2026)
+- **Grafana 11.5.2** - Visualization (15 dashboards + 1 in progress)
 - **Prometheus 3.2.1** - Metrics collection (6 scrape jobs)
-- **Mimir 2.11.0** - Long-term storage (NEW)
-- **Loki 3.4** - Log aggregation
-- **Tempo** - Distributed tracing
-- **Redis Exporter** - Redis metrics
-- **Alertmanager** - Alert routing
+- **Mimir 2.11.0** - Long-term metrics storage (30d retention)
+- **Loki 3.4** - Log aggregation (30d retention)
+- **Tempo** - Distributed tracing (48h retention)
+- **Alertmanager v0.27.0** - Alert routing (two-tier email)
+- **Pyroscope 1.7.1** - Continuous CPU/memory profiling
+- **JSON-API-Proxy** - Provider health data bridge (:5050)
+
+### Grafana Datasource UIDs (locked — do not change)
+| UID | Type | Purpose |
+|-----|------|---------|
+| `grafana_prometheus` | Prometheus | Real-time metrics |
+| `grafana_mimir` | Prometheus/Mimir | Long-term metrics + span metrics |
+| `grafana_loki` | Loki | Logs |
+| `grafana_tempo` | Tempo | Traces |
+| `grafana_pyroscope` | Pyroscope | CPU/memory flamegraphs |
+| `alertmanager` | Alertmanager | Alert state |
+| `grafana_json_api` | Simple JSON | Provider health data |
+
+### Architecture Docs
+- [architecture/MIMIR.md](architecture/MIMIR.md) — Mimir architecture & config
+- [architecture/PYROSCOPE.md](architecture/PYROSCOPE.md) — Pyroscope setup & integration
+- [architecture/JSON_API_PROXY.md](architecture/JSON_API_PROXY.md) — JSON-API-Proxy & provider data
+- [../MASTER.md](../MASTER.md) — Full system wiki (start here for deep understanding)
 
 ### Data Flow
 ```
-Backend API → Prometheus → Mimir (long-term)
-                ↓
-             Grafana (visualization)
-                ↑
-         Loki, Tempo
+Backend API → /metrics → Prometheus → Mimir (30d)
+           → /v1/traces → Tempo (48h)
+           → Loki push  → Loki (30d)
+           → /prometheus/data/metrics → JSON-API-Proxy
+                                              ↓
+                                          Grafana (all datasources)
 ```
 
 ---
@@ -190,6 +217,6 @@ docs/
 
 ---
 
-**Last Updated**: January 17, 2026  
-**Branch**: `feat/feat-mimir-took`  
-**Status**: ✅ Documentation Complete
+**Last Updated**: March 2026
+**Branch**: `refactor/refactor-master-markdowns`
+**Status**: ✅ Documentation Current

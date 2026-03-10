@@ -1343,3 +1343,32 @@ If you have questions about implementing any of these requirements:
 ---
 
 **This guide provides EVERYTHING needed for full integration. Start with Phase 1 (Critical) items first!**
+
+---
+
+## Current Implementation Status (March 2026)
+
+All metrics listed in this guide are **implemented** in `gatewayz-backend`. The following table maps each category to its source file:
+
+| Metric Category | Source File | Status |
+|----------------|-------------|--------|
+| HTTP request metrics | `src/middleware/observability_middleware.py` + `src/services/prometheus_metrics.py` | ✅ Implemented |
+| Model inference metrics | `src/services/prometheus_metrics.py` | ✅ Implemented |
+| Cost & billing metrics | `src/services/prometheus_metrics.py` | ✅ Implemented |
+| Provider health scores | `src/routes/prometheus_data.py` | ✅ Implemented |
+| Provider circuit breaker state | `src/services/intelligent_health_monitor.py` | ✅ Implemented |
+| Cache metrics | `src/services/prometheus_metrics.py` | ✅ Implemented |
+| Database read replica routing | `src/services/prometheus_metrics.py` | ✅ Implemented |
+| Security / velocity mode | `src/middleware/security_middleware.py` | ✅ Implemented |
+| OTEL traces | `src/config/opentelemetry_config.py` | ✅ Implemented — service name `gatewayz-api` |
+| LLM traces | `src/config/traceloop_config.py` | ✅ Implemented — `gen_ai.*` conventions |
+| Structured logs → Loki | `src/config/logging_config.py` | ✅ Implemented — `app="gatewayz"` label |
+
+**For full metric tables with types, labels, and PromQL examples:** See [../../MASTER.md §16](../../MASTER.md) (Backend Telemetry Architecture section).
+
+**Outstanding verification gaps** (deployment, not implementation):
+- BACKEND-1: `FASTAPI_TARGET` set in Railway Prometheus service → metrics flowing
+- BACKEND-2: `TEMPO_OTLP_HTTP_ENDPOINT` set on backend → traces in Tempo
+- BACKEND-3: Loki push URL confirmed working → `{app="gatewayz"}` returns logs
+
+See `ACCEPTANCE_CRITERIA.md` for acceptance criteria on each gap.

@@ -1,6 +1,9 @@
 # Four Golden Signals Dashboard - Data Pipeline Audit
 
-**Date:** January 20, 2026  
+> **⚠️ Historical Snapshot — January 20, 2026**
+> This was a point-in-time audit documenting that `FASTAPI_TARGET` was not being substituted correctly at the time of writing. The dashboard configuration itself is **correct and complete** (all PromQL queries are valid). The FASTAPI_TARGET issue is an ongoing deployment verification tracked as **BACKEND-1** in `ACCEPTANCE_CRITERIA.md`. See `MASTER.md §8` for current scrape job status.
+
+**Date:** January 20, 2026
 **Dashboard:** `latency-analytics-v1.json`  
 **Branch:** `fix/fix-golden-signal`  
 **Status:** ⚠️ **DATA PIPELINE ISSUE IDENTIFIED**

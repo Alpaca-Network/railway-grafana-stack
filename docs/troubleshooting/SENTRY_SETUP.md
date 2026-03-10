@@ -1,5 +1,20 @@
 # Sentry Integration Guide
 
+> ⚠️ **DEPRECATED — March 2026**
+>
+> Sentry has been replaced by the native LGTM observability stack. The `gatewayz_reliability_v1` dashboard in Grafana replicates all Sentry error-tracking functionality using Prometheus + Loki — no external Sentry account required. **The Sentry Grafana datasource is no longer configured.**
+>
+> `SENTRY_DSN` is still supported by the backend as a secondary error capture, but Grafana does not query Sentry directly.
+>
+> **Use instead:**
+> - Grafana → Reliability dashboard (`gatewayz_reliability_v1`) — error rates, exception breakdown, Loki error log tail
+> - Grafana Explore → Loki: `{app="gatewayz"} | json | level="ERROR"`
+> - Grafana Explore → Tempo: `{resource.service.name="gatewayz-api" && status=error}`
+>
+> Content below is preserved for historical reference only.
+
+---
+
 This guide explains how to set up Sentry for comprehensive error tracking and integrate it with your Grafana observability stack.
 
 ## What is Sentry?
