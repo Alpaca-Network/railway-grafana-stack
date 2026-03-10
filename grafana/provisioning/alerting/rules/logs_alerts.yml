@@ -6,16 +6,20 @@ groups:
     folder: Logs Alerts
     interval: 1m
     rules:
-      # Alert: Critical Errors Detected
+      # ================================================================
+      # Alert: Critical Errors Detected in Logs
+      # Purpose: Detects high volume of ERROR-level log lines
+      # Fixed: Now uses actual Loki LogQL query instead of placeholder metric
+      # ================================================================
       - uid: critical_errors_detected
-        title: Critical Errors Detected
-        condition: C
+        title: Critical Errors Detected in Logs
+        condition: B
         noDataState: NoData
         execErrState: Alerting
         for: 5m
         annotations:
-          description: '{{ $value }} critical errors detected in the last 5 minutes. Review logs immediately.'
-          summary: 'Critical errors detected'
+          description: 'More than 10 ERROR log lines detected in the last 5 minutes (current: {{ $values.A.Value }}). This indicates active application errors. Check Loki logs dashboard for error details and stack traces.'
+          summary: 'High volume of ERROR logs detected'
           runbook_url: 'https://wiki.gatewayz.ai/runbooks/critical-errors'
         labels:
           severity: critical
@@ -24,19 +28,25 @@ groups:
         data:
           - refId: A
             queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_loki
             model:
-              expr: 'sum(critical_error_count_5m) > 10'
-              hide: false
-              intervalFactor: 1
-              legendFormat: 'Critical Errors'
+              expr: 'sum(count_over_time({job=~".*gatewayz.*"} |~ "(?i)ERROR" [5m]))'
+              legendFormat: ''
               refId: A
-          - refId: C
+          - refId: B
             queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
             model:
               conditions:
                 - evaluator:
                     params:
-                      - 0
+                      - 10
                     type: gt
                   operator:
                     type: and
@@ -44,39 +54,54 @@ groups:
                     params:
                       - A
                   type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              refId: B
               type: threshold
 
-      # Alert: Error Rate Spike
-      - uid: error_rate_spike
-        title: Error Rate Spike
-        condition: C
+      # ================================================================
+      # Alert: Exception Stack Traces in Logs
+      # Purpose: Detects Python/FastAPI exception stack traces
+      # New: Catches unhandled exceptions and crashes
+      # ================================================================
+      - uid: exception_stack_traces_detected
+        title: Exception Stack Traces Detected
+        condition: B
         noDataState: NoData
         execErrState: Alerting
-        for: 5m
+        for: 2m
         annotations:
-          description: 'Error rate increased {{ $value }}% compared to 1 hour ago. Investigate error logs.'
-          summary: 'Error rate spike detected'
-          runbook_url: 'https://wiki.gatewayz.ai/runbooks/error-spike'
+          description: 'Exception stack traces detected in logs ({{ $values.A.Value }} occurrences in 5 minutes). This indicates unhandled exceptions or application crashes. Investigate immediately.'
+          summary: 'Application exceptions detected'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/exceptions'
         labels:
-          severity: warning
+          severity: critical
           category: logs
           component: error_tracking
         data:
           - refId: A
             queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_loki
             model:
-              expr: '((avg(error_rate_now) - avg(error_rate_1h_ago)) / avg(error_rate_1h_ago) * 100) > 50'
-              hide: false
-              intervalFactor: 1
-              legendFormat: 'Error Rate Change %'
+              expr: 'sum(count_over_time({job=~".*gatewayz.*"} |~ "(?i)(Traceback|Exception:|Error:)" [5m]))'
+              legendFormat: ''
               refId: A
-          - refId: C
+          - refId: B
             queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
             model:
               conditions:
                 - evaluator:
                     params:
-                      - 0
+                      - 5
                     type: gt
                   operator:
                     type: and
@@ -84,79 +109,54 @@ groups:
                     params:
                       - A
                   type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              refId: B
               type: threshold
 
-      # Alert: Latency Degradation
-      - uid: logs_latency_degradation
-        title: Latency Degradation
-        condition: C
+      # ================================================================
+      # Alert: Database Connection Errors
+      # Purpose: Detects database connectivity issues in logs
+      # New: Specific detection for DB-related failures
+      # ================================================================
+      - uid: database_connection_errors
+        title: Database Connection Errors Detected
+        condition: B
         noDataState: NoData
         execErrState: Alerting
-        for: 10m
+        for: 3m
         annotations:
-          description: 'System latency increased {{ $value }}% compared to 1 hour ago. Check backend performance.'
-          summary: 'Latency degradation detected'
-          runbook_url: 'https://wiki.gatewayz.ai/runbooks/latency-degradation'
-        labels:
-          severity: warning
-          category: logs
-          component: performance_monitoring
-        data:
-          - refId: A
-            queryType: ''
-            model:
-              expr: '((avg(latency_now) - avg(latency_1h_ago)) / avg(latency_1h_ago) * 100) > 50'
-              hide: false
-              intervalFactor: 1
-              legendFormat: 'Latency Change %'
-              refId: A
-          - refId: C
-            queryType: ''
-            model:
-              conditions:
-                - evaluator:
-                    params:
-                      - 0
-                    type: gt
-                  operator:
-                    type: and
-                  query:
-                    params:
-                      - A
-                  type: query
-              type: threshold
-
-      # Alert: Anomaly Count High
-      - uid: anomaly_count_high
-        title: Anomaly Count High
-        condition: C
-        noDataState: NoData
-        execErrState: Alerting
-        for: 0m
-        annotations:
-          description: '{{ $value }} anomalies detected. Multiple issues detected in the system.'
-          summary: 'High anomaly count'
-          runbook_url: 'https://wiki.gatewayz.ai/runbooks/anomaly-spike'
+          description: 'Database connection errors detected in logs ({{ $values.A.Value }} occurrences). Check database connectivity, connection pool saturation, or database service health.'
+          summary: 'Database connection failures'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/database-errors'
         labels:
           severity: critical
           category: logs
-          component: anomaly_detection
+          component: database
         data:
           - refId: A
             queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_loki
             model:
-              expr: 'sum(anomaly_count) > 5'
-              hide: false
-              intervalFactor: 1
-              legendFormat: 'Anomaly Count'
+              expr: 'sum(count_over_time({job=~".*gatewayz.*"} |~ "(?i)(database.*error|connection.*timeout|connection.*refused|sqlalchemy.*error)" [5m]))'
+              legendFormat: ''
               refId: A
-          - refId: C
+          - refId: B
             queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
             model:
               conditions:
                 - evaluator:
                     params:
-                      - 0
+                      - 3
                     type: gt
                   operator:
                     type: and
@@ -164,5 +164,176 @@ groups:
                     params:
                       - A
                   type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              refId: B
               type: threshold
+
+      # ================================================================
+      # Alert: Timeout Errors
+      # Purpose: Detects timeout errors from providers or internal services
+      # New: Catches latency-induced failures
+      # ================================================================
+      - uid: timeout_errors_detected
+        title: Timeout Errors Detected
+        condition: B
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Timeout errors detected in logs ({{ $values.A.Value }} occurrences). This may indicate slow provider responses, network issues, or capacity problems.'
+          summary: 'Timeout errors occurring'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/timeout-errors'
+        labels:
+          severity: warning
+          category: logs
+          component: latency
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_loki
+            model:
+              expr: 'sum(count_over_time({job=~".*gatewayz.*"} |~ "(?i)(timeout|timed out|deadline exceeded)" [5m]))'
+              legendFormat: ''
+              refId: A
+          - refId: B
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 10
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              refId: B
+              type: threshold
+
+      # ================================================================
+      # Alert: Rate Limit Errors in Logs
+      # Purpose: Detects rate limiting from providers in log output
+      # New: Catches provider-side throttling
+      # ================================================================
+      - uid: rate_limit_errors_logs
+        title: Provider Rate Limit Errors in Logs
+        condition: B
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Provider rate limit errors detected in logs ({{ $values.A.Value }} occurrences). One or more AI providers are throttling requests. Consider request distribution or quota increase.'
+          summary: 'Provider rate limits hit'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/rate-limits'
+        labels:
+          severity: warning
+          category: logs
+          component: providers
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_loki
+            model:
+              expr: 'sum(count_over_time({job=~".*gatewayz.*"} |~ "(?i)(rate limit|rate_limit|429|quota exceeded|too many requests)" [5m]))'
+              legendFormat: ''
+              refId: A
+          - refId: B
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 5
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              refId: B
+              type: threshold
+
+      # ================================================================
+      # Alert: OOM (Out of Memory) Errors
+      # Purpose: Detects memory exhaustion issues
+      # New: Catches memory-related crashes
+      # ================================================================
+      - uid: oom_errors_detected
+        title: Out of Memory Errors Detected
+        condition: B
+        noDataState: NoData
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          description: 'Out of memory errors detected in logs. Application may be experiencing memory leaks or insufficient memory allocation. Check container memory limits and memory usage.'
+          summary: 'Memory exhaustion detected'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/oom-errors'
+        labels:
+          severity: critical
+          category: logs
+          component: infrastructure
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_loki
+            model:
+              expr: 'sum(count_over_time({job=~".*gatewayz.*"} |~ "(?i)(out of memory|oom|memory error|memoryerror)" [5m]))'
+              legendFormat: ''
+              refId: A
+          - refId: B
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 1
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              refId: B
+              type: threshold
+
     provenance: Grafana
