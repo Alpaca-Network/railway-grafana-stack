@@ -165,4 +165,150 @@ groups:
                       - A
                   type: query
               type: threshold
+      # Alert: Loki No Ingestion (Loki-native)
+      - uid: loki_no_ingestion
+        title: Loki No Ingestion
+        condition: C
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'No logs received from GatewayZ backend in the last 5 minutes. The backend log push to Loki may be broken.'
+          summary: 'Loki log ingestion stopped — backend may be down or log push is failing'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/loki-no-ingestion'
+        labels:
+          severity: critical
+          category: logs
+          component: loki_ingestion
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_loki
+            model:
+              expr: 'sum(rate({app=~"gatewayz.*"}[5m]))'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Log Ingestion Rate'
+              refId: A
+              queryType: ''
+          - refId: B
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+              settings:
+                mode: replaceNN
+                replaceWithValue: 0
+          - refId: C
+            queryType: ''
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0.001
+                    type: lt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  type: query
+              type: threshold
+              refId: C
+              expression: B
+
+      # Alert: Loki Error Burst (Loki-native)
+      - uid: loki_error_burst
+        title: Loki Error Burst
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          description: '{{ $value }} ERROR log lines detected in the last minute. Rapid error spike — investigate immediately.'
+          summary: 'ERROR log burst detected — high volume of errors in 1 minute'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/loki-error-burst'
+        labels:
+          severity: warning
+          category: logs
+          component: loki_ingestion
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 60
+              to: 0
+            datasourceUid: grafana_loki
+            model:
+              expr: 'sum(count_over_time({app=~"gatewayz.*"} |= "ERROR" [1m]))'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'ERROR Lines / 1m'
+              refId: A
+              queryType: ''
+          - refId: B
+            queryType: ''
+            relativeTimeRange:
+              from: 60
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            queryType: ''
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 50
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  type: query
+              type: threshold
+              refId: C
+              expression: B
     provenance: Grafana

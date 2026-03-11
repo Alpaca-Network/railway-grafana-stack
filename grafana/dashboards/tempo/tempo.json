@@ -2563,7 +2563,7 @@
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "/^span_name$/",
+          "fields": "",
           "values": false
         },
         "textMode": "name"
