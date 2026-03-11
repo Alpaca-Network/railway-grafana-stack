@@ -14,12 +14,12 @@ groups:
       # ================================================================
       - uid: multi_layer_error_correlation
         title: Multi-Layer Error Correlation - Confirmed Incident
-        condition: D
+        condition: E
         noDataState: NoData
         execErrState: Alerting
         for: 3m
         annotations:
-          description: 'CONFIRMED INCIDENT: Errors detected in both metrics (5xx rate: {{ $values.A.Value | humanizePercentage }}) AND logs (ERROR count: {{ $values.B.Value }}). Multi-layer correlation indicates a real service degradation event, not a false positive. Investigate immediately.'
+          description: 'CONFIRMED INCIDENT: Errors detected in both metrics (5xx rate: {{ $values.A.Value }}%) AND logs (ERROR count: {{ $values.B.Value }}). Multi-layer correlation indicates a real service degradation event, not a false positive. Investigate immediately.'
           summary: 'Error correlation across metrics and logs - high confidence incident'
           runbook_url: 'https://wiki.gatewayz.ai/runbooks/correlated-errors'
         labels:
@@ -75,7 +75,7 @@ groups:
               expression: A
               refId: C
               type: threshold
-          # Expression D: AND condition - both metrics AND logs must be elevated
+          # Expression D: Check if log errors > 5
           - refId: D
             queryType: ''
             relativeTimeRange:
@@ -100,6 +100,17 @@ groups:
               expression: B
               refId: D
               type: threshold
+          # Expression E: AND logic - fires only when BOTH C and D are true
+          - refId: E
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: '$C * $D'
+              type: math
+              refId: E
 
       # ================================================================
       # Alert: Parallel Provider Failures
@@ -249,12 +260,12 @@ groups:
       # ================================================================
       - uid: error_latency_correlation
         title: Error + Latency Correlation - Capacity Issue
-        condition: D
+        condition: E
         noDataState: NoData
         execErrState: Alerting
         for: 5m
         annotations:
-          description: 'Service degradation detected: Both error rate ({{ $values.A.Value | humanizePercentage }}) AND P95 latency ({{ $values.B.Value }}s) are elevated. This pattern indicates a capacity or performance issue causing timeouts and failures. Check CPU/memory usage, database performance, and provider response times.'
+          description: 'Service degradation detected: Both error rate ({{ $values.A.Value }}%) AND P95 latency ({{ $values.B.Value }}s) are elevated. This pattern indicates a capacity or performance issue causing timeouts and failures. Check CPU/memory usage, database performance, and provider response times.'
           summary: 'Correlated error rate and latency degradation'
           runbook_url: 'https://wiki.gatewayz.ai/runbooks/capacity-issues'
         labels:
@@ -310,7 +321,7 @@ groups:
               expression: A
               refId: C
               type: threshold
-          # Expression D: AND check if P95 latency > 3 seconds
+          # Expression D: Check if P95 latency > 3 seconds
           - refId: D
             queryType: ''
             relativeTimeRange:
@@ -335,6 +346,17 @@ groups:
               expression: B
               refId: D
               type: threshold
+          # Expression E: AND logic - fires only when BOTH C and D are true
+          - refId: E
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: '$C * $D'
+              type: math
+              refId: E
 
       # ================================================================
       # Alert: Traffic Spike + Error Rate Correlation
@@ -344,12 +366,12 @@ groups:
       # ================================================================
       - uid: traffic_spike_error_correlation
         title: Traffic Spike + Error Correlation - Capacity Limit
-        condition: D
+        condition: E
         noDataState: NoData
         execErrState: Alerting
         for: 5m
         annotations:
-          description: 'Traffic spike causing errors: Request rate increased {{ $values.A.Value }}x AND error rate is {{ $values.B.Value | humanizePercentage }}. The system is unable to handle the current load. Scale immediately or enable aggressive rate limiting.'
+          description: 'Traffic spike causing errors: Request rate increased {{ $values.A.Value }}x AND error rate is {{ $values.B.Value }}%. The system is unable to handle the current load. Scale immediately or enable aggressive rate limiting.'
           summary: 'Load spike exceeding capacity'
           runbook_url: 'https://wiki.gatewayz.ai/runbooks/load-spike'
         labels:
@@ -405,7 +427,7 @@ groups:
               expression: A
               refId: C
               type: threshold
-          # Expression D: AND check if error rate > 2%
+          # Expression D: Check if error rate > 2%
           - refId: D
             queryType: ''
             relativeTimeRange:
@@ -430,5 +452,16 @@ groups:
               expression: B
               refId: D
               type: threshold
+          # Expression E: AND logic - fires only when BOTH C and D are true
+          - refId: E
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: '$C * $D'
+              type: math
+              refId: E
 
     provenance: Grafana
