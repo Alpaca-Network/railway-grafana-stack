@@ -1,0 +1,467 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: correlated_failure_detection
+    folder: Correlated Incidents
+    interval: 1m
+    rules:
+      # ================================================================
+      # Alert: Multi-Layer Error Correlation (Metrics + Logs)
+      # Purpose: Fires when BOTH 5xx errors AND log errors spike together
+      # Impact: HIGH confidence incident - not a false positive
+      # Action: Immediate investigation - confirmed service degradation
+      # ================================================================
+      - uid: multi_layer_error_correlation
+        title: Multi-Layer Error Correlation - Confirmed Incident
+        condition: E
+        noDataState: NoData
+        execErrState: Alerting
+        for: 3m
+        annotations:
+          description: 'CONFIRMED INCIDENT: Errors detected in both metrics (5xx rate: {{ $values.A.Value }}%) AND logs (ERROR count: {{ $values.B.Value }}). Multi-layer correlation indicates a real service degradation event, not a false positive. Investigate immediately.'
+          summary: 'Error correlation across metrics and logs - high confidence incident'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/correlated-errors'
+        labels:
+          severity: critical
+          category: correlated_failure
+          component: multi_layer
+          incident_confidence: high
+        data:
+          # Query A: 5xx error rate from metrics
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_prometheus
+            model:
+              expr: '(sum(rate(fastapi_requests_total{status_code=~"5.."}[5m])) / sum(rate(fastapi_requests_total[5m]))) * 100'
+              legendFormat: ''
+              refId: A
+          # Query B: ERROR log count from Loki
+          - refId: B
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_loki
+            model:
+              expr: 'sum(count_over_time({job=~".*gatewayz.*"} |~ "(?i)ERROR" [5m]))'
+              legendFormat: ''
+              refId: B
+          # Expression C: Check if 5xx rate > 2%
+          - refId: C
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 2
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              refId: C
+              type: threshold
+          # Expression D: Check if log errors > 5
+          - refId: D
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 5
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              refId: D
+              type: threshold
+          # Expression E: AND logic - fires only when BOTH C and D are true
+          - refId: E
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: '$C * $D'
+              type: math
+              refId: E
+
+      # ================================================================
+      # Alert: Parallel Provider Failures
+      # Purpose: Detects when 2+ providers fail simultaneously
+      # Impact: High - indicates systemic issue, not provider-specific
+      # Action: Check network, DNS, auth, or common dependencies
+      # ================================================================
+      - uid: parallel_provider_failures
+        title: Parallel Provider Failures - Multiple Providers Down
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'CRITICAL: {{ $values.A.Value }} providers are experiencing elevated error rates (>10%) simultaneously. This indicates a systemic issue affecting multiple providers - check network connectivity, DNS resolution, authentication tokens, rate limiting, or shared infrastructure.'
+          summary: 'Multiple providers failing simultaneously'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/parallel-provider-failures'
+        labels:
+          severity: critical
+          category: correlated_failure
+          component: providers
+          incident_type: parallel_failure
+        data:
+          # Query A: Count providers with >10% error rate
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_prometheus
+            model:
+              expr: 'count((sum by (provider) (rate(model_inference_requests_total{status="error"}[5m])) / sum by (provider) (rate(model_inference_requests_total[5m]))) > 0.10)'
+              legendFormat: ''
+              refId: A
+          # Query B: Get provider names (for context)
+          - refId: B
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_prometheus
+            model:
+              expr: 'sum by (provider) (rate(model_inference_requests_total{status="error"}[5m])) / sum by (provider) (rate(model_inference_requests_total[5m]))'
+              legendFormat: '{{ provider }}'
+              refId: B
+          # Condition C: Alert if 2 or more providers affected
+          - refId: C
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 2
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              refId: C
+              type: threshold
+
+      # ================================================================
+      # Alert: Parallel Endpoint Failures
+      # Purpose: Detects when multiple API endpoints fail simultaneously
+      # Impact: High - indicates backend-wide issue, not endpoint-specific
+      # Action: Check application health, database, cache, dependencies
+      # ================================================================
+      - uid: parallel_endpoint_failures
+        title: Parallel Endpoint Failures - Multiple Endpoints Down
+        condition: C
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'CRITICAL: {{ $values.A.Value }} API endpoints are experiencing elevated error rates (>5%) simultaneously. This indicates a backend-wide issue - check database connectivity, cache availability, shared dependencies, or application health.'
+          summary: 'Multiple endpoints failing simultaneously'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/parallel-endpoint-failures'
+        labels:
+          severity: critical
+          category: correlated_failure
+          component: backend
+          incident_type: parallel_failure
+        data:
+          # Query A: Count endpoints with >5% error rate
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_prometheus
+            model:
+              expr: 'count((sum by (endpoint) (rate(fastapi_requests_total{status_code=~"5.."}[5m])) / sum by (endpoint) (rate(fastapi_requests_total[5m]))) > 0.05)'
+              legendFormat: ''
+              refId: A
+          # Query B: Get endpoint error rates (for context)
+          - refId: B
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_prometheus
+            model:
+              expr: '(sum by (endpoint) (rate(fastapi_requests_total{status_code=~"5.."}[5m])) / sum by (endpoint) (rate(fastapi_requests_total[5m]))) * 100'
+              legendFormat: '{{ endpoint }}'
+              refId: B
+          # Condition C: Alert if 3 or more endpoints affected
+          - refId: C
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 3
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              refId: C
+              type: threshold
+
+      # ================================================================
+      # Alert: Error + Latency Correlation
+      # Purpose: Detects when both error rate AND latency spike together
+      # Impact: High - indicates capacity/performance issue causing failures
+      # Action: Check resource utilization, scale if needed, investigate slow queries
+      # ================================================================
+      - uid: error_latency_correlation
+        title: Error + Latency Correlation - Capacity Issue
+        condition: E
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Service degradation detected: Both error rate ({{ $values.A.Value }}%) AND P95 latency ({{ $values.B.Value }}s) are elevated. This pattern indicates a capacity or performance issue causing timeouts and failures. Check CPU/memory usage, database performance, and provider response times.'
+          summary: 'Correlated error rate and latency degradation'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/capacity-issues'
+        labels:
+          severity: critical
+          category: correlated_failure
+          component: performance
+          incident_type: capacity_degradation
+        data:
+          # Query A: 5xx error rate
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_prometheus
+            model:
+              expr: '(sum(rate(fastapi_requests_total{status_code=~"5.."}[5m])) / sum(rate(fastapi_requests_total[5m]))) * 100'
+              legendFormat: ''
+              refId: A
+          # Query B: P95 latency
+          - refId: B
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_prometheus
+            model:
+              expr: 'histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le))'
+              legendFormat: ''
+              refId: B
+          # Expression C: Check if error rate > 3%
+          - refId: C
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 3
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              refId: C
+              type: threshold
+          # Expression D: Check if P95 latency > 3 seconds
+          - refId: D
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 3
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              refId: D
+              type: threshold
+          # Expression E: AND logic - fires only when BOTH C and D are true
+          - refId: E
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: '$C * $D'
+              type: math
+              refId: E
+
+      # ================================================================
+      # Alert: Traffic Spike + Error Rate Correlation
+      # Purpose: Detects when traffic surge causes error increase
+      # Impact: High - indicates capacity limits reached during load spike
+      # Action: Scale resources, enable rate limiting, investigate bottlenecks
+      # ================================================================
+      - uid: traffic_spike_error_correlation
+        title: Traffic Spike + Error Correlation - Capacity Limit
+        condition: E
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Traffic spike causing errors: Request rate increased {{ $values.A.Value }}x AND error rate is {{ $values.B.Value }}%. The system is unable to handle the current load. Scale immediately or enable aggressive rate limiting.'
+          summary: 'Load spike exceeding capacity'
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/load-spike'
+        labels:
+          severity: critical
+          category: correlated_failure
+          component: capacity
+          incident_type: load_spike
+        data:
+          # Query A: Traffic ratio vs baseline
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_prometheus
+            model:
+              expr: 'sum(rate(fastapi_requests_total[5m])) / sum(rate(fastapi_requests_total[5m] offset 1h))'
+              legendFormat: ''
+              refId: A
+          # Query B: Current error rate
+          - refId: B
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: grafana_prometheus
+            model:
+              expr: '(sum(rate(fastapi_requests_total{status_code=~"5.."}[5m])) / sum(rate(fastapi_requests_total[5m]))) * 100'
+              legendFormat: ''
+              refId: B
+          # Expression C: Check if traffic > 2x baseline
+          - refId: C
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 2
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              refId: C
+              type: threshold
+          # Expression D: Check if error rate > 2%
+          - refId: D
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 2
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              refId: D
+              type: threshold
+          # Expression E: AND logic - fires only when BOTH C and D are true
+          - refId: E
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              expression: '$C * $D'
+              type: math
+              refId: E
+
+    provenance: Grafana
