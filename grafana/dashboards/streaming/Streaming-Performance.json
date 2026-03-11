@@ -382,6 +382,10 @@
           }
         },
         "overrides": []
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
       }
     },
     {
@@ -434,6 +438,10 @@
           }
         },
         "overrides": []
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
       }
     },
     {
@@ -702,6 +710,10 @@
           }
         },
         "overrides": []
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
       }
     },
     {
@@ -719,7 +731,7 @@
     {
       "id": 15,
       "type": "bargauge",
-      "title": "Stage % of Total Request by Endpoint",
+      "title": "Latency Stage Breakdown — TTFB vs TTFC vs Streaming (P50)",
       "gridPos": {
         "h": 9,
         "w": 12,
@@ -733,8 +745,29 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "stage_percentage by (stage, endpoint)",
-          "legendFormat": "{{stage}} — {{endpoint}}"
+          "expr": "histogram_quantile(0.50, sum(rate(backend_ttfb_seconds_bucket[5m])) by (le))",
+          "legendFormat": "TTFB P50",
+          "instant": true
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "histogram_quantile(0.50, sum(rate(time_to_first_chunk_seconds_bucket[5m])) by (le))",
+          "legendFormat": "TTFC P50",
+          "instant": true
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "histogram_quantile(0.50, sum(rate(streaming_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "Streaming Duration P50",
+          "instant": true
         }
       ],
       "options": {
@@ -752,13 +785,13 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "percent",
-          "displayName": "${__field.labels.stage}",
+          "unit": "s",
+          "displayName": "${__field.labels.__name__}",
           "color": {
             "mode": "thresholds"
           },
           "thresholds": {
-            "mode": "percentage",
+            "mode": "absolute",
             "steps": [
               {
                 "color": "green",
@@ -766,20 +799,20 @@
               },
               {
                 "color": "yellow",
-                "value": 60
-              },
-              {
-                "color": "orange",
-                "value": 80
+                "value": 1
               },
               {
                 "color": "red",
-                "value": 95
+                "value": 5
               }
             ]
           }
         },
         "overrides": []
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
       }
     },
     {
@@ -832,12 +865,16 @@
           }
         },
         "overrides": []
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
       }
     },
     {
       "id": 17,
       "type": "timeseries",
-      "title": "Request Stage Duration Over Time",
+      "title": "Latency Stages Over Time — TTFB / TTFC / Streaming Duration (P50 + P95)",
       "gridPos": {
         "h": 8,
         "w": 24,
@@ -851,8 +888,53 @@
             "type": "prometheus",
             "uid": "grafana_prometheus"
           },
-          "expr": "rate(request_stage_duration_seconds_bucket[5m]) by (stage)",
-          "legendFormat": "{{stage}}"
+          "expr": "histogram_quantile(0.50, sum(rate(backend_ttfb_seconds_bucket[5m])) by (le))",
+          "legendFormat": "TTFB P50"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "histogram_quantile(0.95, sum(rate(backend_ttfb_seconds_bucket[5m])) by (le))",
+          "legendFormat": "TTFB P95"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "histogram_quantile(0.50, sum(rate(time_to_first_chunk_seconds_bucket[5m])) by (le))",
+          "legendFormat": "TTFC P50"
+        },
+        {
+          "refId": "D",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "histogram_quantile(0.95, sum(rate(time_to_first_chunk_seconds_bucket[5m])) by (le))",
+          "legendFormat": "TTFC P95"
+        },
+        {
+          "refId": "E",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "histogram_quantile(0.50, sum(rate(streaming_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "Streaming Duration P50"
+        },
+        {
+          "refId": "F",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "histogram_quantile(0.95, sum(rate(streaming_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "Streaming Duration P95"
         }
       ],
       "options": {
@@ -884,6 +966,10 @@
           }
         },
         "overrides": []
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
       }
     },
     {
