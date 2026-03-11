@@ -34,6 +34,9 @@ COPY dashboards/model_performance /etc/grafana/provisioning/dashboards/model_per
 COPY dashboards/provider /etc/grafana/provisioning/dashboards/provider
 COPY dashboards/developer /etc/grafana/provisioning/dashboards/developer
 COPY dashboards/golden-signals /etc/grafana/provisioning/dashboards/golden-signals
+COPY dashboards/infrastructure /etc/grafana/provisioning/dashboards/infrastructure
+COPY dashboards/streaming /etc/grafana/provisioning/dashboards/streaming
+COPY dashboards/reliability /etc/grafana/provisioning/dashboards/reliability
 
 # ============================================================
 # ALERTING PROVISIONING
