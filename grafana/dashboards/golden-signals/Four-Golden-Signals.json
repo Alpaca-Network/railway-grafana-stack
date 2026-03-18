@@ -12,7 +12,7 @@
       }
     ]
   },
-  "description": "SRE Four Golden Signals — Latency · Traffic · Errors · Saturation — mapped to the enterprise reliability benchmark: availability, performance, traffic variability, recovery velocity, data integrity, and security. Supplementary: Continuous Profiling via Pyroscope.",
+  "description": "SRE Four Golden Signals \u2014 Latency \u00b7 Traffic \u00b7 Errors \u00b7 Saturation \u2014 mapped to the enterprise reliability benchmark: availability, performance, traffic variability, recovery velocity, data integrity, and security. Supplementary: Continuous Profiling via Pyroscope.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -54,7 +54,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "## GatewayZ — AI Inference Gateway\n\n| Signal | SLI Target |\n|--------|------------|\n| ⚡ **Latency** | P50 < 1 s · **P90 < 2 s** · P95 < 3 s |\n| 🚦 **Traffic** | Baseline ± 3× (TrafficSpike alert) |\n| 🚨 **Errors** | < 0.5% error rate — 99.5% availability SLO |\n| 📊 **Saturation** | CPU < 80% · 429 rate < 10% |\n\n**Error Budget**: 0.5% / month · ~21.9 min allowed downtime  \n_Reliability: SLI/SLO-driven · Error budget burn alerting · Multi-layer detection (Metrics · Logs · Traces · Anomaly) · Recovery tracking (MTTR · restart velocity)_",
+        "content": "## GatewayZ \u2014 AI Inference Gateway\n\n| Signal | SLI Target |\n|--------|------------|\n| \u26a1 **Latency** | P50 < 1 s \u00b7 **P90 < 2 s** \u00b7 P95 < 3 s |\n| \ud83d\udea6 **Traffic** | Baseline \u00b1 3\u00d7 (TrafficSpike alert) |\n| \ud83d\udea8 **Errors** | < 0.5% error rate \u2014 99.5% availability SLO |\n| \ud83d\udcca **Saturation** | CPU < 80% \u00b7 429 rate < 10% |\n\n**Error Budget**: 0.5% / month \u00b7 ~21.9 min allowed downtime  \n_Reliability: SLI/SLO-driven \u00b7 Error budget burn alerting \u00b7 Multi-layer detection (Metrics \u00b7 Logs \u00b7 Traces \u00b7 Anomaly) \u00b7 Recovery tracking (MTTR \u00b7 restart velocity)_",
         "mode": "markdown"
       },
       "pluginVersion": "11.5.2",
@@ -72,7 +72,7 @@
       },
       "id": 10,
       "panels": [],
-      "title": "⚡  Pillar I — Latency",
+      "title": "\u26a1  Pillar I \u2014 Latency",
       "type": "row"
     },
     {
@@ -338,7 +338,7 @@
         }
       ],
       "title": "P95 (5xx)",
-      "description": "P95 of only failed (5xx) requests. A low value here means errors are failing fast (good). A high value means errors are also slow — double punishment for your users.",
+      "description": "P95 of only failed (5xx) requests. A low value here means errors are failing fast (good). A high value means errors are also slow \u2014 double punishment for your users.",
       "type": "stat"
     },
     {
@@ -525,11 +525,11 @@
                 "value": null
               },
               {
-                "color": "rgba(255, 152, 0, 0.1)",
+                "color": "orange",
                 "value": 2.0
               },
               {
-                "color": "rgba(255, 80, 0, 0.08)",
+                "color": "red",
                 "value": 3.0
               }
             ]
@@ -540,7 +540,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "P50 — Success"
+              "options": "P50 \u2014 Success"
             },
             "properties": [
               {
@@ -559,7 +559,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "P95 — Success"
+              "options": "P95 \u2014 Success"
             },
             "properties": [
               {
@@ -578,7 +578,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "P99 — Success (Tail)"
+              "options": "P99 \u2014 Success (Tail)"
             },
             "properties": [
               {
@@ -597,7 +597,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "P95 — HTTP 5xx (Poison)"
+              "options": "P95 \u2014 HTTP 5xx (Poison)"
             },
             "properties": [
               {
@@ -652,32 +652,32 @@
       "targets": [
         {
           "expr": "histogram_quantile(0.50, sum(rate(fastapi_requests_duration_seconds_bucket{status_code!~\"5..\"}[5m])) by (le))",
-          "legendFormat": "P50 — Success",
+          "legendFormat": "P50 \u2014 Success",
           "refId": "A"
         },
         {
           "refId": "E",
           "expr": "histogram_quantile(0.90, sum(rate(fastapi_requests_duration_seconds_bucket{status_code!~\"5..\"}[5m])) by (le))",
-          "legendFormat": "P90 — Success"
+          "legendFormat": "P90 \u2014 Success"
         },
         {
           "expr": "histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket{status_code!~\"5..\"}[5m])) by (le))",
-          "legendFormat": "P95 — Success",
+          "legendFormat": "P95 \u2014 Success",
           "refId": "B"
         },
         {
           "expr": "histogram_quantile(0.99, sum(rate(fastapi_requests_duration_seconds_bucket{status_code!~\"5..\"}[5m])) by (le))",
-          "legendFormat": "P99 — Success (Tail)",
+          "legendFormat": "P99 \u2014 Success (Tail)",
           "refId": "C"
         },
         {
           "expr": "histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket{status_code=~\"5..\"}[5m])) by (le))",
-          "legendFormat": "P95 — HTTP 5xx (Poison)",
+          "legendFormat": "P95 \u2014 HTTP 5xx (Poison)",
           "refId": "D"
         }
       ],
-      "title": "Latency Percentiles Over Time — P50 · P90 · P95 · P99",
-      "description": "Dashed red line shows the P95 of failed (5xx) requests. If this line spikes independently of the success lines, errors are triggering immediately and poisoning your overall latency average — exactly why we never trust the mean.",
+      "title": "Latency Percentiles Over Time \u2014 P50 \u00b7 P90 \u00b7 P95 \u00b7 P99",
+      "description": "Dashed red line shows the P95 of failed (5xx) requests. If this line spikes independently of the success lines, errors are triggering immediately and poisoning your overall latency average \u2014 exactly why we never trust the mean.",
       "type": "timeseries"
     },
     {
@@ -690,7 +690,7 @@
       },
       "id": 20,
       "panels": [],
-      "title": "🚦  Pillar II — Traffic",
+      "title": "\ud83d\udea6  Pillar II \u2014 Traffic",
       "type": "row"
     },
     {
@@ -883,7 +883,7 @@
         }
       ],
       "title": "Success RPS",
-      "description": "RPS for only non-5xx responses. Compare with total RPS — a large gap means errors are eating into real capacity.",
+      "description": "RPS for only non-5xx responses. Compare with total RPS \u2014 a large gap means errors are eating into real capacity.",
       "type": "stat"
     },
     {
@@ -1188,7 +1188,7 @@
           "refId": "B"
         }
       ],
-      "title": "Bandwidth — Inbound & Outbound (bytes/sec)",
+      "title": "Bandwidth \u2014 Inbound & Outbound (bytes/sec)",
       "description": "Critical for LLM token streaming workloads. Shows if you are approaching network saturation. Will read 0 if request/response size instrumentation is not enabled on the FastAPI backend.",
       "type": "timeseries"
     },
@@ -1202,7 +1202,7 @@
       },
       "id": 30,
       "panels": [],
-      "title": "🚨  Pillar III — Errors",
+      "title": "\ud83d\udea8  Pillar III \u2014 Errors",
       "type": "row"
     },
     {
@@ -1528,7 +1528,7 @@
                 "value": null
               },
               {
-                "color": "rgba(242, 73, 92, 0.15)",
+                "color": "red",
                 "value": 0.05
               }
             ]
@@ -1624,8 +1624,8 @@
           "refId": "C"
         }
       ],
-      "title": "Error Rate by Type — Explicit · Policy Breach · Client",
-      "description": "Three error categories: Explicit (server failures), Policy (slow 200s violating SLO), Client (bad requests). Separating these avoids alert fatigue — 4xx spikes are usually abuse, not outages.",
+      "title": "Error Rate by Type \u2014 Explicit \u00b7 Policy Breach \u00b7 Client",
+      "description": "Three error categories: Explicit (server failures), Policy (slow 200s violating SLO), Client (bad requests). Separating these avoids alert fatigue \u2014 4xx spikes are usually abuse, not outages.",
       "type": "timeseries"
     },
     {
@@ -1724,7 +1724,7 @@
       },
       "id": 119,
       "panels": [],
-      "title": "🔍  Error Detection — Multi-Layered",
+      "title": "\ud83d\udd0d  Error Detection \u2014 Multi-Layered",
       "type": "row"
     },
     {
@@ -1934,7 +1934,7 @@
         }
       ],
       "title": "Trace Fails/s",
-      "description": "Rate of failed spans from Tempo's service graph (downstream dependency failures). Detects errors in external calls — provider APIs, DB, cache — that may not surface in application metrics.",
+      "description": "Rate of failed spans from Tempo's service graph (downstream dependency failures). Detects errors in external calls \u2014 provider APIs, DB, cache \u2014 that may not surface in application metrics.",
       "type": "stat"
     },
     {
@@ -1966,7 +1966,7 @@
           },
           "unit": "short",
           "decimals": 1,
-          "noValue": "1×",
+          "noValue": "1\u00d7",
           "mappings": []
         },
         "overrides": []
@@ -2004,7 +2004,7 @@
           "refId": "A"
         }
       ],
-      "title": "Error Anomaly (× base)",
+      "title": "Error Anomaly (\u00d7 base)",
       "description": "Current error rate as a multiple of the 1h baseline. 1x = normal. 2x = double normal error rate. 5x+ = anomaly. Detects spikes that are statistically abnormal even when absolute error rate is low.",
       "type": "stat"
     },
@@ -2090,7 +2090,7 @@
             "uid": "grafana_mimir"
           },
           "expr": "sum(rate(fastapi_requests_total{status_code=~\"5..\"}[5m])) or vector(0)",
-          "legendFormat": "📊 Metrics — 5xx/s",
+          "legendFormat": "\ud83d\udcca Metrics \u2014 5xx/s",
           "refId": "A"
         },
         {
@@ -2099,7 +2099,7 @@
             "uid": "grafana_mimir"
           },
           "expr": "sum(rate(fastapi_exceptions_total[5m])) or vector(0)",
-          "legendFormat": "📊 Metrics — Exceptions/s",
+          "legendFormat": "\ud83d\udcca Metrics \u2014 Exceptions/s",
           "refId": "B"
         },
         {
@@ -2108,7 +2108,7 @@
             "uid": "grafana_loki"
           },
           "expr": "sum(rate({job=~\".*gatewayz.*\"} |= \"ERROR\" [5m]))",
-          "legendFormat": "📜 Logs — ERROR/s",
+          "legendFormat": "\ud83d\udcdc Logs \u2014 ERROR/s",
           "refId": "C"
         },
         {
@@ -2117,11 +2117,11 @@
             "uid": "grafana_mimir"
           },
           "expr": "sum(rate(traces_service_graph_request_failed_total[$__rate_interval])) or vector(0)",
-          "legendFormat": "🧵 Traces — Failed Spans/s",
+          "legendFormat": "\ud83e\uddf5 Traces \u2014 Failed Spans/s",
           "refId": "D"
         }
       ],
-      "title": "Multi-Layer Error Signal Correlation  |  Metrics · Logs · Traces",
+      "title": "Multi-Layer Error Signal Correlation  |  Metrics \u00b7 Logs \u00b7 Traces",
       "description": "Overlays error signals from all three observable layers on a single timeline. Signal correlation (two or more layers spiking together) confirms a real error event and speeds up root-cause triage. A spike on Traces but not Metrics = downstream dependency. A spike on Logs but not Metrics = unhandled exception without HTTP error code.",
       "type": "timeseries"
     },
@@ -2234,7 +2234,7 @@
           "refId": "C"
         }
       ],
-      "title": "Data-Level Anomaly — Error Rate vs Baseline",
+      "title": "Data-Level Anomaly \u2014 Error Rate vs Baseline",
       "description": "Current error rate (%) against 1h and 24h rolling baselines computed by recording rules. A current line rising above both baselines indicates a statistically abnormal error event even if the absolute value appears small. Early detection at low absolute error rates is critical for maintaining the 99.5% SLO.",
       "type": "timeseries"
     },
@@ -2248,7 +2248,7 @@
       },
       "id": 50,
       "panels": [],
-      "title": "🗺️  Service Graph & Topology — Upstream vs Downstream Failure Analysis  |  Powered by Tempo metrics-generator → Mimir",
+      "title": "\ud83d\uddfa\ufe0f  Service Graph & Topology \u2014 Upstream vs Downstream Failure Analysis  |  Powered by Tempo metrics-generator \u2192 Mimir",
       "type": "row"
     },
     {
@@ -2269,7 +2269,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "### Service Graph — what it shows and why the panels may read \"No data\"\n\nThis section reads from `traces_service_graph_*` metrics that Tempo's `metrics_generator` writes to Mimir. **These metrics only exist when Tempo receives a trace that contains spans from at least two different `service.name` values.** GatewayZ is a single-service gateway — the AI providers it calls (OpenAI, Anthropic, OpenRouter, etc.) are external HTTP endpoints that do not participate in OTel tracing and do not propagate `traceparent` headers back. Every trace Tempo receives therefore has only one `service.name`, so the service-graphs processor has no edges to draw.\n\n**What would make data appear here:** If the backend adds a child span with `peer.service = \"openai\"` (or the provider name) for each outbound call, Tempo will generate `gatewayz-backend → openai` edges. That is the accurate framing — not \"Service A vs Service B\" in a microservices sense, but **\"gateway processing time vs provider inference time\"** on a per-request basis.\n\n**Cross-signal navigation (works today):** Click the blue ◆ exemplar dot on any latency graph to jump to the exact Tempo trace. In Loki log panels click **\"View Trace\"** next to any `trace_id` to open the Tempo waterfall. In Tempo, click any span → **\"Related metrics\"** links to Mimir, **\"Related logs\"** links to Loki.",
+        "content": "### Service Graph \u2014 what it shows and why the panels may read \"No data\"\n\nThis section reads from `traces_service_graph_*` metrics that Tempo's `metrics_generator` writes to Mimir. **These metrics only exist when Tempo receives a trace that contains spans from at least two different `service.name` values.** GatewayZ is a single-service gateway \u2014 the AI providers it calls (OpenAI, Anthropic, OpenRouter, etc.) are external HTTP endpoints that do not participate in OTel tracing and do not propagate `traceparent` headers back. Every trace Tempo receives therefore has only one `service.name`, so the service-graphs processor has no edges to draw.\n\n**What would make data appear here:** If the backend adds a child span with `peer.service = \"openai\"` (or the provider name) for each outbound call, Tempo will generate `gatewayz-backend \u2192 openai` edges. That is the accurate framing \u2014 not \"Service A vs Service B\" in a microservices sense, but **\"gateway processing time vs provider inference time\"** on a per-request basis.\n\n**Cross-signal navigation (works today):** Click the blue \u25c6 exemplar dot on any latency graph to jump to the exact Tempo trace. In Loki log panels click **\"View Trace\"** next to any `trace_id` to open the Tempo waterfall. In Tempo, click any span \u2192 **\"Related metrics\"** links to Mimir, **\"Related logs\"** links to Loki.",
         "mode": "markdown"
       },
       "pluginVersion": "11.5.2",
@@ -2306,7 +2306,7 @@
         }
       ],
       "title": "Live Service Dependency Map",
-      "description": "Auto-generated from Tempo span data. Node size = request volume. Edge color = error rate (green→yellow→red). Click a node to filter Tempo traces to that service. Requires Tempo metrics_generator service-graphs processor (already enabled).",
+      "description": "Auto-generated from Tempo span data. Node size = request volume. Edge color = error rate (green\u2192yellow\u2192red). Click a node to filter Tempo traces to that service. Requires Tempo metrics_generator service-graphs processor (already enabled).",
       "type": "nodeGraph"
     },
     {
@@ -2391,12 +2391,12 @@
             "uid": "grafana_mimir"
           },
           "expr": "sum by(client, server) (rate(traces_service_graph_request_total[$__rate_interval]))",
-          "legendFormat": "{{client}} → {{server}}",
+          "legendFormat": "{{client}} \u2192 {{server}}",
           "refId": "A"
         }
       ],
       "title": "Service-to-Service Request Rate (RPS)",
-      "description": "Traffic volume on each service edge observed by Tempo. A sudden drop to zero on an edge means that dependency is completely unreachable — a leading indicator of a cascading failure.",
+      "description": "Traffic volume on each service edge observed by Tempo. A sudden drop to zero on an edge means that dependency is completely unreachable \u2014 a leading indicator of a cascading failure.",
       "type": "timeseries"
     },
     {
@@ -2491,7 +2491,7 @@
             "uid": "grafana_mimir"
           },
           "expr": "sum by(client, server) (rate(traces_service_graph_request_failed_total[$__rate_interval])) / sum by(client, server) (rate(traces_service_graph_request_total[$__rate_interval]))",
-          "legendFormat": "{{client}} → {{server}}",
+          "legendFormat": "{{client}} \u2192 {{server}}",
           "refId": "A"
         }
       ],
@@ -2590,7 +2590,7 @@
             "uid": "grafana_mimir"
           },
           "expr": "histogram_quantile(0.95, sum by(client, server, le) (rate(traces_service_graph_request_duration_seconds_bucket[$__rate_interval])))",
-          "legendFormat": "P95 · {{client}} → {{server}}",
+          "legendFormat": "P95 \u00b7 {{client}} \u2192 {{server}}",
           "refId": "A"
         },
         {
@@ -2599,18 +2599,18 @@
             "uid": "grafana_mimir"
           },
           "expr": "histogram_quantile(0.99, sum by(client, server, le) (rate(traces_service_graph_request_duration_seconds_bucket[$__rate_interval])))",
-          "legendFormat": "P99 · {{client}} → {{server}}",
+          "legendFormat": "P99 \u00b7 {{client}} \u2192 {{server}}",
           "refId": "B"
         }
       ],
-      "title": "Cross-Service Latency — P95 & P99 per Edge",
-      "description": "P95/P99 latency for every client→server pair in the service graph. Separates upstream provider slowness from gateway processing time — the key to distinguishing capacity problems from code problems.",
+      "title": "Cross-Service Latency \u2014 P95 & P99 per Edge",
+      "description": "P95/P99 latency for every client\u2192server pair in the service graph. Separates upstream provider slowness from gateway processing time \u2014 the key to distinguishing capacity problems from code problems.",
       "type": "timeseries"
     },
     {
       "id": 60,
       "type": "row",
-      "title": "🎯  SLO Compliance & Error Budget  |  99.5% Success Rate · Error Budget Burn Rate Tracking",
+      "title": "\ud83c\udfaf  SLO Compliance & Error Budget  |  99.5% Success Rate \u00b7 Error Budget Burn Rate Tracking",
       "collapsed": false,
       "gridPos": {
         "h": 1,
@@ -2623,7 +2623,7 @@
     {
       "id": 61,
       "type": "stat",
-      "title": "SLO Compliance — Success Rate % (window)",
+      "title": "SLO Compliance \u2014 Success Rate % (window)",
       "description": "% of requests that returned non-5xx. SLO target: 99.5%. Uses Mimir for long-range queries.",
       "datasource": {
         "type": "prometheus",
@@ -2769,8 +2769,8 @@
     {
       "id": 63,
       "type": "stat",
-      "title": "Burn Rate — 1h  (page if > 14.4×)",
-      "description": "Error burn rate relative to SLO error budget. >14.4× means you'll exhaust the 30-day budget in ~2h. >6× means ~5h.",
+      "title": "Burn Rate \u2014 1h  (page if > 14.4\u00d7)",
+      "description": "Error burn rate relative to SLO error budget. >14.4\u00d7 means you'll exhaust the 30-day budget in ~2h. >6\u00d7 means ~5h.",
       "datasource": {
         "type": "prometheus",
         "uid": "grafana_prometheus"
@@ -2840,8 +2840,8 @@
     {
       "id": 64,
       "type": "stat",
-      "title": "Burn Rate — 6h  (page if > 6×)",
-      "description": "Slower burn rate. >6× sustained for 6h will exhaust the 30-day budget in ~5 days.",
+      "title": "Burn Rate \u2014 6h  (page if > 6\u00d7)",
+      "description": "Slower burn rate. >6\u00d7 sustained for 6h will exhaust the 30-day budget in ~5 days.",
       "datasource": {
         "type": "prometheus",
         "uid": "grafana_prometheus"
@@ -2975,14 +2975,14 @@
           "refId": "A"
         }
       ],
-      "title": "Cache Hit Rate % — Data Integrity Signal",
+      "title": "Cache Hit Rate % \u2014 Data Integrity Signal",
       "description": "Low cache hit rate means more DB reads, risking stale or inconsistent data. A sudden drop is a data integrity and performance warning.",
       "type": "stat"
     },
     {
       "id": 65,
       "type": "timeseries",
-      "title": "Error Budget Burn Rate Over Time  (1h · 6h windows)",
+      "title": "Error Budget Burn Rate Over Time  (1h \u00b7 6h windows)",
       "description": "Values above the threshold lines indicate fast error budget consumption. Burn Rate 1 = consuming at exactly SLO-defined pace.",
       "datasource": {
         "type": "prometheus",
@@ -3026,7 +3026,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Page Threshold (14.4×)"
+              "options": "Page Threshold (14.4\u00d7)"
             },
             "properties": [
               {
@@ -3055,7 +3055,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Ticket Threshold (6×)"
+              "options": "Ticket Threshold (6\u00d7)"
             },
             "properties": [
               {
@@ -3138,7 +3138,7 @@
             "uid": "grafana_prometheus"
           },
           "expr": "vector(14.4)",
-          "legendFormat": "Page Threshold (14.4×)",
+          "legendFormat": "Page Threshold (14.4\u00d7)",
           "refId": "C"
         },
         {
@@ -3147,7 +3147,7 @@
             "uid": "grafana_prometheus"
           },
           "expr": "vector(6)",
-          "legendFormat": "Ticket Threshold (6×)",
+          "legendFormat": "Ticket Threshold (6\u00d7)",
           "refId": "D"
         }
       ],
@@ -3164,7 +3164,7 @@
       },
       "id": 110,
       "panels": [],
-      "title": "📊  Pillar IV — Saturation",
+      "title": "\ud83d\udcca  Pillar IV \u2014 Saturation",
       "type": "row"
     },
     {
@@ -3405,7 +3405,7 @@
         "keepDisplayedInTree": false,
         "nameLocation": "topLeft"
       },
-      "title": "🔥  CPU Flamegraph — What’s Hot Right Now",
+      "title": "\ud83d\udd25  CPU Flamegraph \u2014 What\u2019s Hot Right Now",
       "description": "Live CPU flamegraph for the current time window. Immediately shows which function/call-stack is consuming the most CPU. Use this the moment a saturation stat turns red.",
       "type": "flamegraph",
       "targets": [
@@ -3481,7 +3481,7 @@
         "namePlacement": "auto",
         "text": {}
       },
-      "title": "📊  CPU Load by Endpoint — Saturation Source",
+      "title": "\ud83d\udcca  CPU Load by Endpoint \u2014 Saturation Source",
       "description": "Which API endpoint is responsible for the saturation? High CPU share on one endpoint points directly to the traffic causing the pressure. Cross-reference with the RPS stat above.",
       "type": "bargauge",
       "targets": [
@@ -3515,7 +3515,7 @@
             "type": "prometheus",
             "uid": "grafana_mimir"
           },
-          "description": "Tenants whose 5-min error rate exceeds 0.5% — the SLO error-budget boundary.",
+          "description": "Tenants whose 5-min error rate exceeds 0.5% \u2014 the SLO error-budget boundary.",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -3795,7 +3795,7 @@
             "type": "prometheus",
             "uid": "grafana_mimir"
           },
-          "description": "Each row = one tenant.  Colour = error rate: green < 0.5%  |  yellow 0.5–1%  |  orange 1–5%  |  red > 5%.  A sustained red/orange band = active SLO breach.  Pinpoints which tenant is affected and exactly when it started — no other dashboard needed for initial incident triage.",
+          "description": "Each row = one tenant.  Colour = error rate: green < 0.5%  |  yellow 0.5\u20131%  |  orange 1\u20135%  |  red > 5%.  A sustained red/orange band = active SLO breach.  Pinpoints which tenant is affected and exactly when it started \u2014 no other dashboard needed for initial incident triage.",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -3873,11 +3873,11 @@
               "refId": "A"
             }
           ],
-          "title": "🗺️  SLO Status by Tenant — Error Rate % Over Time  (red band = active breach)",
+          "title": "\ud83d\uddfa\ufe0f  SLO Status by Tenant \u2014 Error Rate % Over Time  (red band = active breach)",
           "type": "state-timeline"
         }
       ],
-      "title": "📡  Tenant Breach Detection  |  Multi-Tenant SLO Health  (expand for state timeline)",
+      "title": "\ud83d\udce1  Tenant Breach Detection  |  Multi-Tenant SLO Health  (expand for state timeline)",
       "type": "row"
     },
     {
@@ -3885,7 +3885,7 @@
         "type": "prometheus",
         "uid": "grafana_mimir"
       },
-      "description": "Tenants whose 5-min error rate exceeds 0.5% — the SLO error-budget boundary.",
+      "description": "Tenants whose 5-min error rate exceeds 0.5% \u2014 the SLO error-budget boundary.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -3919,7 +3919,7 @@
         "x": 0,
         "y": 123
       },
-      "id": 91,
+      "id": 215,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -3990,7 +3990,7 @@
         "x": 6,
         "y": 123
       },
-      "id": 92,
+      "id": 216,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -4053,7 +4053,7 @@
         "x": 12,
         "y": 123
       },
-      "id": 93,
+      "id": 217,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -4128,7 +4128,7 @@
         "x": 18,
         "y": 123
       },
-      "id": 94,
+      "id": 218,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -4165,7 +4165,7 @@
         "type": "prometheus",
         "uid": "grafana_mimir"
       },
-      "description": "Each row = one tenant.  Colour = error rate: green < 0.5%  |  yellow 0.5–1%  |  orange 1–5%  |  red > 5%.  A sustained red/orange band = active SLO breach.  Pinpoints which tenant is affected and exactly when it started — no other dashboard needed for initial incident triage.",
+      "description": "Each row = one tenant.  Colour = error rate: green < 0.5%  |  yellow 0.5\u20131%  |  orange 1\u20135%  |  red > 5%.  A sustained red/orange band = active SLO breach.  Pinpoints which tenant is affected and exactly when it started \u2014 no other dashboard needed for initial incident triage.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -4215,7 +4215,7 @@
         "x": 0,
         "y": 128
       },
-      "id": 95,
+      "id": 219,
       "options": {
         "alignValue": "left",
         "legend": {
@@ -4243,7 +4243,7 @@
           "refId": "A"
         }
       ],
-      "title": "🗺️  SLO Status by Tenant — Error Rate % Over Time  (red band = active breach)",
+      "title": "\ud83d\uddfa\ufe0f  SLO Status by Tenant \u2014 Error Rate % Over Time  (red band = active breach)",
       "type": "state-timeline"
     },
     {
@@ -4257,7 +4257,7 @@
       },
       "id": 114,
       "panels": [],
-      "title": "🔄  Recovery & Resilience  |  Restart Velocity · MTTR Proxy · Error Budget Velocity",
+      "title": "\ud83d\udd04\u00a0 Recovery & Resilience  |  Restart Velocity \u00b7 MTTR Proxy \u00b7 Error Budget Velocity",
       "type": "row"
     },
     {
@@ -4365,7 +4365,7 @@
           "refId": "C"
         }
       ],
-      "title": "Error Budget Velocity — Burn Rate (Recovery Context)",
+      "title": "Error Budget Velocity \u2014 Burn Rate (Recovery Context)",
       "description": "During recovery, burn rate should fall back toward 1x. Above 14.4x = critical SLO burn; still in incident.",
       "type": "timeseries"
     },
@@ -4379,7 +4379,7 @@
       },
       "id": 100,
       "panels": [],
-      "title": "📊  Supplementary — Continuous Profiling (Pyroscope)  |  Root-Cause Analysis",
+      "title": "\ud83d\udcca\u00a0 Supplementary \u2014 Continuous Profiling (Pyroscope)  |  Root-Cause Analysis",
       "type": "row"
     },
     {
@@ -4400,7 +4400,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "## 🔬  Pyroscope — Continuous CPU Profiling\n\nThis section ties the profiling layer directly to each of the four golden signal pillars above.\n\n| Golden Signal | What Pyroscope answers |\n|---|---|\n| **⚡ Latency** | *Which Python functions are burning CPU during slow requests?* Flamegraph filtered by `endpoint` reveals the hot path — provider HTTP call? token chunking? Redis rate-limit? |\n| **🚦 Traffic** | *Which endpoints / providers drive the most CPU load as RPS climbs?* The `CPU by Endpoint` bar chart correlates directly with the Traffic RPS panel above. |\n| **🚨 Errors** | *When the error rate spikes, is it a hot retry loop?* A sudden CPU spike correlated with an error spike means the gateway is hammering a failing provider. |\n| **📊 Saturation** | *What is consuming process CPU heading into saturation?* The full flamegraph shows the exact stack frames. Use `$provider` and `$model` dropdowns to isolate. |\n\nSampling rate: **100 Hz** (every 10 ms). Flush interval: **15 s**. Tags: `service_name`, `environment`, `endpoint`, `method`, `provider`, `model`.",
+        "content": "## \ud83d\udd2c  Pyroscope \u2014 Continuous CPU Profiling\n\nThis section ties the profiling layer directly to each of the four golden signal pillars above.\n\n| Golden Signal | What Pyroscope answers |\n|---|---|\n| **\u26a1 Latency** | *Which Python functions are burning CPU during slow requests?* Flamegraph filtered by `endpoint` reveals the hot path \u2014 provider HTTP call? token chunking? Redis rate-limit? |\n| **\ud83d\udea6 Traffic** | *Which endpoints / providers drive the most CPU load as RPS climbs?* The `CPU by Endpoint` bar chart correlates directly with the Traffic RPS panel above. |\n| **\ud83d\udea8 Errors** | *When the error rate spikes, is it a hot retry loop?* A sudden CPU spike correlated with an error spike means the gateway is hammering a failing provider. |\n| **\ud83d\udcca Saturation** | *What is consuming process CPU heading into saturation?* The full flamegraph shows the exact stack frames. Use `$provider` and `$model` dropdowns to isolate. |\n\nSampling rate: **100 Hz** (every 10 ms). Flush interval: **15 s**. Tags: `service_name`, `environment`, `endpoint`, `method`, `provider`, `model`.",
         "mode": "markdown"
       },
       "pluginVersion": "11.5.2",
@@ -4433,7 +4433,7 @@
         "keepDisplayedInTree": false,
         "nameLocation": "topLeft"
       },
-      "title": "🔥  CPU Flamegraph — Full Process (All Pillars)  |  service_name=gatewayz-backend",
+      "title": "\ud83d\udd25  CPU Flamegraph \u2014 Full Process (All Pillars)  |  service_name=gatewayz-backend",
       "description": "Process-wide flamegraph for the selected time window. Combines samples from every request. Use this to answer: what function is consuming the most CPU right now? This is the single most powerful root-cause tool for all four golden signal pillars.",
       "type": "flamegraph",
       "targets": [
@@ -4459,7 +4459,7 @@
       },
       "id": 103,
       "panels": [],
-      "title": "📊  CPU Load by Pillar Dimension  |  Endpoint (Traffic) · Provider (Latency) · Model (Saturation)",
+      "title": "\ud83d\udcca  CPU Load by Pillar Dimension  |  Endpoint (Traffic) \u00b7 Provider (Latency) \u00b7 Model (Saturation)",
       "type": "row"
     },
     {
@@ -4522,8 +4522,8 @@
         "namePlacement": "auto",
         "text": {}
       },
-      "title": "🚦  Traffic → CPU by Endpoint  (top endpoints driving load)",
-      "description": "Pyroscope CPU samples accumulated per endpoint. Directly correlates with the Traffic RPS panel — high RPS on an endpoint means high CPU here. An endpoint with disproportionate CPU vs RPS is inefficient.",
+      "title": "\ud83d\udea6  Traffic \u2192 CPU by Endpoint  (top endpoints driving load)",
+      "description": "Pyroscope CPU samples accumulated per endpoint. Directly correlates with the Traffic RPS panel \u2014 high RPS on an endpoint means high CPU here. An endpoint with disproportionate CPU vs RPS is inefficient.",
       "type": "bargauge",
       "targets": [
         {
@@ -4601,7 +4601,7 @@
         "namePlacement": "auto",
         "text": {}
       },
-      "title": "⚡  Latency → CPU by Provider  (which providers cost the most CPU?)",
+      "title": "\u26a1  Latency \u2192 CPU by Provider  (which providers cost the most CPU?)",
       "description": "CPU samples per upstream provider. A provider with high CPU samples that also has high P99 latency (see Latency pillar) is the root cause. Cross-reference with the P99 latency panel above.",
       "type": "bargauge",
       "targets": [
@@ -4680,7 +4680,7 @@
         "namePlacement": "auto",
         "text": {}
       },
-      "title": "📊  Saturation → CPU by Model  (which models saturate the process?)",
+      "title": "\ud83d\udcca  Saturation \u2192 CPU by Model  (which models saturate the process?)",
       "description": "CPU samples per model. When process CPU is high (Saturation pillar), this panel identifies whether it is one model type dominating. Useful for detecting runaway streaming requests for large models.",
       "type": "bargauge",
       "targets": [
@@ -4742,7 +4742,7 @@
           ]
         }
       },
-      "title": "📈  CPU Sample Rate Over Time — by Provider  (correlate spikes with Latency / Error pillars above)",
+      "title": "\ud83d\udcc8  CPU Sample Rate Over Time \u2014 by Provider  (correlate spikes with Latency / Error pillars above)",
       "description": "Pyroscope CPU sample rate (samples/sec) over time, stacked by provider. A spike here that coincides with a P99 latency spike (Latency pillar) or error rate spike (Errors pillar) confirms the hot provider. Flat line when PYROSCOPE_ENABLED=false.",
       "type": "timeseries",
       "targets": [
@@ -4771,7 +4771,7 @@
       },
       "id": 108,
       "panels": [],
-      "title": "🔍  Drill-Down Flamegraph — Filter by $provider / $model",
+      "title": "\ud83d\udd0d  Drill-Down Flamegraph \u2014 Filter by $provider / $model",
       "type": "row"
     },
     {
@@ -4799,7 +4799,7 @@
         "keepDisplayedInTree": false,
         "nameLocation": "topLeft"
       },
-      "title": "🔬  CPU Flamegraph — Filtered by $provider / $model  (use dropdowns to zoom into specific calls)",
+      "title": "\ud83d\udd2c  CPU Flamegraph \u2014 Filtered by $provider / $model  (use dropdowns to zoom into specific calls)",
       "description": "Drill-down flamegraph scoped to the selected provider and model. Use the $provider and $model template variables at the top of this dashboard. When a specific provider is causing latency (Latency pillar) or errors (Errors pillar), set $provider to that provider here to see exactly which Python code is running during its calls.",
       "type": "flamegraph",
       "targets": [
@@ -5515,7 +5515,7 @@
         }
       ],
       "title": "Error Pattern Frequency (15m)",
-      "description": "Most frequent error types in the last 15 minutes. Ranked horizontally — longest bar = most common failure pattern.",
+      "description": "Most frequent error types in the last 15 minutes. Ranked horizontally \u2014 longest bar = most common failure pattern.",
       "type": "barchart"
     },
     {
@@ -5645,7 +5645,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "GatewayZ — Four Golden Signals (SRE)",
+  "title": "GatewayZ \u2014 Four Golden Signals (SRE)",
   "uid": "gatewayz-four-golden-signals",
   "version": 3
 }

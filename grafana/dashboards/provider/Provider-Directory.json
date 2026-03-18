@@ -65,7 +65,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "## GatewayZ — Provider Directory\nPer-provider analytics: traffic share, token consumption, latency, and health status across all 30+ integrated AI providers.\n\n| Section | What it shows |\n|---------|---------------|\n| Traffic Distribution | Request volume and RPS per provider — monitors routing concentration risk (if OpenAI degrades, what fraction of traffic is affected?) |\n| Token Consumption | Input and output token totals per provider — output tokens cost 3–5× more than input; growth here maps directly to billing |\n| Latency Comparison | P95 response time per provider — surfaces consistently slow providers before users report degraded experience |\n| Health Status | Up/down status and error rate per provider — used to decide whether to activate automatic failover routing |",
+        "content": "## GatewayZ \u2014 Provider Directory\nPer-provider analytics: traffic share, token consumption, latency, and health status across all 30+ integrated AI providers.\n\n| Section | What it shows |\n|---------|---------------|\n| Traffic Distribution | Request volume and RPS per provider \u2014 monitors routing concentration risk (if OpenAI degrades, what fraction of traffic is affected?) |\n| Token Consumption | Input and output token totals per provider \u2014 output tokens cost 3\u20135\u00d7 more than input; growth here maps directly to billing |\n| Latency Comparison | P95 response time per provider \u2014 surfaces consistently slow providers before users report degraded experience |\n| Health Status | Up/down status and error rate per provider \u2014 used to decide whether to activate automatic failover routing |",
         "mode": "markdown"
       },
       "pluginVersion": "11.5.2",
@@ -81,7 +81,7 @@
         "x": 0,
         "y": 4
       },
-      "id": 1,
+      "id": 64,
       "panels": [],
       "title": "Provider Statistics Overview",
       "type": "row"
@@ -2529,7 +2529,7 @@
     {
       "id": 52,
       "type": "row",
-      "title": "💰  Cost Intelligence — USD Cost · Monthly Estimate · Slow Requests",
+      "title": "\ud83d\udcb0  Cost Intelligence \u2014 USD Cost \u00b7 Monthly Estimate \u00b7 Slow Requests",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -2760,7 +2760,7 @@
     {
       "id": 57,
       "type": "row",
-      "title": "🔴  Circuit Breaker State — Open = Provider Unavailable",
+      "title": "\ud83d\udd34  Circuit Breaker State \u2014 Open = Provider Unavailable",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -2853,7 +2853,7 @@
             "uid": "grafana_prometheus"
           },
           "expr": "rate(circuit_breaker_state_transitions_total[5m]) by (provider, to_state)",
-          "legendFormat": "{{provider}} → {{to_state}}"
+          "legendFormat": "{{provider}} \u2192 {{to_state}}"
         }
       ],
       "options": {
@@ -2940,7 +2940,7 @@
     {
       "id": 61,
       "type": "row",
-      "title": "📜  Provider Error & Timeout Logs (Loki)",
+      "title": "\ud83d\udcdc  Provider Error & Timeout Logs (Loki)",
       "gridPos": {
         "h": 1,
         "w": 24,

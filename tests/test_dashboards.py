@@ -145,7 +145,7 @@ class TestDatasourceConfiguration:
 
     def test_valid_datasource_uids(self, dashboards):
         """Verify all datasource UIDs are valid"""
-        valid_uids = {"grafana_prometheus", "grafana_loki", "grafana_tempo", "grafana_mimir", "grafana_pyroscope", "-- Grafana --", "grafana", "", None}
+        valid_uids = {"grafana_prometheus", "grafana_loki", "grafana_tempo", "grafana_mimir", "grafana_pyroscope", "-- Grafana --", "-- Mixed --", "grafana", "", None}
 
         for dashboard_name, dashboard in dashboards.items():
             for panel in dashboard.get("panels", []):
