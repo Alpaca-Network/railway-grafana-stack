@@ -155,6 +155,12 @@ jobs:
           dockerfile: grafana/Dockerfile
           ignore: DL3008,DL3009,DL3002
 
+      - name: Run Hadolint - Mimir
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: mimir/Dockerfile
+          ignore: DL3008,DL3009,DL3002
+
   docker-build:
     name: Build Docker Images
     runs-on: ubuntu-latest
@@ -173,6 +179,9 @@ jobs:
           - name: grafana
             context: ./grafana
             dockerfile: ./grafana/Dockerfile
+          - name: mimir
+            context: ./mimir
+            dockerfile: ./mimir/Dockerfile
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -202,29 +211,43 @@ jobs:
       - name: Start services
         run: |
           docker compose up -d
-          sleep 30
-        continue-on-error: true
-      
+          echo "Waiting for services to start..."
+          sleep 45
+
       - name: Health check - Grafana
         run: |
-          curl -f http://localhost:3000/api/health || exit 0
-        continue-on-error: true
-      
+          curl -sf http://localhost:3000/api/health && echo "✅ Grafana healthy" || echo "⚠️ Grafana not ready"
+
       - name: Health check - Prometheus
         run: |
-          curl -f http://localhost:9090/-/healthy || exit 0
-        continue-on-error: true
-      
+          curl -sf http://localhost:9090/-/healthy && echo "✅ Prometheus healthy" || echo "⚠️ Prometheus not ready"
+
       - name: Health check - Loki
         run: |
-          curl -f http://localhost:3100/ready || exit 0
-        continue-on-error: true
-      
+          curl -sf http://localhost:3100/ready && echo "✅ Loki healthy" || echo "⚠️ Loki not ready"
+
       - name: Health check - Tempo
         run: |
-          curl -f http://localhost:3200/status || exit 0
-        continue-on-error: true
-      
+          curl -sf http://localhost:3200/status && echo "✅ Tempo healthy" || echo "⚠️ Tempo not ready"
+
+      - name: Health check - Mimir
+        run: |
+          curl -sf http://localhost:9009/ready && echo "✅ Mimir healthy" || echo "⚠️ Mimir not ready"
+
+      - name: Health check - Alertmanager
+        run: |
+          curl -sf http://localhost:9093/-/healthy && echo "✅ Alertmanager healthy" || echo "⚠️ Alertmanager not ready"
+
+      - name: Health check - Pyroscope
+        run: |
+          curl -sf http://localhost:4040/ready && echo "✅ Pyroscope healthy" || echo "⚠️ Pyroscope not ready"
+
+      - name: Service status report
+        if: always()
+        run: |
+          echo "=== Docker Compose Service Status ==="
+          docker compose ps
+
       - name: Cleanup
         if: always()
         run: |
