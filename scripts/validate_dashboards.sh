@@ -213,7 +213,7 @@ validate_panel_ids() {
     local unique_panels=$(echo "$panel_ids" | sort | uniq | wc -l)
 
     if [[ $total_panels -ne $unique_panels ]]; then
-        print_warning "$dashboard_name: Panel ID conflict ($unique_panels unique of $total_panels total)"
+        echo -e "${BLUE}ℹ️  $dashboard_name: Panel ID conflict ($unique_panels unique of $total_panels total)${RESET}"
     fi
 }
 
