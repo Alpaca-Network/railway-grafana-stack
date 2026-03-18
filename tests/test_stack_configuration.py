@@ -2,11 +2,13 @@
 Tests for Observability Stack Configuration
 
 Tests validate:
-- YAML configuration syntax
-- Prometheus scrape configuration
-- Loki configuration
-- Tempo configuration
-- Docker Compose configuration
+- YAML configuration syntax for all 8 services
+- Prometheus scrape configuration + remote write to Mimir
+- Loki, Tempo, Mimir, Alertmanager configuration
+- Docker Compose: all 8 services present
+- Grafana: all 7 datasource provisioning files
+- Prometheus alert rules + recording rules
+- Grafana alert rules (10 rule files)
 
 Run with: pytest tests/test_stack_configuration.py -v
 """
@@ -48,7 +50,6 @@ class TestYAMLConfiguration:
 
         # Check for required jobs
         assert "prometheus" in job_names, "Prometheus self-scrape job missing"
-        assert "gatewayz_production" in job_names, "Production scrape job missing"
         assert "gatewayz_production" in job_names, "Production scrape job missing"
 
     def test_loki_config_valid_yaml(self, repo_root):
@@ -116,7 +117,10 @@ class TestYAMLConfiguration:
             config = yaml.safe_load(f)
 
         services = config.get("services", {})
-        required_services = ["prometheus", "loki", "tempo", "grafana"]
+        required_services = [
+            "prometheus", "loki", "tempo", "grafana",
+            "mimir", "alertmanager", "json-api-proxy", "pyroscope"
+        ]
 
         for service in required_services:
             assert service in services, f"Missing {service} service in docker-compose"
@@ -139,7 +143,11 @@ class TestGrafanaConfiguration:
         required_datasources = [
             "prometheus.yml",
             "loki.yml",
-            "tempo.yml"
+            "tempo.yml",
+            "mimir.yml",
+            "pyroscope.yml",
+            "json-api.yml",
+            "alertmanager.yml"
         ]
 
         for datasource in required_datasources:
@@ -150,7 +158,10 @@ class TestGrafanaConfiguration:
         """Test Grafana datasource files are valid YAML"""
         datasources_dir = repo_root / "grafana" / "provisioning" / "datasources"
 
-        datasource_files = ["prometheus.yml", "loki.yml", "tempo.yml"]
+        datasource_files = [
+            "prometheus.yml", "loki.yml", "tempo.yml",
+            "mimir.yml", "pyroscope.yml", "json-api.yml", "alertmanager.yml"
+        ]
 
         for datasource_file in datasource_files:
             ds_path = datasources_dir / datasource_file
@@ -187,7 +198,7 @@ class TestDockerFiles:
 
     def test_all_dockerfiles_exist(self, repo_root):
         """Test all required Dockerfiles exist"""
-        services = ["prometheus", "loki", "tempo", "grafana"]
+        services = ["prometheus", "loki", "tempo", "grafana", "mimir"]
 
         for service in services:
             dockerfile = repo_root / service / "Dockerfile"
@@ -419,3 +430,119 @@ class TestMimirConfiguration:
         assert "MIMIR_URL" in content, "Entrypoint should handle MIMIR_URL substitution"
         assert "MIMIR_TARGET" in content, "Entrypoint should handle MIMIR_TARGET substitution"
         assert "mimir.railway.internal" in content, "Entrypoint should reference Railway internal URL"
+
+
+class TestAlertAndRecordingRules:
+    """Test Prometheus alert rules and recording rules"""
+
+    @pytest.fixture
+    def repo_root(self):
+        """Get repository root directory"""
+        return Path(__file__).parent.parent
+
+    def test_prometheus_alert_rules_exist(self, repo_root):
+        """Test Prometheus alert rules file exists and is valid YAML"""
+        alert_rules = repo_root / "prometheus" / "alert.rules.yml"
+        assert alert_rules.exists(), "prometheus/alert.rules.yml not found"
+
+        with open(alert_rules) as f:
+            config = yaml.safe_load(f)
+
+        assert config is not None, "Alert rules file is empty"
+        assert "groups" in config, "Alert rules missing 'groups' section"
+        groups = config["groups"]
+        assert len(groups) > 0, "No alert rule groups defined"
+
+    def test_prometheus_recording_rules_exist(self, repo_root):
+        """Test Prometheus recording rules file exists and is valid YAML"""
+        recording_rules = repo_root / "prometheus" / "recording_rules_baselines.yml"
+        assert recording_rules.exists(), "prometheus/recording_rules_baselines.yml not found"
+
+        with open(recording_rules) as f:
+            config = yaml.safe_load(f)
+
+        assert config is not None, "Recording rules file is empty"
+        assert "groups" in config, "Recording rules missing 'groups' section"
+
+    def test_grafana_alert_rules_exist(self, repo_root):
+        """Test Grafana alert rule files exist"""
+        alerting_dir = repo_root / "grafana" / "provisioning" / "alerting" / "rules"
+        assert alerting_dir.exists(), "Grafana alerting rules directory not found"
+
+        rule_files = list(alerting_dir.glob("*.yml"))
+        assert len(rule_files) >= 10, \
+            f"Expected at least 10 Grafana alert rule files, found {len(rule_files)}"
+
+    def test_grafana_alert_rules_valid_yaml(self, repo_root):
+        """Test all Grafana alert rule files are valid YAML"""
+        alerting_dir = repo_root / "grafana" / "provisioning" / "alerting" / "rules"
+
+        for rule_file in sorted(alerting_dir.glob("*.yml")):
+            with open(rule_file) as f:
+                config = yaml.safe_load(f)
+            assert config is not None, f"{rule_file.name} is empty or invalid"
+
+
+class TestAlertmanagerConfiguration:
+    """Test Alertmanager configuration"""
+
+    @pytest.fixture
+    def repo_root(self):
+        """Get repository root directory"""
+        return Path(__file__).parent.parent
+
+    def test_alertmanager_config_exists(self, repo_root):
+        """Test Alertmanager configuration file exists"""
+        config_file = repo_root / "alertmanager" / "alertmanager.yml"
+        assert config_file.exists(), "alertmanager/alertmanager.yml not found"
+
+        with open(config_file) as f:
+            config = yaml.safe_load(f)
+
+        assert config is not None, "Alertmanager config is empty"
+        assert "route" in config, "Alertmanager missing 'route' section"
+        assert "receivers" in config, "Alertmanager missing 'receivers' section"
+
+    def test_alertmanager_dockerfile_exists(self, repo_root):
+        """Test Alertmanager has a Dockerfile or uses docker-compose image"""
+        compose_file = repo_root / "docker-compose.yml"
+
+        with open(compose_file) as f:
+            config = yaml.safe_load(f)
+
+        services = config.get("services", {})
+        assert "alertmanager" in services, "Alertmanager service not in docker-compose"
+
+        am_service = services["alertmanager"]
+        has_build = "build" in am_service
+        has_image = "image" in am_service
+        assert has_build or has_image, "Alertmanager needs build or image config"
+
+
+class TestPyroscopeConfiguration:
+    """Test Pyroscope configuration"""
+
+    @pytest.fixture
+    def repo_root(self):
+        """Get repository root directory"""
+        return Path(__file__).parent.parent
+
+    def test_pyroscope_in_docker_compose(self, repo_root):
+        """Test Pyroscope service is in docker-compose"""
+        compose_file = repo_root / "docker-compose.yml"
+
+        with open(compose_file) as f:
+            config = yaml.safe_load(f)
+
+        services = config.get("services", {})
+        assert "pyroscope" in services, "Pyroscope service not in docker-compose"
+
+    def test_pyroscope_datasource_exists(self, repo_root):
+        """Test Grafana has Pyroscope datasource configured"""
+        ds_file = repo_root / "grafana" / "provisioning" / "datasources" / "pyroscope.yml"
+        assert ds_file.exists(), "Pyroscope datasource file not found"
+
+        with open(ds_file) as f:
+            config = yaml.safe_load(f)
+
+        assert "datasources" in config, "Pyroscope datasource missing datasources section"
