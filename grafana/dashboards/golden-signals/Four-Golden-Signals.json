@@ -525,11 +525,11 @@
                 "value": null
               },
               {
-                "color": "rgba(255, 152, 0, 0.1)",
+                "color": "orange",
                 "value": 2.0
               },
               {
-                "color": "rgba(255, 80, 0, 0.08)",
+                "color": "red",
                 "value": 3.0
               }
             ]
@@ -1528,7 +1528,7 @@
                 "value": null
               },
               {
-                "color": "rgba(242, 73, 92, 0.15)",
+                "color": "red",
                 "value": 0.05
               }
             ]

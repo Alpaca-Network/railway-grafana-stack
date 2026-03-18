@@ -49,7 +49,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "## GatewayZ — Distributed Tracing\nTempo traces and derived span metrics for every LLM request routed through the gateway.\n\n| Section | What it shows |\n|---------|---------------|\n| RED Metrics | Rate, Errors, Duration — computed from span metrics stored in Mimir; available even when no live trace is selected |\n| Trace Search | Filterable list of individual traces — click any trace to see the full span waterfall from client → gateway → provider |\n| Span Analysis | Per-span duration breakdown — isolates whether latency is in routing logic, the provider call, or response serialization |",
+        "content": "## GatewayZ \u2014 Distributed Tracing\nTempo traces and derived span metrics for every LLM request routed through the gateway.\n\n| Section | What it shows |\n|---------|---------------|\n| RED Metrics | Rate, Errors, Duration \u2014 computed from span metrics stored in Mimir; available even when no live trace is selected |\n| Trace Search | Filterable list of individual traces \u2014 click any trace to see the full span waterfall from client \u2192 gateway \u2192 provider |\n| Span Analysis | Per-span duration breakdown \u2014 isolates whether latency is in routing logic, the provider call, or response serialization |",
         "mode": "markdown"
       },
       "pluginVersion": "11.5.2",
@@ -1138,7 +1138,7 @@
         "x": 0,
         "y": 50
       },
-      "id": 1,
+      "id": 6,
       "panels": [],
       "title": "Trace Investigation",
       "type": "row"
@@ -1557,7 +1557,7 @@
       },
       "id": 500,
       "panels": [],
-      "title": "🕸️  Visual Topology & Latency Distribution",
+      "title": "\ud83d\udd78\ufe0f  Visual Topology & Latency Distribution",
       "type": "row"
     },
     {
@@ -1682,7 +1682,7 @@
           "refId": "A"
         }
       ],
-      "title": "Span Duration Heatmap — Latency Distribution Over Time",
+      "title": "Span Duration Heatmap \u2014 Latency Distribution Over Time",
       "type": "heatmap"
     },
     {
@@ -1752,13 +1752,13 @@
           "refId": "A"
         }
       ],
-      "title": "Error Trace Scatter — Duration vs Time (click to open waterfall)",
+      "title": "Error Trace Scatter \u2014 Duration vs Time (click to open waterfall)",
       "type": "xychart"
     },
     {
       "id": 504,
       "type": "row",
-      "title": "🔥  CPU Profiling Correlation — Flamegraph + Provider Breakdown",
+      "title": "\ud83d\udd25  CPU Profiling Correlation \u2014 Flamegraph + Provider Breakdown",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1770,7 +1770,7 @@
     {
       "id": 505,
       "type": "flamegraph",
-      "title": "CPU Flamegraph — Trace Window",
+      "title": "CPU Flamegraph \u2014 Trace Window",
       "datasource": {
         "type": "grafana-pyroscope-datasource",
         "uid": "grafana_pyroscope"
@@ -1883,7 +1883,7 @@
     {
       "id": 507,
       "type": "row",
-      "title": "📜  Log Context — Errors Time-Synced to Trace Window",
+      "title": "\ud83d\udcdc  Log Context \u2014 Errors Time-Synced to Trace Window",
       "gridPos": {
         "h": 1,
         "w": 24,
