@@ -53,7 +53,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "## GatewayZ — Security & Rate Limiting\nAuth events and rate-limit enforcement across 40k+ trial users managed in Redis.\n\n| Section | What it shows |\n|---------|---------------|\n| Rate Limit Violations | Per-user and per-IP rate limit hits — Redis enforces token-bucket limits; high counts here precede 429 responses |\n| Blocked & Suspicious | Users exceeding abuse thresholds or triggering policy blocks — correlate with trial domain analysis in the Admin dashboard |\n| Auth Events | Failed authentication attempts, invalid API key usage, and session anomalies surfaced from Loki log labels |",
+        "content": "## GatewayZ \u2014 Security & Rate Limiting\nAuth events and rate-limit enforcement across 40k+ trial users managed in Redis.\n\n| Section | What it shows |\n|---------|---------------|\n| Rate Limit Violations | Per-user and per-IP rate limit hits \u2014 Redis enforces token-bucket limits; high counts here precede 429 responses |\n| Blocked & Suspicious | Users exceeding abuse thresholds or triggering policy blocks \u2014 correlate with trial domain analysis in the Admin dashboard |\n| Auth Events | Failed authentication attempts, invalid API key usage, and session anomalies surfaced from Loki log labels |",
         "mode": "markdown"
       },
       "pluginVersion": "11.5.2",
@@ -69,7 +69,7 @@
         "x": 0,
         "y": 4
       },
-      "id": 1,
+      "id": 7,
       "panels": [],
       "title": "Security Anomaly Detection",
       "type": "row"
