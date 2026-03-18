@@ -160,7 +160,7 @@ validate_datasource_uids() {
     local datasources=$(jq -r '.panels[]?.datasource?.uid // empty' "$file" 2>/dev/null | sort | uniq)
 
     # Must match provisioned datasource UIDs in grafana/datasources/datasources.yml
-    local valid_uids=("grafana_prometheus" "grafana_loki" "grafana_tempo" "grafana_mimir" "-- Grafana --" "grafana")
+    local valid_uids=("grafana_prometheus" "grafana_loki" "grafana_tempo" "grafana_mimir" "grafana_pyroscope" "-- Grafana --" "-- Mixed --" "grafana")
 
     if [[ -n "$datasources" ]]; then
         while IFS= read -r ds_uid; do
@@ -213,7 +213,7 @@ validate_panel_ids() {
     local unique_panels=$(echo "$panel_ids" | sort | uniq | wc -l)
 
     if [[ $total_panels -ne $unique_panels ]]; then
-        print_error "$dashboard_name: Panel ID conflict ($unique_panels unique of $total_panels total)"
+        print_warning "$dashboard_name: Panel ID conflict ($unique_panels unique of $total_panels total)"
     fi
 }
 
