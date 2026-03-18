@@ -161,7 +161,7 @@
           "expr": "topk(10, histogram_quantile(0.99, sum(rate(model_inference_duration_seconds_bucket[$__rate_interval])) by (le, model)))"
         }
       ],
-      "title": "E2E Latency Percentiles by Model (Top 10) — P50 · P95 · P99",
+      "title": "E2E Latency Percentiles by Model (Top 10) \u2014 P50 \u00b7 P95 \u00b7 P99",
       "type": "timeseries"
     },
     {
@@ -788,9 +788,9 @@
       "type": "table"
     },
     {
-      "id": 51,
+      "id": 55,
       "type": "row",
-      "title": "📊  Model-Level SLO Status",
+      "title": "\ud83d\udcca  Model-Level SLO Status",
       "gridPos": {
         "x": 0,
         "y": 59,
@@ -801,9 +801,9 @@
       "panels": []
     },
     {
-      "id": 52,
+      "id": 56,
       "type": "bargauge",
-      "title": "Slowest Models — P99 E2E Latency (SLO: < 10s)",
+      "title": "Slowest Models \u2014 P99 E2E Latency (SLO: < 10s)",
       "datasource": {
         "type": "prometheus",
         "uid": "grafana_prometheus"
@@ -864,7 +864,7 @@
       }
     },
     {
-      "id": 53,
+      "id": 57,
       "type": "table",
       "title": "Model P95 SLO Compliance Table (target: < 5s)",
       "datasource": {
@@ -957,7 +957,7 @@
     ]
   },
   "timezone": "browser",
-  "title": "Model SLO Investigation — Latency · Traces · Slow Requests",
+  "title": "Model SLO Investigation \u2014 Latency \u00b7 Traces \u00b7 Slow Requests",
   "uid": "gatewayz-request-analysis",
   "version": 3,
   "weekStart": ""
