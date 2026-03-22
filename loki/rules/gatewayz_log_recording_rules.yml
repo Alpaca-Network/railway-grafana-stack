@@ -1,0 +1,281 @@
+# ============================================================
+# LOKI RECORDING RULES - LOG-DERIVED METRICS
+# ============================================================
+# These rules extract Prometheus metrics from GatewayZ structured logs.
+# Evaluated by the Loki ruler, remote-written to Mimir.
+#
+# LOG FORMAT: JSON (via LokiLogHandler in logging_config.py)
+# STREAM LABELS: app, environment, service, level, logger, trace_id,
+#   span_id, path, method, provider, model, user_id, error_type
+#   (set in logging_config.py lines 137-178 — no body parsing needed)
+#
+# Naming convention: loki:<domain>:<metric>:<aggregation>
+# This distinguishes log-derived metrics from native Prometheus metrics.
+#
+# CARDINALITY CONTROLS:
+# - No per-request-ID or per-user labels
+# - Provider label bounded (~30 known AI providers)
+# - Model label bounded (~100 known models)
+# - Provider×Model matrix bounded (~150 active combos)
+# - Level label bounded (5 values)
+# - All rules use sum/count aggregation to collapse high-cardinality fields
+
+groups:
+  # ============================================================
+  # ERROR METRICS FROM LOGS
+  # ============================================================
+  - name: loki_error_metrics
+    interval: 1m
+    rules:
+      # Total error log lines per minute (uses level stream label)
+      - record: loki:errors:count_per_minute
+        expr: |
+          sum(count_over_time({app="gatewayz", level="ERROR"} [1m]))
+
+      # Timeout errors over 5 minutes
+      - record: loki:errors:timeout:count_per_5m
+        expr: |
+          sum(count_over_time(
+            {app="gatewayz"} |~ "(?i)(timeout|timed out|deadline exceeded)" [5m]
+          ))
+
+      # Rate limit / 429 errors over 5 minutes
+      - record: loki:errors:rate_limit:count_per_5m
+        expr: |
+          sum(count_over_time(
+            {app="gatewayz"} |~ "(?i)(rate.?limit|429|quota exceeded|too many requests)" [5m]
+          ))
+
+      # Database errors over 5 minutes
+      - record: loki:errors:database:count_per_5m
+        expr: |
+          sum(count_over_time(
+            {app="gatewayz"} |~ "(?i)(database.*error|connection.*timeout|connection.*refused|sqlalchemy.*error)" [5m]
+          ))
+
+      # Memory errors over 5 minutes
+      - record: loki:errors:memory:count_per_5m
+        expr: |
+          sum(count_over_time(
+            {app="gatewayz"} |~ "(?i)(out of memory|oom|memory error|memoryerror)" [5m]
+          ))
+
+      # Authentication errors over 5 minutes
+      - record: loki:errors:auth:count_per_5m
+        expr: |
+          sum(count_over_time(
+            {app="gatewayz"} |~ "(?i)(unauthorized|forbidden|invalid.*token|auth.*failed|permission denied)" [5m]
+          ))
+
+      # Python exceptions (tracebacks) over 5 minutes
+      - record: loki:errors:exceptions:count_per_5m
+        expr: |
+          sum(count_over_time(
+            {app="gatewayz"} |~ "(?i)(Traceback|Exception:|Error:)" [5m]
+          ))
+
+  # ============================================================
+  # PROVIDER METRICS FROM LOGS
+  # ============================================================
+  # provider is a stream label — no body parsing needed
+  - name: loki_provider_metrics
+    interval: 1m
+    rules:
+      # Provider error count (bounded: ~30 known providers)
+      - record: loki:provider:errors:count_per_5m
+        expr: |
+          sum by (provider) (
+            count_over_time(
+              {app="gatewayz", provider=~".+", level=~"ERROR|CRITICAL"} [5m]
+            )
+          )
+
+      # Provider timeout count
+      - record: loki:provider:timeouts:count_per_5m
+        expr: |
+          sum by (provider) (
+            count_over_time(
+              {app="gatewayz", provider=~".+"} |~ "(?i)(timeout|timed out)" [5m]
+            )
+          )
+
+      # Provider request volume from logs
+      - record: loki:provider:requests:count_per_5m
+        expr: |
+          sum by (provider) (
+            count_over_time(
+              {app="gatewayz", provider=~".+"} [5m]
+            )
+          )
+
+  # ============================================================
+  # LOG VOLUME & HEALTH METRICS
+  # ============================================================
+  - name: loki_log_health
+    interval: 1m
+    rules:
+      # Total log volume per minute (all levels)
+      - record: loki:logs:total:count_per_minute
+        expr: |
+          sum(count_over_time({app="gatewayz"} [1m]))
+
+      # Log volume by level (level is a stream label)
+      - record: loki:logs:by_level:count_per_5m
+        expr: |
+          sum by (level) (
+            count_over_time({app="gatewayz", level=~".+"} [5m])
+          )
+
+      # Error-to-total log ratio (percentage)
+      # Uses clamp_min in denominator per project convention
+      - record: loki:logs:error_ratio:percentage
+        expr: |
+          100 * (
+            sum(count_over_time({app="gatewayz", level="ERROR"} [5m]))
+            /
+            clamp_min(sum(count_over_time({app="gatewayz"} [5m])), 0.001)
+          )
+
+      # Circuit breaker events from logs
+      - record: loki:circuit_breaker:events:count_per_5m
+        expr: |
+          sum(count_over_time(
+            {app="gatewayz"} |~ "(?i)circuit.?breaker" [5m]
+          ))
+
+  # ============================================================
+  # REQUEST / PERFORMANCE METRICS FROM LOGS
+  # ============================================================
+  - name: loki_request_metrics
+    interval: 1m
+    rules:
+      # HTTP request log volume by method (method is a stream label)
+      - record: loki:http:requests:by_method:count_per_5m
+        expr: |
+          sum by (method) (
+            count_over_time(
+              {app="gatewayz", method=~".+"} [5m]
+            )
+          )
+
+      # Slow request detection (matches "SLOW REQUEST" from observability_middleware.py)
+      - record: loki:http:slow_requests:count_per_5m
+        expr: |
+          sum(count_over_time(
+            {app="gatewayz"} |~ "SLOW REQUEST" [5m]
+          ))
+
+      # Token usage mentions in logs
+      - record: loki:tokens:usage_events:count_per_5m
+        expr: |
+          sum(count_over_time(
+            {app="gatewayz"} |~ "(?i)(token|tokens)" |~ "(?i)(usage|consumed|total)" [5m]
+          ))
+
+  # ============================================================
+  # HIGH-CARDINALITY AGGREGATIONS
+  # ============================================================
+  # Core value: collapse provider×model×endpoint combinations
+  # into bounded Mimir metrics for dashboards and alerting.
+  # Without these rules, querying provider×model in Prometheus
+  # would cause cardinality explosion (~30 providers × ~100 models).
+  - name: loki_high_cardinality_aggregations
+    interval: 1m
+    rules:
+      # Provider × Model request matrix (bounded ~150 active combos)
+      - record: loki:requests:by_provider_model:count_per_5m
+        expr: |
+          sum by (provider, model) (
+            count_over_time({app="gatewayz", provider=~".+", model=~".+"} [5m])
+          )
+
+      # Provider × Model error hotspots
+      - record: loki:errors:by_provider_model:count_per_5m
+        expr: |
+          sum by (provider, model) (
+            count_over_time({app="gatewayz", provider=~".+", model=~".+", level=~"ERROR|CRITICAL"} [5m])
+          )
+
+      # Per-endpoint request volume (bounded ~20 paths)
+      - record: loki:requests:by_endpoint:count_per_5m
+        expr: |
+          sum by (path) (
+            count_over_time({app="gatewayz", path=~".+"} [5m])
+          )
+
+      # Error categorization by error_type (bounded)
+      - record: loki:errors:by_error_type:count_per_5m
+        expr: |
+          sum by (error_type) (
+            count_over_time({app="gatewayz", error_type=~".+"} [5m])
+          )
+
+      # Per-provider error rate percentage
+      - record: loki:provider:error_ratio:percentage
+        expr: |
+          100 * (
+            sum by (provider) (count_over_time({app="gatewayz", provider=~".+", level="ERROR"} [5m]))
+            /
+            clamp_min(sum by (provider) (count_over_time({app="gatewayz", provider=~".+"} [5m])), 0.001)
+          )
+
+      # Stream completion rate
+      - record: loki:streaming:completions:count_per_5m
+        expr: |
+          sum(count_over_time(
+            {app="gatewayz"} |~ "\\[STREAM\\] Stream completed" [5m]
+          ))
+
+      # Slow TTFC (time to first chunk) events
+      - record: loki:ttfc:slow:count_per_5m
+        expr: |
+          sum(count_over_time(
+            {app="gatewayz"} |~ "Slow first chunk" [5m]
+          ))
+
+  # ============================================================
+  # BASELINE CALCULATIONS (for anomaly detection)
+  # ============================================================
+  # Compare current values against historical averages.
+  # Alert when current / baseline > 2x.
+  - name: loki_baselines
+    interval: 5m
+    rules:
+      # 1-hour average error rate from logs
+      - record: loki:errors:count_per_minute:1h_avg
+        expr: avg_over_time(loki:errors:count_per_minute[1h])
+
+      # 24-hour average error rate from logs (daily baseline)
+      - record: loki:errors:count_per_minute:24h_avg
+        expr: avg_over_time(loki:errors:count_per_minute[24h])
+
+      # 1-hour average log volume
+      - record: loki:logs:total:count_per_minute:1h_avg
+        expr: avg_over_time(loki:logs:total:count_per_minute[1h])
+
+      # Error ratio baseline (1-hour)
+      - record: loki:logs:error_ratio:percentage:1h_avg
+        expr: avg_over_time(loki:logs:error_ratio:percentage[1h])
+
+  # ============================================================
+  # HIGH-CARDINALITY BASELINES
+  # ============================================================
+  # Baselines for the high-cardinality aggregated metrics.
+  # Enable anomaly detection on provider×model combinations.
+  - name: loki_high_cardinality_baselines
+    interval: 5m
+    rules:
+      # 1h baseline for provider×model request volume
+      - record: loki:requests:by_provider_model:count_per_5m:1h_avg
+        expr: |
+          avg_over_time(loki:requests:by_provider_model:count_per_5m[1h])
+
+      # 1h baseline for provider×model error volume
+      - record: loki:errors:by_provider_model:count_per_5m:1h_avg
+        expr: |
+          avg_over_time(loki:errors:by_provider_model:count_per_5m[1h])
+
+      # 1h baseline for per-provider error ratio
+      - record: loki:provider:error_ratio:percentage:1h_avg
+        expr: |
+          avg_over_time(loki:provider:error_ratio:percentage[1h])
