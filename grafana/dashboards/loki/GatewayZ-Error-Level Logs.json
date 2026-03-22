@@ -211,7 +211,7 @@
             "uid": "grafana_loki"
           },
           "editorMode": "code",
-          "expr": "avg_over_time(sum(count_over_time({app=~\"gatewayz.*\"} | level=~\"ERROR|error|CRITICAL|critical\" [5m]))[1h:5m]) * 2",
+          "expr": "sum(count_over_time({app=~\"gatewayz.*\"} | level=~\"ERROR|error|CRITICAL|critical\" [1h])) / 12 * 2",
           "legendFormat": "Anomaly Threshold (2x Avg)",
           "queryType": "range",
           "refId": "B",
