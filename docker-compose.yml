@@ -165,7 +165,12 @@ services:
       - "3100:3100"
     volumes:
       - loki_data:/loki
+    environment:
+      - MIMIR_INTERNAL_URL=${MIMIR_INTERNAL_URL:-http://mimir:9009}
     restart: unless-stopped
+    depends_on:
+      mimir:
+        condition: service_healthy
     security_opt:
       - no-new-privileges:true
     cap_drop:

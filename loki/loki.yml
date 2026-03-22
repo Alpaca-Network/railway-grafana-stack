@@ -62,3 +62,35 @@ distributor:
   ring:
     kvstore:
       store: inmemory
+
+# ============================================================
+# Ruler configuration for recording rules
+# Evaluates LogQL rules and remote-writes derived metrics to Mimir
+# Pattern matches Tempo's metrics_generator -> Mimir remote_write
+# ============================================================
+ruler:
+  storage:
+    type: local
+    local:
+      directory: /loki/rules
+  rule_path: /loki/ruler-wal
+  ring:
+    kvstore:
+      store: inmemory
+    instance_addr: 127.0.0.1
+  enable_api: true
+  enable_alertmanager_v2: false
+  remote_write:
+    enabled: true
+    client:
+      url: MIMIR_REMOTE_WRITE_URL
+      headers:
+        X-Scope-OrgID: anonymous
+      queue_config:
+        capacity: 5000
+        max_shards: 10
+        max_samples_per_send: 1000
+        batch_send_deadline: 5s
+    config_refresh_period: 10s
+  evaluation_interval: 1m
+  poll_interval: 1m
