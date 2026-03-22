@@ -33,11 +33,11 @@ None of these questions have simple answers if all you have is basic application
 
 ### What This Stack Provides
 
-This repository is the complete observability stack for GatewayZ — 8 services deployed together, pre-wired, pre-configured, with 15 Grafana dashboards covering every aspect of AI inference operations:
+This repository is the complete observability stack for GatewayZ — 8 services deployed together, pre-wired, pre-configured, with 17 Grafana dashboards covering every aspect of AI inference operations:
 
-- **400+ dashboard panels** across Four Golden Signals, Model Performance, Provider Directory, Infrastructure Health, and more
+- **430+ dashboard panels** across Four Golden Signals, Model Performance, Provider Directory, Infrastructure Health, Log-Derived Metrics, and more
 - **Two-tier alerting**: 40+ Grafana alert rules + 16 standalone Prometheus rules, both routing to ops/critical email
-- **32 recording rules** that pre-compute anomaly detection baselines so alert queries are instant
+- **32 Prometheus recording rules** + **35 Loki recording rules** that pre-compute anomaly detection baselines and aggregate high-cardinality log data into bounded metrics
 - **Cross-signal navigation**: click a slow metric → jump to the Tempo trace → jump to the Pyroscope flamegraph at that exact timestamp
 - **Provider/model tagged CPU profiles** — every inference call in the backend is tagged with `provider` and `model` so you can filter flamegraphs to exactly the calls you care about
 
@@ -144,7 +144,7 @@ Before looking at the diagram, here's the conceptual model:
 
 **Provider health** is computed data — health scores, circuit breaker states, and availability percentages calculated server-side by the backend and exposed via `/prometheus/data/metrics`. The **JSON-API-Proxy** (a small Flask service) polls this endpoint and translates it into the Simple JSON format that Grafana can query directly for real-time provider status panels.
 
-The key rule: **each service stores only its own data type**. Loki does not write to Mimir (logs ≠ metrics). Prometheus does not store traces. Grafana queries each service for its own data type.
+The key rule: **each service stores only its own data type**. Prometheus does not store traces. Grafana queries each service for its own data type. **Exception:** Loki's ruler evaluates LogQL recording rules and remote-writes *derived metrics* (not raw logs) to Mimir — the same pattern Tempo uses for span metrics.
 
 ### Data Flow Diagram
 
@@ -167,8 +167,8 @@ The key rule: **each service stores only its own data type**. Loki does not writ
     │   15-30s      │     │  30d Retain   │     │  48h Retain   │
     └───────┬───────┘     └───────────────┘     └───────┬───────┘
             │                     │                     │
-            │ remote_write        │ (no connection)     │ metrics_generator
-            │ /api/v1/push        │                     │ remote_write
+            │ remote_write        │ ruler remote_write  │ metrics_generator
+            │ /api/v1/push        │ /api/v1/push        │ remote_write
             │                     │                     │
             │  firing alerts      │                     │
             ├────────────────►────┤                     │
@@ -182,11 +182,11 @@ The key rule: **each service stores only its own data type**. Loki does not writ
             ▼                     │                     ▼
     ┌───────────────┐             │             ┌───────────────┐
     │               │◄────────────┘             │               │
-    │     Mimir     │         (Loki stores      │     Mimir     │
-    │    :9009      │          LOGS, not        │  (span metrics│
-    │               │          metrics - this   │   from traces)│
-    │  Long-term    │          is BY DESIGN)    │               │
-    │  30d Retain   │                           │               │
+    │     Mimir     │                            │     Mimir     │
+    │    :9009      │◄───────────────────────── │  (span metrics│
+    │               │  Loki ruler sends         │   from traces)│
+    │  Long-term    │  log-derived metrics      │               │
+    │  30d Retain   │  (recording rules)        │               │
     └───────┬───────┘                           └───────┬───────┘
             │                                           │
             └─────────────────────┬─────────────────────┘
@@ -216,10 +216,10 @@ The key rule: **each service stores only its own data type**. Loki does not writ
 |-----------|--------|-----------|-------|
 | **Prometheus** | Metrics (time-series) | **Mimir** via remote_write | Short-term storage, scrapes every 15-30s |
 | **Mimir** | Metrics (time-series) | Local filesystem | Long-term storage, 30-day retention |
-| **Loki** | Logs (text lines) | Local filesystem | **Does NOT write to Mimir** — logs ≠ metrics |
+| **Loki** | Logs (text lines) | Local filesystem + **Mimir** (recording rule metrics only) | Logs stored locally; ruler aggregates log data into metrics → Mimir |
 | **Tempo** | Traces (spans) | Local filesystem + **Mimir** (span metrics only) | Traces stored locally, derived metrics to Mimir |
 
-> **Why Loki doesn't write to Mimir:** Loki stores **log lines** (text data), while Mimir stores **metrics** (numeric time-series). These are fundamentally different data types. Grafana queries Loki directly for logs.
+> **Loki → Mimir flow:** Loki stores **log lines** (text data) locally. Its ruler component evaluates LogQL recording rules every 1 minute and remote-writes the resulting **derived metrics** (counts, ratios, aggregations) to Mimir — the same pattern Tempo uses for span metrics. Raw logs are never sent to Mimir; only pre-aggregated numeric time-series are.
 
 ### Key Components
 
@@ -229,7 +229,7 @@ The key rule: **each service stores only its own data type**. Loki does not writ
 | **Prometheus 3.2.1** | 9090 | Metrics collection + alerting rules | ✅ 6 scrape jobs |
 | **Alertmanager v0.27.0** | 9093 | Alert routing → email (ops + critical) | ✅ Mirrors Grafana notification policies |
 | **Mimir 2.11.0** | 9009, 9095 | Long-term metrics storage | ✅ 30-day retention |
-| **Loki 3.4** | 3100 | Log aggregation | ✅ 30-day retention |
+| **Loki 3.4** | 3100 | Log aggregation + ruler (35 recording rules → Mimir) | ✅ 30-day retention, ruler remote_write |
 | **Tempo** | 3200, 4317, 4318 | Distributed tracing | ✅ OTLP endpoints |
 | **Pyroscope 1.7.1** | 4040 | Continuous CPU profiling | ✅ Provider/model/cache tagged flamegraphs |
 | **JSON-API-Proxy** | 5050 | Provider health bridge (Flask → Grafana Simple JSON) | ✅ Circuit breaker states, health scores |
@@ -276,13 +276,22 @@ gatewayz-backend
 ### How Logs Get to Grafana
 
 ```
-gatewayz-backend structlog (JSON format)
+gatewayz-backend (JSON structured logging via LokiLogHandler)
   └── Async queue → Loki push :3100
-        Labels: app="gatewayz", level, service
-        Fields: trace_id, span_id, endpoint, model, provider, user_id
+        Stream Labels: app, environment, service, level, logger,
+                       trace_id, span_id, path, method, provider,
+                       model, user_id, error_type
                     │
-            Grafana queries Loki
-            Log→Trace correlation via trace_id field → Tempo
+                    ├─► Grafana queries Loki directly (query-time LogQL)
+                    │     Log→Trace correlation via trace_id → Tempo
+                    │
+                    └─► Loki ruler evaluates 35 recording rules every 1m
+                          │
+                          └─► Remote write derived metrics → Mimir :9009
+                                │
+                                └─► Grafana queries Mimir (pre-aggregated)
+                                      provider×model matrix, error ratios,
+                                      anomaly baselines, streaming stats
 ```
 
 ### Key Backend Identifiers
@@ -298,6 +307,64 @@ gatewayz-backend structlog (JSON format)
 
 ---
 
+## Loki Recording Rules & High-Cardinality Monitoring
+
+### The Problem
+
+GatewayZ routes AI inference requests across 30+ providers and 100+ models, generating log data with high-cardinality fields (request IDs, model variants, provider×model combinations, per-user sessions). Tracking every combination as a native Prometheus metric would cause cardinality explosion (~3,000+ time series from provider×model alone). Traditional metrics can't answer questions like "which provider×model combination has the highest error rate this week?"
+
+### The Solution
+
+Loki's **ruler** component evaluates LogQL recording rules every minute and remote-writes the resulting aggregated metrics to Mimir. This collapses high-cardinality log data into bounded, queryable metrics — the same pattern Tempo uses for span metrics.
+
+```
+Backend logs (JSON, high-cardinality stream labels)
+        │
+        ▼
+    Loki (stores raw logs for 30 days)
+        │
+        └─► Ruler evaluates 35 LogQL recording rules every 1m
+              │
+              └─► Aggregated metrics remote-written to Mimir
+                    │
+                    └─► Grafana queries via grafana_mimir datasource
+```
+
+### Recording Rules: 7 Groups, 35 Rules
+
+**File:** `loki/rules/gatewayz_log_recording_rules.yml`
+
+| Group | Rules | What It Aggregates |
+|-------|-------|--------------------|
+| `loki_error_metrics` | 7 | Error counts by category: total, timeout, rate-limit, database, memory, auth, exceptions |
+| `loki_provider_metrics` | 3 | Per-provider error count, timeout count, request volume |
+| `loki_log_health` | 4 | Total log volume, level distribution, error-to-total ratio %, circuit breaker events |
+| `loki_request_metrics` | 3 | HTTP volume by method, slow request count, token usage events |
+| `loki_high_cardinality_aggregations` | 7 | **Provider×Model request matrix**, per-endpoint volume, error types, per-provider error ratio, streaming completions, slow TTFC |
+| `loki_baselines` | 4 | 1h/24h averages for error rate, log volume, error ratio (anomaly detection) |
+| `loki_high_cardinality_baselines` | 3 | 1h averages for provider×model volume/errors, per-provider error ratio |
+
+All recording rule metric names use the `loki:` prefix (e.g., `loki:errors:count_per_minute`, `loki:requests:by_provider_model:count_per_5m`) to distinguish them from native Prometheus metrics.
+
+### Infrastructure
+
+| File | Purpose |
+|------|---------|
+| `loki/loki.yml` | Ruler block with remote_write to Mimir (`X-Scope-OrgID: anonymous`) |
+| `loki/entrypoint.sh` | Runtime Mimir URL substitution (Railway vs Docker Compose) |
+| `loki/rules/gatewayz_log_recording_rules.yml` | 35 LogQL recording rules in 7 groups |
+| `loki/Dockerfile` | Copies rules + entrypoint into container |
+
+### What This Enables
+
+1. **Cost Optimization** — Aggregate thousands of per-request log entries into bounded provider/model metrics without overwhelming Mimir
+2. **Root Cause Analysis** — Drill from a metric spike in Grafana to the exact log line using `provider`, `model`, `trace_id`, `error_type` stream labels
+3. **Retroactive Business Intelligence** — Answer historical questions about provider costs, model usage trends, and token consumption from existing logs — no pre-planned instrumentation needed
+4. **Anomaly Detection** — Recording rule baselines (1h/24h averages) enable alerts when current error rates exceed 2× the historical average
+5. **Streaming Observability** — Track TTFC (time to first chunk), stream completions, and prompt routing across the full request lifecycle
+
+---
+
 ## Dashboard Folders
 
 All dashboards use **real API endpoints** with live data from Prometheus/Mimir — no mock data.
@@ -306,7 +373,7 @@ All dashboards use **real API endpoints** with live data from Prometheus/Mimir �
 |--------|-------------|---------|--------|
 | **Four Golden Signals** | Four-Golden-Signals | Latency · Traffic · Errors · Pyroscope Profiling (Pillar IV) | ✅ Ready |
 | **Model Performance** | Inference-Call-Profile, Model-Usage, Cache-Layer-Profile, Inference-Profiling, Provider-Directory | AI inference anatomy, token usage, Redis cache CPU, provider metrics | ✅ Ready |
-| **Loki** | Loki dashboards | Log search, streaming, volume by level/service | ✅ Ready |
+| **Loki** | Live-GatewayZ-Logs, Error-Analysis, Security-RateLimit, **Log-Derived Metrics** | Log search, streaming, error patterns, **high-cardinality log-to-metrics analytics** | ✅ Ready |
 | **Prometheus** | Prometheus self-monitoring | Scrape targets, query stats, remote_write health | ✅ Ready |
 | **Tempo** | Tempo dashboards | Service graph, span metrics, trace search | ✅ Ready |
 | **Mimir** | Mimir dashboards | Historical queries, retention stats | ✅ Ready |
@@ -319,10 +386,17 @@ All dashboards use **real API endpoints** with live data from Prometheus/Mimir �
 - **Token Usage**: Input/output token tracking
 - **Error Rates**: By provider, model, and error type
 
-#### Loki Logs Dashboard
-- **Pure log data** from Loki datasource
-- **Log Search**: Real-time filtering and search
-- **Log Volume**: Count by level, service, severity
+#### Loki Dashboards (4 dashboards)
+- **Live-GatewayZ-Logs**: Real-time log stream with filters by app, level, environment, free-text search
+- **Error-Analysis**: Error anomaly detection, error-type distribution, reliability scoring
+- **Security-RateLimit**: Auth failures, rate-limit violations, security anomaly thresholds
+- **Log-Derived Metrics** *(NEW)*: 38-panel high-cardinality analytics dashboard — extracts metrics from logs at query time using LogQL and pre-aggregated Mimir recording rules:
+  - Request performance by endpoint/method, slow request tracking, TTFC (time to first chunk) monitoring
+  - Provider analytics: per-provider request volume, error rates, top-10 ranking, error distribution
+  - Model usage: selection frequency, top-10 models, error hotspots, usage distribution pie charts
+  - Provider×Model cardinality aggregation: recording rules collapse 30+ providers × 100+ models into bounded metrics
+  - Anomaly detection: error rate vs 2× baseline threshold, log volume trends vs 1h averages
+  - Streaming & inference: stream completion rate, prompt router selection frequency
 
 #### Tempo (Tracing)
 - **Pure trace data** from Tempo datasource
@@ -613,7 +687,13 @@ open http://localhost:9090/targets
 ### Horizontal Scaling with Mimir
 - Long-term metrics storage with 30-day retention.
 - Horizontally scalable architecture.
-- Remote write from Prometheus.
+- Remote write from Prometheus, Loki (recording rules), and Tempo (span metrics).
+
+### High-Cardinality Log-to-Metrics Pipeline
+- **35 Loki recording rules** aggregate high-cardinality log data (30+ providers × 100+ models) into bounded Mimir metrics.
+- **Provider×Model matrix**, per-endpoint volumes, error categorization, streaming completion rates — all derived from logs without application code changes.
+- **Anomaly detection baselines**: 1h/24h averages enable alerts when current rates exceed 2× historical average.
+- **Retroactive BI**: Answer historical questions from existing logs without pre-planned instrumentation.
 
 ### Golden Signals Monitoring
 - **Latency**: P50/P95/P99 percentiles + trends.
@@ -624,7 +704,7 @@ open http://localhost:9090/targets
 ### Specialized Dashboards
 - **Inference Call Profile**: Per-request CPU anatomy by provider/model.
 - **Cache Layer Profile**: Redis CPU cost by cache layer (`auth`, `rate_limit`, `model_catalog`, `response_cache`, `trial_analytics`) via Pyroscope tags.
-- **Loki Logs**: Deep log search without metrics noise.
+- **Loki Logs**: Deep log search, error analysis, security monitoring, and **log-derived metrics** (38-panel high-cardinality analytics dashboard).
 - **Tempo Traces**: Distributed tracing and service graphs.
 
 ### Production Grade
@@ -641,22 +721,32 @@ Mimir provides **30-day metric retention** with horizontal scaling. This is crit
 - Consistent query results across page refreshes
 - No data loss on Prometheus restarts
 
-### How Prometheus → Mimir Works
+### How Data Gets to Mimir (3 Sources)
 
 ```
 ┌────────────┐    remote_write     ┌─────────────┐
 │ Prometheus │ ────────────────────▶│    Mimir    │
 │   :9090    │   /api/v1/push      │   :9009     │
-│            │   X-Scope-OrgID:    │             │
-│  (15d)     │   anonymous         │  (30d)      │
-└────────────┘                     └─────────────┘
-      │                                   │
-      │ scrapes                           │ stores
-      ▼                                   ▼
- ┌──────────┐                     ┌──────────────┐
- │ Backend  │                     │ /data/mimir/ │
- │ /metrics │                     │   blocks/    │
- └──────────┘                     │   tsdb/      │
+│  (15d)     │   X-Scope-OrgID:    │             │
+└────────────┘   anonymous         │  (30d)      │
+      │                            │             │
+┌────────────┐    ruler            │             │
+│    Loki    │    remote_write     │             │
+│   :3100    │ ────────────────────▶             │
+│ (35 rules) │   log-derived       │             │
+└────────────┘   metrics           │             │
+                                   │             │
+┌────────────┐    metrics_generator│             │
+│   Tempo    │    remote_write     │             │
+│   :3200    │ ────────────────────▶             │
+│ (spans)    │   span metrics      └─────────────┘
+└────────────┘                            │
+                                          │ stores
+                                          ▼
+                                  ┌──────────────┐
+                                  │ /data/mimir/ │
+                                  │   blocks/    │
+                                  │   tsdb/      │
                                   └──────────────┘
 ```
 

@@ -1,0 +1,1395 @@
+{
+  "title": "GatewayZ Log-Derived Metrics",
+  "uid": "gatewayz-log-metrics",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "description": "High-cardinality log analytics and retroactive log-to-metrics extraction. Combines query-time LogQL (Loki) with pre-aggregated recording rules (Mimir) to visualize provider performance, model usage, error patterns, and streaming health.",
+  "tags": [
+    "gatewayz",
+    "loki",
+    "metrics",
+    "log-analytics",
+    "high-cardinality"
+  ],
+  "links": [
+    {
+      "asDropdown": true,
+      "icon": "doc",
+      "includeVars": true,
+      "tags": ["gatewayz", "loki"],
+      "targetBlank": false,
+      "title": "Log Dashboards",
+      "type": "dashboards"
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "environment",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "grafana_loki"
+        },
+        "query": {
+          "type": 1,
+          "label": "environment",
+          "stream": "{app=\"gatewayz\"}"
+        },
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "provider",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "grafana_loki"
+        },
+        "query": {
+          "type": 1,
+          "label": "provider",
+          "stream": "{app=\"gatewayz\"}"
+        },
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": ".+",
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "model",
+        "type": "query",
+        "datasource": {
+          "type": "loki",
+          "uid": "grafana_loki"
+        },
+        "query": {
+          "type": 1,
+          "label": "model",
+          "stream": "{app=\"gatewayz\"}"
+        },
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": ".+",
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "level",
+        "type": "custom",
+        "query": "DEBUG,INFO,WARNING,ERROR,CRITICAL",
+        "includeAll": true,
+        "allValue": ".+",
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
+      "options": {
+        "content": "## GatewayZ — Log-Derived Metrics & High-Cardinality Analytics\nMetrics extracted from structured logs at query time using LogQL. Recording rules aggregate high-cardinality data (provider×model combinations, per-endpoint volumes) into bounded Mimir metrics.\n\n| Section | What It Shows |\n|---------|---------------|\n| Key Metrics | Real-time KPIs: request rate, error rate, active providers, slow requests |\n| Request Performance | Endpoint and method volume, slow request trends, TTFC tracking |\n| Provider Analytics | Per-provider request volume, error rates, top-N ranking |\n| Model Usage | Model selection frequency, error hotspots, usage distribution |\n| Cardinality Aggregation | Provider×Model matrix from recording rules (Mimir) |\n| Anomaly Detection | Current rates vs 1h baselines — spikes trigger when >2× average |",
+        "mode": "markdown"
+      }
+    },
+    {
+      "id": 2,
+      "type": "row",
+      "title": "Key Metrics at a Glance",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 3 },
+      "collapsed": false
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Requests / min",
+      "datasource": { "type": "loki", "uid": "grafana_loki" },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 4 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "grafana_loki" },
+          "expr": "sum(count_over_time({app=\"gatewayz\", path=~\".+\"} [1m]))",
+          "instant": true
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 100 },
+              { "color": "red", "value": 500 }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Error Rate %",
+      "datasource": { "type": "loki", "uid": "grafana_loki" },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 4 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "grafana_loki" },
+          "expr": "100 * sum(count_over_time({app=\"gatewayz\", level=\"ERROR\"} [5m])) / clamp_min(sum(count_over_time({app=\"gatewayz\"} [5m])), 0.001)",
+          "instant": true
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "red", "value": 15 }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Active Providers",
+      "datasource": { "type": "loki", "uid": "grafana_loki" },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 4 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "grafana_loki" },
+          "expr": "count(count by (provider) (count_over_time({app=\"gatewayz\", provider=~\".+\"} [5m])))",
+          "instant": true
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Slow Requests (5m)",
+      "datasource": { "type": "loki", "uid": "grafana_loki" },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 4 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "grafana_loki" },
+          "expr": "sum(count_over_time({app=\"gatewayz\"} |~ \"SLOW REQUEST\" [5m]))",
+          "instant": true
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "red", "value": 20 }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 7,
+      "type": "row",
+      "title": "Request Performance from Logs",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 8 },
+      "collapsed": false
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Request Volume by Endpoint",
+      "datasource": { "type": "loki", "uid": "grafana_loki" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 9 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "grafana_loki" },
+          "expr": "sum by (path) (count_over_time({app=\"gatewayz\", path=~\".+\"} [$__interval]))",
+          "legendFormat": "{{path}}"
+        }
+      ],
+      "options": {
+        "legend": { "calcs": ["sum", "mean"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "normal" },
+            "axisBorderShow": false,
+            "axisPlacement": "auto"
+          },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": []
+      },
+      "pluginVersion": "11.5.2"
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Request Volume by Method",
+      "datasource": { "type": "loki", "uid": "grafana_loki" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 9 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "grafana_loki" },
+          "expr": "sum by (method) (count_over_time({app=\"gatewayz\", method=~\".+\"} [$__interval]))",
+          "legendFormat": "{{method}}"
+        }
+      ],
+      "options": {
+        "legend": { "calcs": ["sum", "mean"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "normal" },
+            "axisBorderShow": false,
+            "axisPlacement": "auto"
+          },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": []
+      },
+      "pluginVersion": "11.5.2"
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Slow Requests Over Time",
+      "datasource": { "type": "loki", "uid": "grafana_loki" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 17 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "grafana_loki" },
+          "expr": "sum(count_over_time({app=\"gatewayz\"} |~ \"SLOW REQUEST\" [$__interval]))",
+          "legendFormat": "Slow Requests"
+        }
+      ],
+      "options": {
+        "legend": { "calcs": ["sum", "mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "fixedColor": "red", "mode": "fixed" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "axisBorderShow": false,
+            "axisPlacement": "auto"
+          },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": []
+      },
+      "pluginVersion": "11.5.2"
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "TTFC Events (Fast vs Slow)",
+      "datasource": { "type": "loki", "uid": "grafana_loki" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 17 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "grafana_loki" },
+          "expr": "sum(count_over_time({app=\"gatewayz\"} |~ \"Slow first chunk\" [$__interval]))",
+          "legendFormat": "Slow TTFC (>2s)"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "loki", "uid": "grafana_loki" },
+          "expr": "sum(count_over_time({app=\"gatewayz\"} |~ \"TTFC.*First chunk in\" [$__interval]))",
+          "legendFormat": "Normal TTFC"
+        }
+      ],
+      "options": {
+        "legend": { "calcs": ["sum", "mean"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "axisBorderShow": false,
+            "axisPlacement": "auto"
+          },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Slow TTFC (>2s)" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Normal TTFC" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }]
+          }
+        ]
+      },
+      "pluginVersion": "11.5.2"
+    },
+    {
+      "id": 12,
+      "type": "row",
+      "title": "Provider Analytics — High-Cardinality Drill-Down",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 25 },
+      "collapsed": false
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Requests per Provider",
+      "datasource": { "type": "loki", "uid": "grafana_loki" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 26 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "grafana_loki" },
+          "expr": "sum by (provider) (count_over_time({app=\"gatewayz\", provider=~\"$provider\"} [$__interval]))",
+          "legendFormat": "{{provider}}"
+        }
+      ],
+      "options": {
+        "legend": { "calcs": ["sum", "mean"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "axisBorderShow": false,
+            "axisPlacement": "auto"
+          },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": []
+      },
+      "pluginVersion": "11.5.2"
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "Errors per Provider",
+      "datasource": { "type": "loki", "uid": "grafana_loki" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 26 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "grafana_loki" },
+          "expr": "sum by (provider) (count_over_time({app=\"gatewayz\", provider=~\"$provider\", level=~\"ERROR|CRITICAL\"} [$__interval]))",
+          "legendFormat": "{{provider}}"
+        }
+      ],
+      "options": {
+        "legend": { "calcs": ["sum", "mean"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "axisBorderShow": false,
+            "axisPlacement": "auto"
+          },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": []
+      },
+      "pluginVersion": "11.5.2"
+    },
+    {
+      "id": 15,
+      "type": "bargauge",
+      "title": "Top 10 Providers by Volume",
+      "datasource": { "type": "loki", "uid": "grafana_loki" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 34 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "grafana_loki" },
+          "expr": "topk(10, sum by (provider) (count_over_time({app=\"gatewayz\", provider=~\".+\"} [$__range])))",
+          "legendFormat": "{{provider}}",
+          "instant": true
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showUnfilled": true,
+        "minVizWidth": 8,
+        "minVizHeight": 16,
+        "valueMode": "color"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "continuous-GrYlRd" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "pluginVersion": "11.5.2"
+    },
+    {
+      "id": 16,
+      "type": "piechart",
+      "title": "Provider Error Distribution",
+      "datasource": { "type": "loki", "uid": "grafana_loki" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 34 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "grafana_loki" },
+          "expr": "sum by (provider) (count_over_time({app=\"gatewayz\", provider=~\".+\", level=~\"ERROR|CRITICAL\"} [$__range]))",
+          "legendFormat": "{{provider}}",
+          "instant": true
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "values": ["value", "percent"] },
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "pieType": "donut",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "pluginVersion": "11.5.2"
+    },
+    {
+      "id": 17,
+      "type": "row",
+      "title": "Model Usage — Retroactive Business Intelligence",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 42 },
+      "collapsed": false
+    },
+    {
+      "id": 18,
+      "type": "timeseries",
+      "title": "Model Selection Frequency",
+      "datasource": { "type": "loki", "uid": "grafana_loki" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 43 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "grafana_loki" },
+          "expr": "sum by (model) (count_over_time({app=\"gatewayz\", model=~\"$model\"} [$__interval]))",
+          "legendFormat": "{{model}}"
+        }
+      ],
+      "options": {
+        "legend": { "calcs": ["sum", "mean"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "axisBorderShow": false,
+            "axisPlacement": "auto"
+          },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": []
+      },
+      "pluginVersion": "11.5.2"
+    },
+    {
+      "id": 19,
+      "type": "bargauge",
+      "title": "Top 10 Models by Usage",
+      "datasource": { "type": "loki", "uid": "grafana_loki" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 43 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "grafana_loki" },
+          "expr": "topk(10, sum by (model) (count_over_time({app=\"gatewayz\", model=~\".+\"} [$__range])))",
+          "legendFormat": "{{model}}",
+          "instant": true
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showUnfilled": true,
+        "minVizWidth": 8,
+        "minVizHeight": 16,
+        "valueMode": "color"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "continuous-blues" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "pluginVersion": "11.5.2"
+    },
+    {
+      "id": 20,
+      "type": "timeseries",
+      "title": "Model Errors Over Time",
+      "datasource": { "type": "loki", "uid": "grafana_loki" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 51 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "grafana_loki" },
+          "expr": "sum by (model) (count_over_time({app=\"gatewayz\", model=~\"$model\", level=~\"ERROR|CRITICAL\"} [$__interval]))",
+          "legendFormat": "{{model}}"
+        }
+      ],
+      "options": {
+        "legend": { "calcs": ["sum", "mean"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "axisBorderShow": false,
+            "axisPlacement": "auto"
+          },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": []
+      },
+      "pluginVersion": "11.5.2"
+    },
+    {
+      "id": 21,
+      "type": "piechart",
+      "title": "Model Usage Distribution",
+      "datasource": { "type": "loki", "uid": "grafana_loki" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 51 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "grafana_loki" },
+          "expr": "sum by (model) (count_over_time({app=\"gatewayz\", model=~\".+\"} [$__range]))",
+          "legendFormat": "{{model}}",
+          "instant": true
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "values": ["value", "percent"] },
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "pieType": "donut",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "pluginVersion": "11.5.2"
+    },
+    {
+      "id": 22,
+      "type": "row",
+      "title": "Provider × Model Matrix — Cardinality Aggregation (Mimir)",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 59 },
+      "collapsed": false
+    },
+    {
+      "id": 23,
+      "type": "timeseries",
+      "title": "Provider×Model Request Volume",
+      "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 60 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "loki:requests:by_provider_model:count_per_5m",
+          "legendFormat": "{{provider}} / {{model}}"
+        }
+      ],
+      "options": {
+        "legend": { "calcs": ["sum", "mean"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" },
+            "axisBorderShow": false,
+            "axisPlacement": "auto"
+          },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": []
+      },
+      "pluginVersion": "11.5.2"
+    },
+    {
+      "id": 24,
+      "type": "timeseries",
+      "title": "Provider×Model Error Rate",
+      "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 60 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "loki:errors:by_provider_model:count_per_5m",
+          "legendFormat": "{{provider}} / {{model}}"
+        }
+      ],
+      "options": {
+        "legend": { "calcs": ["sum", "mean"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" },
+            "axisBorderShow": false,
+            "axisPlacement": "auto"
+          },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": []
+      },
+      "pluginVersion": "11.5.2"
+    },
+    {
+      "id": 25,
+      "type": "timeseries",
+      "title": "Per-Provider Error Ratio % vs Baseline",
+      "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 68 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "loki:provider:error_ratio:percentage",
+          "legendFormat": "{{provider}} — current"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "loki:provider:error_ratio:percentage:1h_avg",
+          "legendFormat": "{{provider}} — 1h avg"
+        }
+      ],
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" },
+            "axisBorderShow": false,
+            "axisPlacement": "auto"
+          },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": ".*1h avg.*" },
+            "properties": [
+              { "id": "custom.lineStyle", "value": { "fill": "dash", "dash": [10, 10] } },
+              { "id": "custom.fillOpacity", "value": 0 }
+            ]
+          }
+        ]
+      },
+      "pluginVersion": "11.5.2"
+    },
+    {
+      "id": 26,
+      "type": "bargauge",
+      "title": "Error Types Distribution",
+      "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 68 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "topk(10, loki:errors:by_error_type:count_per_5m)",
+          "legendFormat": "{{error_type}}",
+          "instant": true
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showUnfilled": true,
+        "minVizWidth": 8,
+        "minVizHeight": 16,
+        "valueMode": "color"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "continuous-reds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "pluginVersion": "11.5.2"
+    },
+    {
+      "id": 27,
+      "type": "row",
+      "title": "Log Health & Anomaly Detection (Mimir Baselines)",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 76 },
+      "collapsed": false
+    },
+    {
+      "id": 28,
+      "type": "timeseries",
+      "title": "Error Rate vs Anomaly Threshold",
+      "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 77 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "loki:errors:count_per_minute",
+          "legendFormat": "Error Rate (current)"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "loki:errors:count_per_minute:1h_avg * 2",
+          "legendFormat": "Anomaly Threshold (2× avg)"
+        }
+      ],
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" },
+            "axisBorderShow": false,
+            "axisPlacement": "auto"
+          },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Anomaly Threshold (2× avg)" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } },
+              { "id": "custom.lineStyle", "value": { "fill": "dash", "dash": [10, 10] } },
+              { "id": "custom.fillOpacity", "value": 0 }
+            ]
+          }
+        ]
+      },
+      "pluginVersion": "11.5.2"
+    },
+    {
+      "id": 29,
+      "type": "timeseries",
+      "title": "Log Volume Trend vs 1h Average",
+      "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 77 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "loki:logs:total:count_per_minute",
+          "legendFormat": "Log Volume (current)"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "loki:logs:total:count_per_minute:1h_avg",
+          "legendFormat": "1h Average"
+        }
+      ],
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" },
+            "axisBorderShow": false,
+            "axisPlacement": "auto"
+          },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "1h Average" },
+            "properties": [
+              { "id": "custom.lineStyle", "value": { "fill": "dash", "dash": [10, 10] } },
+              { "id": "custom.fillOpacity", "value": 0 }
+            ]
+          }
+        ]
+      },
+      "pluginVersion": "11.5.2"
+    },
+    {
+      "id": 30,
+      "type": "timeseries",
+      "title": "Error Ratio % Over Time",
+      "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 85 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "expr": "loki:logs:error_ratio:percentage",
+          "legendFormat": "Error Ratio %"
+        }
+      ],
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": { "fixedColor": "orange", "mode": "fixed" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" },
+            "axisBorderShow": false,
+            "axisPlacement": "auto",
+            "thresholdsStyle": { "mode": "line" }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "red", "value": 15 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "pluginVersion": "11.5.2"
+    },
+    {
+      "id": 31,
+      "type": "timeseries",
+      "title": "Log Volume by Level",
+      "datasource": { "type": "loki", "uid": "grafana_loki" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 85 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "grafana_loki" },
+          "expr": "sum by (level) (count_over_time({app=\"gatewayz\", level=~\"$level\"} [$__interval]))",
+          "legendFormat": "{{level}}"
+        }
+      ],
+      "options": {
+        "legend": { "calcs": ["sum", "mean"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "normal" },
+            "axisBorderShow": false,
+            "axisPlacement": "auto"
+          },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "ERROR" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "WARNING" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "INFO" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "DEBUG" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "CRITICAL" }, "properties": [{ "id": "color", "value": { "fixedColor": "purple", "mode": "fixed" } }] }
+        ]
+      },
+      "pluginVersion": "11.5.2"
+    },
+    {
+      "id": 32,
+      "type": "row",
+      "title": "Streaming & Inference Analytics",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 93 },
+      "collapsed": false
+    },
+    {
+      "id": 33,
+      "type": "timeseries",
+      "title": "Stream Completions Over Time",
+      "datasource": { "type": "loki", "uid": "grafana_loki" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 94 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "grafana_loki" },
+          "expr": "sum(count_over_time({app=\"gatewayz\"} |~ \"\\\\[STREAM\\\\] Stream completed\" [$__interval]))",
+          "legendFormat": "Stream Completions"
+        }
+      ],
+      "options": {
+        "legend": { "calcs": ["sum", "mean"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "fixedColor": "blue", "mode": "fixed" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "axisBorderShow": false,
+            "axisPlacement": "auto"
+          },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": []
+      },
+      "pluginVersion": "11.5.2"
+    },
+    {
+      "id": 34,
+      "type": "timeseries",
+      "title": "Prompt Router Selections Over Time",
+      "datasource": { "type": "loki", "uid": "grafana_loki" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 94 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "grafana_loki" },
+          "expr": "sum(count_over_time({app=\"gatewayz\"} |~ \"Prompt router selected\" [$__interval]))",
+          "legendFormat": "Prompt Router Selections"
+        }
+      ],
+      "options": {
+        "legend": { "calcs": ["sum", "mean"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "fixedColor": "purple", "mode": "fixed" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "axisBorderShow": false,
+            "axisPlacement": "auto"
+          },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": []
+      },
+      "pluginVersion": "11.5.2"
+    },
+    {
+      "id": 35,
+      "type": "row",
+      "title": "Error Category Breakdown (Recording Rules)",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 102 },
+      "collapsed": true,
+      "panels": [
+        {
+          "id": 36,
+          "type": "timeseries",
+          "title": "Timeout Errors",
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "gridPos": { "h": 8, "w": 8, "x": 0, "y": 103 },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+              "expr": "loki:errors:timeout:count_per_5m",
+              "legendFormat": "Timeouts"
+            }
+          ],
+          "options": {
+            "legend": { "calcs": ["sum", "mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "color": { "fixedColor": "orange", "mode": "fixed" },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 20,
+                "gradientMode": "opacity",
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": true,
+                "stacking": { "group": "A", "mode": "none" },
+                "axisBorderShow": false,
+                "axisPlacement": "auto"
+              },
+              "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+            },
+            "overrides": []
+          },
+          "pluginVersion": "11.5.2"
+        },
+        {
+          "id": 37,
+          "type": "timeseries",
+          "title": "Rate Limit Errors",
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "gridPos": { "h": 8, "w": 8, "x": 8, "y": 103 },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+              "expr": "loki:errors:rate_limit:count_per_5m",
+              "legendFormat": "Rate Limits"
+            }
+          ],
+          "options": {
+            "legend": { "calcs": ["sum", "mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "color": { "fixedColor": "yellow", "mode": "fixed" },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 20,
+                "gradientMode": "opacity",
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": true,
+                "stacking": { "group": "A", "mode": "none" },
+                "axisBorderShow": false,
+                "axisPlacement": "auto"
+              },
+              "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+            },
+            "overrides": []
+          },
+          "pluginVersion": "11.5.2"
+        },
+        {
+          "id": 38,
+          "type": "timeseries",
+          "title": "Auth Errors",
+          "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+          "gridPos": { "h": 8, "w": 8, "x": 16, "y": 103 },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+              "expr": "loki:errors:auth:count_per_5m",
+              "legendFormat": "Auth Errors"
+            }
+          ],
+          "options": {
+            "legend": { "calcs": ["sum", "mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "color": { "fixedColor": "red", "mode": "fixed" },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 20,
+                "gradientMode": "opacity",
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": true,
+                "stacking": { "group": "A", "mode": "none" },
+                "axisBorderShow": false,
+                "axisPlacement": "auto"
+              },
+              "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+            },
+            "overrides": []
+          },
+          "pluginVersion": "11.5.2"
+        }
+      ]
+    }
+  ]
+}
