@@ -62,4 +62,4 @@ if [ "$MIMIR_READY" = "false" ]; then
 fi
 
 echo "Starting Loki..."
-exec loki -config.file="$CONFIG_FILE" "$@"
+exec /usr/bin/loki -config.file="$CONFIG_FILE" "$@"
