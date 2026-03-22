@@ -252,7 +252,7 @@
             "uid": "grafana_loki"
           },
           "editorMode": "code",
-          "expr": "avg_over_time(sum(count_over_time({app=~\"gatewayz.*\"} |~ \"(rate.?limit|unauthorized|forbidden|blocked)\" [5m]))[1h:5m]) * 3",
+          "expr": "sum(count_over_time({app=~\"gatewayz.*\"} |~ \"(rate.?limit|unauthorized|forbidden|blocked)\" [1h])) / 12 * 3",
           "legendFormat": "Anomaly Threshold (3x Avg)",
           "queryType": "range",
           "refId": "C",
