@@ -2927,6 +2927,155 @@
       "title": "Recent Error Traces -- Concurrent View (sort by start time to spot clustering)",
       "description": "Sort this table by Start Time to see whether errors cluster together in time. Simultaneous errors across different rootName values indicate a systemic failure rather than an isolated bug.",
       "type": "table"
+    },
+    {
+      "id": 640,
+      "type": "row",
+      "title": "🩺  Tracing Pipeline Health — Span Ingestion · Metrics · Error Rate · Service Breakdown",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 660 },
+      "collapsed": false
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" }, "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 0.01 }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 661 },
+      "id": 641,
+      "options": {
+        "colorMode": "background", "graphMode": "area", "justifyMode": "auto", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto", "wideLayout": true
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "sum(rate(tempo_distributor_spans_received_total[5m]))", "legendFormat": "Spans/s", "refId": "A" }
+      ],
+      "title": "Trace Ingestion Rate",
+      "description": "Spans/s arriving at Tempo's distributor. Goes to zero = backend stopped emitting traces.",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" }, "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 661 },
+      "id": 642,
+      "options": {
+        "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto", "wideLayout": true
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "grafana_mimir" }, "expr": "sum(rate(traces_spanmetrics_calls_total[5m]))", "legendFormat": "Span Calls/s", "refId": "A" }
+      ],
+      "title": "Span Metrics Rate",
+      "description": "Rate of span metrics being computed from traces. These power the RED metrics in this dashboard.",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" }, "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.5 }, { "color": "red", "value": 2 }] },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 661 },
+      "id": 643,
+      "options": {
+        "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto", "wideLayout": true
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "grafana_mimir" }, "expr": "histogram_quantile(0.95, sum(rate(traces_spanmetrics_latency_bucket[5m])) by (le))", "legendFormat": "P95 Span Duration", "refId": "A", "exemplar": true }
+      ],
+      "title": "Span Duration P95 — All Operations",
+      "description": "P95 latency across all span types. Red = system-wide slowdown, not just one operation.",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" }, "mappings": [], "max": 1, "min": 0,
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.01 }, { "color": "red", "value": 0.05 }] },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 661 },
+      "id": 644,
+      "options": {
+        "colorMode": "background", "graphMode": "area", "justifyMode": "auto", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto", "wideLayout": true
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "grafana_mimir" }, "expr": "sum(rate(traces_spanmetrics_calls_total{status_code=\"STATUS_CODE_ERROR\"}[5m])) / sum(rate(traces_spanmetrics_calls_total[5m])) or vector(0)", "legendFormat": "Span Error Rate", "refId": "A" }
+      ],
+      "title": "Span Error Rate — Proportion of Error Spans",
+      "description": "Fraction of all spans with ERROR status code. >5% = systemic issue. Complements the four golden signals error rate.",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 15, "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never" },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 665 },
+      "id": 645,
+      "options": {
+        "legend": { "calcs": ["mean", "last"], "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "grafana_mimir" }, "expr": "sum(rate(traces_spanmetrics_calls_total[5m])) by (service)", "legendFormat": "{{service}}", "refId": "A" }
+      ],
+      "title": "Trace Calls by Service — Which Service Generates Most Spans",
+      "description": "Call rate per service from span metrics. A drop in gatewayz-backend = traces stopped flowing from the main app.",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_mimir" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never" },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 665 },
+      "id": 646,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "grafana_mimir" }, "expr": "histogram_quantile(0.95, sum(rate(traces_spanmetrics_latency_bucket[5m])) by (le, service))", "legendFormat": "{{service}} P95", "refId": "A", "exemplar": true }
+      ],
+      "title": "Span Latency by Service (P95) — Cross-Service Latency Comparison",
+      "description": "P95 span duration per service. Compare services side-by-side to identify which is the latency bottleneck.",
+      "type": "timeseries"
     }
   ],
   "preload": false,

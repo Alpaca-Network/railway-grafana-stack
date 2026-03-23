@@ -1096,6 +1096,113 @@
           "queryType": "metrics"
         }
       ]
+    },
+    {
+      "id": 21,
+      "type": "row",
+      "title": "⏱️  Backend Timing — TTFB · TTFC · Request Stage Breakdown",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 64 },
+      "collapsed": false
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.5 }, { "color": "red", "value": 2 }] },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 65 },
+      "id": 22,
+      "options": {
+        "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto", "wideLayout": true
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "histogram_quantile(0.95, sum by (le) (rate(backend_ttfb_seconds_bucket[5m])))", "legendFormat": "P95 TTFB", "refId": "A" }
+      ],
+      "title": "Backend TTFB P95 — Server Processing Before First Byte",
+      "description": "Time from request receipt to first byte written to the network. High TTFB = provider is slow or routing logic is blocking.",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 5 }] },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 65 },
+      "id": 23,
+      "options": {
+        "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto", "wideLayout": true
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "histogram_quantile(0.95, sum by (le) (rate(time_to_first_chunk_seconds_bucket[5m])))", "legendFormat": "P95 TTFC", "refId": "A" }
+      ],
+      "title": "TTFC P95 — Time to First Streaming Chunk",
+      "description": "Time until the first LLM token arrives at the client. The primary perceived-latency signal for streaming responses.",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 15, "gradientMode": "opacity", "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never" },
+          "unit": "s"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "TTFB P95" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "TTFC P95" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "Stream Duration P95" }, "properties": [{ "id": "color", "value": { "fixedColor": "purple", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 65 },
+      "id": 24,
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "histogram_quantile(0.95, sum by (le) (rate(backend_ttfb_seconds_bucket[5m])))", "legendFormat": "TTFB P95", "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "histogram_quantile(0.95, sum by (le) (rate(time_to_first_chunk_seconds_bucket[5m])))", "legendFormat": "TTFC P95", "refId": "B" },
+        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "histogram_quantile(0.95, sum by (le) (rate(streaming_duration_seconds_bucket[5m])))", "legendFormat": "Stream Duration P95", "refId": "C" }
+      ],
+      "title": "Streaming Performance Over Time — TTFB · TTFC · Total Duration",
+      "description": "TTFB (blue) = server processing time. TTFC (orange) = first token. Duration (purple) = full response time. Growing gap between TTFB and TTFC = provider slowdown.",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "bars", "fillOpacity": 80, "gradientMode": "hue", "lineWidth": 1, "showPoints": "never", "stacking": { "group": "A", "mode": "normal" } },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 72 },
+      "id": 25,
+      "options": {
+        "legend": { "calcs": [], "displayMode": "list", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "sum by (stage) (rate(request_stage_duration_seconds_sum[5m]) / rate(request_stage_duration_seconds_count[5m]))", "legendFormat": "{{stage}}", "refId": "A" }
+      ],
+      "title": "Avg Duration by Request Stage — Where Time Is Spent",
+      "description": "Stacked breakdown of average time per pipeline stage (auth, routing, provider call, serialization). The tallest segment = the bottleneck stage.",
+      "type": "timeseries"
     }
   ],
   "templating": {
