@@ -100,7 +100,6 @@ metrics_generator:
       peer_attributes:
         - server.address          # HTTP client spans → named external API nodes (api.openai.com etc.)
         - db.name                 # DB client spans → named database nodes
-      enable_database_calls: true # creates dedicated DB nodes in service topology
       max_items: 10000            # caps graph size to prevent unbounded growth on Railway
       wait: 10s
     # local_blocks: enables TraceQL metrics queries ({ } | rate(), | sum(), | quantile_over_time())
@@ -121,11 +120,6 @@ overrides:
     metrics_generator:
       processors: [span-metrics, service-graphs, local-blocks]
       generate_native_histograms: both
-    # Trace size guards: protects against runaway traces (e.g. very long agent/tool-call chains).
-    # An AI gateway trace with many tool calls + streaming events can reach 1–3MB.
-    # 5MB gives headroom for large traces while blocking truly pathological ones.
-    max_bytes_per_trace: 5242880          # 5MB per trace
-    max_search_bytes_per_trace: 5242880   # 5MB search index per trace (for TraceQL queries)
 
 compactor:
   compaction:
