@@ -21,7 +21,7 @@ Production observability stack for the GatewayZ AI Inference Gateway.
 | **DO NOT** hardcode `FASTAPI_TARGET` anywhere | It's substituted at runtime by `entrypoint.sh` |
 | **DO NOT** change `schemaVersion` in dashboard JSON | Must stay at 39 for Railway Grafana compatibility |
 | **DO NOT** add services to `docker-compose.yml` without updating `railway.toml` | Railway won't deploy new services without it |
-| **DO NOT** modify datasource UIDs | All 15 dashboards depend on `grafana_prometheus`, `grafana_mimir`, `grafana_loki`, `grafana_tempo`, `grafana_pyroscope` |
+| **DO NOT** modify datasource UIDs | All 13 dashboards depend on `grafana_prometheus`, `grafana_mimir`, `grafana_loki`, `grafana_tempo`, `grafana_pyroscope` |
 | **DO NOT** delete recording rules | Anomaly detection alerts depend on the baseline pre-computations |
 | **DO NOT** change the Mimir `X-Scope-OrgID` header | Must be `anonymous` — multitenancy is disabled |
 | **DO NOT** modify `provisioning/datasources/` without testing | Breaking a UID breaks every panel using that datasource |
@@ -36,7 +36,7 @@ Production observability stack for the GatewayZ AI Inference Gateway.
   - 8 services running: Prometheus, Mimir, Grafana, Loki, Tempo, Alertmanager, Pyroscope, JSON-API-Proxy
   - Mimir integrated (January 2026) — long-term metrics storage (30d)
   - All 7 datasources provisioned and linked
-  - All 15 Grafana dashboards complete (400+ panels, 0 placeholders)
+  - All 13 Grafana dashboards complete (400+ panels, 0 placeholders)
   - 16 Prometheus alert rules
   - 40+ Grafana alert rules (10 YAML files)
   - 32 Prometheus recording rules (baseline pre-computations)
@@ -44,18 +44,15 @@ Production observability stack for the GatewayZ AI Inference Gateway.
   - Railway deployment configs for all services
   - 48 documentation files
 
-✅ DONE — This Session
-  - dashboards.yml: System Quality provisioner added
-  - grafana/dashboards/reliability/ folder created
-  - MASTER.md: Backend Telemetry Architecture section (section 16) added
-  - README.md: Backend Telemetry Pipeline section added
-  - ACCEPTANCE_CRITERIA.md: Created with criteria for all 25 Kanban cards
+✅ DONE — Dashboard Restructure (March 2026)
+  - Renamed 7 Grafana folders to self-describing names (e.g. "Loki" → "Application Log Streams")
+  - Deprecated 3 redundant dashboards (Developer Observability, Sentry Overview, Tiered Model Analysis)
+  - Migrated all unique panels to canonical dashboards before deletion
+  - Updated Dockerfile: removed stale COPY commands for deleted dashboard directories
+  - 11 folders → 8 folders, 17 dashboards → 13 dashboards
 
 🔄 IN PROGRESS
-  - TASK-2: System-Reliability-Dashboard.json (scaffold + 8 pillar rows)
-
-📋 READY (Kanban)
-  - TASK-3 through TASK-10: 8 pillar rows for the System Quality dashboard
+  - System-Reliability-Dashboard.json (Platform Quality Pillars folder)
 
 ⚠️ OUTSTANDING GAPS (not yet scheduled)
   - BACKEND-1: Verify FASTAPI_TARGET env var in Railway

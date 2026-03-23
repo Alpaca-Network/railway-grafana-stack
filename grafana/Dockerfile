@@ -28,11 +28,9 @@ COPY provisioning/dashboards/dashboards.yml /etc/grafana/provisioning/dashboards
 
 # Copy dashboard folders
 COPY dashboards/loki /etc/grafana/provisioning/dashboards/loki
-COPY dashboards/prometheus /etc/grafana/provisioning/dashboards/prometheus
 COPY dashboards/tempo /etc/grafana/provisioning/dashboards/tempo
 COPY dashboards/model_performance /etc/grafana/provisioning/dashboards/model_performance
 COPY dashboards/provider /etc/grafana/provisioning/dashboards/provider
-COPY dashboards/developer /etc/grafana/provisioning/dashboards/developer
 COPY dashboards/golden-signals /etc/grafana/provisioning/dashboards/golden-signals
 COPY dashboards/infrastructure /etc/grafana/provisioning/dashboards/infrastructure
 COPY dashboards/streaming /etc/grafana/provisioning/dashboards/streaming

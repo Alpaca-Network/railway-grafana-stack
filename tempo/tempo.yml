@@ -1,5 +1,5 @@
 # Tempo 2.6.1 - Configuration optimized for Railway
-# Updated: OpenLLMetry/Traceloop integration with span metrics
+# Updated: High-cardinality AI tracing — expanded span metrics, local_blocks processor, LLM histogram buckets
 stream_over_http_enabled: true
 
 server:
@@ -52,7 +52,7 @@ metrics_generator:
     path: /var/tempo/generator/traces
   processor:
     span_metrics:
-      # Include LLM-specific dimensions for model popularity tracking
+      # Core LLM dimensions for model/provider analytics
       dimensions:
         - service.name
         - span_name
@@ -60,24 +60,72 @@ metrics_generator:
         - gen_ai.system
         - ai.provider
         - ai.model_id
-        - customer.id
+        - customer.id           # WARNING: monitor cardinality; remove if >200 distinct customers
         - http.status_code
-      # Enable histogram for latency analysis
+        # --- Phase 2: high-cardinality AI analytics dimensions ---
+        - gen_ai.response.finish_reason   # ≤5 values: stop/length/tool_calls/content_filter/null
+        - http.route                      # ~15–25 API routes; enables per-endpoint error breakdown
+        - error.type                      # ~10–15 error class names; enables root-cause grouping
+        - span.kind                       # 5 values: server/client/internal/producer/consumer
+        - db.system                       # 3–5 values: postgresql/redis/supabase
+        # NOTE: gen_ai.usage.prompt_tokens and gen_ai.usage.completion_tokens are NUMERIC and
+        # must NOT be dimensions. Read them from trace spans directly via TraceQL (dashboard panels 703).
       enable_target_info: true
-      histogram_buckets: [0.01, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
-    # Service graphs for dependency mapping
+      # LLM-tuned histogram buckets: extended to 120s to capture slow large-model calls.
+      # Previous max was 10s — any LLM call exceeding 10s reported P95/P99 as +Inf.
+      histogram_buckets: [0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10, 20, 30, 60, 120]
+      # Exclude health check and scrape spans from span metrics to keep analytics
+      # focused on AI workloads. Exclude-only: an include block would silently
+      # drop all spans that lack http.route (background tasks, DB spans, etc).
+      filter_policies:
+        - exclude:
+            match_type: regexp
+            attributes:
+              - key: http.route
+                value: "(^/health.*|^/metrics.*|^/ready.*|^/live.*|^/ping$|^/favicon.*)"
+              - key: http.target
+                value: "(^/health.*|^/metrics.*|^/ready.*|^/live.*)"
+              - key: span_name
+                value: "(health_check|metrics_scrape|readiness_probe|liveness_probe)"
+    # Service graphs: maps service-to-service call topology.
+    # peer_attributes creates virtual nodes for external APIs (OpenAI, Anthropic, Supabase)
+    # that don't emit their own spans — they become named nodes in the service graph.
     service_graphs:
       dimensions:
         - service.name
         - gen_ai.system
+        - gen_ai.request.model    # which model on each service edge
+        - http.status_code        # status code per service-to-service edge
+      # Maps span attributes to virtual service node names for external dependencies
+      peer_attributes:
+        - server.address          # HTTP client spans → named external API nodes (api.openai.com etc.)
+        - db.name                 # DB client spans → named database nodes
+      enable_database_calls: true # creates dedicated DB nodes in service topology
+      max_items: 10000            # caps graph size to prevent unbounded growth on Railway
+      wait: 10s
+    # local_blocks: enables TraceQL metrics queries ({ } | rate(), | sum(), | quantile_over_time())
+    # directly against local Parquet blocks WITHOUT going through Mimir.
+    # Required for dashboard panels 701–703 (live TraceQL metrics and token usage analytics).
+    # Memory impact: +30–50MB RSS for WAL + block index. Monitor Tempo memory in Railway dashboard.
+    # If container memory approaches 450MB, reduce max_live_traces to 5000.
+    local_blocks:
+      max_live_traces: 10000         # cap in-memory trace count for local_blocks scanning
+      max_block_bytes: 524288000     # 500MB max per block consumed by this processor
+      max_block_duration: 30m        # how long to keep a block available for TraceQL metric queries
+      flush_check_period: 10s
+      filter_server_spans: false     # include server spans in TraceQL metrics (needed for AI gateway spans)
 
 # Overrides for high-cardinality attributes
 overrides:
   defaults:
     metrics_generator:
-      processors: [span-metrics, service-graphs]
-      # Enable metrics generation for all traces
+      processors: [span-metrics, service-graphs, local-blocks]
       generate_native_histograms: both
+    # Trace size guards: protects against runaway traces (e.g. very long agent/tool-call chains).
+    # An AI gateway trace with many tool calls + streaming events can reach 1–3MB.
+    # 5MB gives headroom for large traces while blocking truly pathological ones.
+    max_bytes_per_trace: 5242880          # 5MB per trace
+    max_search_bytes_per_trace: 5242880   # 5MB search index per trace (for TraceQL queries)
 
 compactor:
   compaction:

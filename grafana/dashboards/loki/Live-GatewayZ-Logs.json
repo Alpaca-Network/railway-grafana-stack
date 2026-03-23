@@ -780,6 +780,61 @@
       ],
       "title": "Rate Limiting Events",
       "type": "logs"
+    },
+    {
+      "id": 28,
+      "type": "row",
+      "title": "🌐  HTTP Access Log Telemetry — Request Volume · Method · Status",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 74 },
+      "collapsed": false
+    },
+    {
+      "datasource": { "type": "loki", "uid": "grafana_loki" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line", "fillOpacity": 45, "gradientMode": "scheme",
+            "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never",
+            "stacking": { "group": "A", "mode": "normal" }
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "INFO" }, "properties": [{ "id": "color", "value": { "fixedColor": "semi-dark-green", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "WARNING" }, "properties": [{ "id": "color", "value": { "fixedColor": "semi-dark-yellow", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "ERROR" }, "properties": [{ "id": "color", "value": { "fixedColor": "semi-dark-red", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 75 },
+      "id": 29,
+      "options": {
+        "legend": { "calcs": ["sum", "mean"], "displayMode": "table", "placement": "right", "showLegend": true, "sortBy": "Total", "sortDesc": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        { "datasource": { "type": "loki", "uid": "grafana_loki" }, "expr": "sum by (level) (count_over_time({service=\"gatewayz-api\"} |~ \"(GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD)\\\\s+\" [$__auto]))", "legendFormat": "{{level}}", "refId": "A" }
+      ],
+      "title": "HTTP Request Log Volume by Level — Live Traffic Intensity",
+      "description": "Stacked log count for HTTP request lines, colored by severity. A surge of ERROR-level HTTP logs = 5xx storm in progress.",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "grafana_loki" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 83 },
+      "id": 30,
+      "options": {
+        "dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": true,
+        "showCommonLabels": false, "showLabels": true, "showTime": true,
+        "sortOrder": "Descending", "wrapLogMessage": true
+      },
+      "targets": [
+        { "datasource": { "type": "loki", "uid": "grafana_loki" }, "expr": "{service=\"gatewayz-api\"} |~ \"(GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD)\\\\s+\" !~ \"(?i)(healthcheck|metrics|favicon|/health|/ready)\"", "refId": "A" }
+      ],
+      "title": "Live HTTP Request Log Stream — Excludes Health / Metrics Noise",
+      "description": "Real-time HTTP access log stream. Health checks and metrics scrapes are filtered out. Use to trace individual request paths during an incident.",
+      "type": "logs"
     }
   ],
   "preload": false,

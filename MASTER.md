@@ -141,24 +141,22 @@ JSON-API-Proxy (port 5050) ─── Custom dashboard data from api.gatewayz.ai
 
 | Folder | Dashboard | Panels | Datasources | UID | Status |
 |--------|-----------|--------|-------------|-----|--------|
-| Developer | Developer Observability | 33 | Prometheus, Loki, Tempo | `developer-observability-v1` | ✅ |
-| Four Golden Signals | Four Golden Signals (SRE) | 61 | Prometheus, Mimir, Tempo, Pyroscope | `gatewayz-four-golden-signals` | ✅ |
-| Infrastructure | Infrastructure Health | 22 | Prometheus | `gatewayz-infra-health` | ✅ |
-| Loki | Error-Level Logs | 13 | Loki, Prometheus | `gatewayz-error-analysis` | ✅ |
-| Loki | Security & Rate Limiter Logs | 10 | Loki | `gatewayz-security-ratelimit` | ✅ |
-| Loki | Live GatewayZ Logs | 9 | Loki | `gatewayz-logs-loki-v1` | ✅ |
-| Model Performance | Cache Layer Profile | 7 | Pyroscope | `gatewayz-cache-layer-profile` | ✅ |
-| Model Performance | Inference Call Profile | 23 | Prometheus, Mimir, Tempo, Pyroscope | `gatewayz-inference-call-profile` | ✅ |
-| Model Performance | Model Usage | 32 | Prometheus, Tempo | `gatewayz-model-usage` | ✅ |
-| Model Performance | Request Type Queries | 6 | Prometheus, Tempo | `gatewayz-request-analysis` | ✅ |
-| Model Performance | Tiered Model Analysis | 22 | Prometheus | `gatewayz-tiered-model-analysis` | ✅ |
-| Prometheus | Reliability (Sentry Replacement) | 33 | Prometheus, Loki | `gatewayz_reliability_v1` | ✅ |
-| Provider Directory | Provider Directory | 100+ | Prometheus | — | ✅ |
-| Streaming | Streaming Performance | ~15 | Prometheus | — | ✅ |
-| Tempo | Distributed Tracing | ~10 | Tempo | — | ✅ |
-| **System Quality** | **System Quality Pillars** | **~50** | **Prometheus, Loki** | `gatewayz-system-quality-pillars` | 🔄 **In progress** |
+| Four Golden Signals | Four Golden Signals (SRE) | 70+ | Prometheus, Mimir, Tempo, Pyroscope, Loki | `gatewayz-four-golden-signals` | ✅ |
+| Infrastructure & Caching | Infrastructure Health | 35+ | Prometheus, Loki, Tempo | `gatewayz-infra-health` | ✅ |
+| Application Log Streams | Error-Level Logs | 13 | Loki, Prometheus | `gatewayz-error-analysis` | ✅ |
+| Application Log Streams | Security & Rate Limiter Logs | 10 | Loki | `gatewayz-security-ratelimit` | ✅ |
+| Application Log Streams | Live GatewayZ Logs | 11 | Loki | `gatewayz-logs-loki-v1` | ✅ |
+| AI Model Analytics | Cache Layer Profile | 7 | Pyroscope | `gatewayz-cache-layer-profile` | ✅ |
+| AI Model Analytics | Inference Call Profile | 23 | Prometheus, Mimir, Tempo, Pyroscope | `gatewayz-inference-call-profile` | ✅ |
+| AI Model Analytics | Model Usage | 36+ | Prometheus, Tempo | `gatewayz-model-usage` | ✅ |
+| AI Model Analytics | Request Type Queries | 6 | Prometheus, Tempo | `gatewayz-request-analysis` | ✅ |
+| AI Provider Intelligence | Provider Directory | 100+ | Prometheus | — | ✅ |
+| LLM Streaming Performance | Streaming Performance | 20+ | Prometheus | — | ✅ |
+| Distributed Tracing | Distributed Tracing | 17+ | Tempo, Prometheus, Mimir | — | ✅ |
+| Platform Quality Pillars | System Quality Pillars | ~50 | Prometheus, Loki | `gatewayz-system-quality-pillars` | ✅ |
 
 **Total panels across all dashboards: 400+**
+**Deprecated & merged:** Developer Observability → Four Golden Signals + Infrastructure + Distributed Tracing · Sentry Overview → Infrastructure + Streaming + Provider Intelligence + Live Logs · Tiered Model Analysis → Model Usage
 
 ---
 

@@ -5553,6 +5553,192 @@
       "title": "Live Error Stream -- Real-time ERROR and CRITICAL Logs",
       "description": "Real-time view of all ERROR and CRITICAL log lines. Use this during an active incident to see error messages as they arrive.",
       "type": "logs"
+    },
+    {
+      "id": 220,
+      "type": "row",
+      "title": "🟢  Service Availability & Uptime — Backend · Redis · 24h SLA",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 237 },
+      "collapsed": false
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [{ "options": { "0": { "color": "red", "index": 1, "text": "DOWN" }, "1": { "color": "green", "index": 0, "text": "UP" } }, "type": "value" }],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 238 },
+      "id": 221,
+      "options": {
+        "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto", "wideLayout": true
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "up{job=\"gatewayz_production\"}", "legendFormat": "Backend", "refId": "A" }
+      ],
+      "title": "Backend",
+      "description": "Is the GatewayZ API reachable? 0 = scrape target is down.",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [{ "options": { "0": { "color": "red", "index": 1, "text": "DOWN" }, "1": { "color": "green", "index": 0, "text": "UP" } }, "type": "value" }],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 238 },
+      "id": 222,
+      "options": {
+        "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto", "wideLayout": true
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "redis_up", "legendFormat": "Redis", "refId": "A" }
+      ],
+      "title": "Redis",
+      "description": "Is Redis reachable? Any non-1 value = cache layer is unavailable.",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" }, "max": 100, "min": 0,
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 95 }, { "color": "green", "value": 99 }] },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 12, "x": 12, "y": 238 },
+      "id": 223,
+      "options": {
+        "minVizHeight": 75, "minVizWidth": 75, "orientation": "auto",
+        "reduceOptions": { "calcs": ["mean"], "fields": "", "values": false },
+        "showThresholdLabels": false, "showThresholdMarkers": true, "sizing": "auto"
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "avg_over_time(up{job=\"gatewayz_production\"}[24h]) * 100", "legendFormat": "Uptime %", "refId": "A" }
+      ],
+      "title": "Uptime (24h) — Rolling SLA Window",
+      "description": "Rolling 24-hour availability. <99% = SLA breach territory. Threshold markers at 95% and 99%.",
+      "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line", "fillOpacity": 20, "gradientMode": "opacity",
+            "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never"
+          },
+          "unit": "percentunit", "min": 0, "max": 1
+        },
+        "overrides": [{ "matcher": { "id": "byName", "options": "Uptime" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] }]
+      },
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 242 },
+      "id": 224,
+      "options": {
+        "legend": { "calcs": ["mean", "min"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "avg_over_time(up{job=\"gatewayz_production\"}[5m])", "legendFormat": "Uptime", "refId": "A" }
+      ],
+      "title": "Uptime Over Time — Availability Timeline",
+      "description": "5-minute rolling uptime fraction. Dips to 0 = outage window. Cross-reference with the error rate and latency rows above.",
+      "type": "timeseries"
+    },
+    {
+      "id": 225,
+      "type": "row",
+      "title": "🔎  Anomaly Detection — Current vs Historical Baseline (1h · 24h)",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 248 },
+      "collapsed": false
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never" },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 249 },
+      "id": 226,
+      "options": {
+        "legend": { "calcs": ["mean", "last"], "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "sum(rate(fastapi_requests_total[5m]))", "legendFormat": "Current Rate", "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "sum(rate(fastapi_requests_total[5m] offset 1h))", "legendFormat": "1h Ago", "refId": "B" },
+        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "sum(rate(fastapi_requests_total[5m] offset 24h))", "legendFormat": "24h Ago", "refId": "C" }
+      ],
+      "title": "Traffic Anomaly Detection — Current vs Historical",
+      "description": "Overlay today's traffic against 1h and 24h ago. Significant divergence (3×) = anomaly. Use this to detect sudden traffic spikes or drops before alerts fire.",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 5, "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never" },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 249 },
+      "id": 227,
+      "options": {
+        "legend": { "calcs": ["mean", "last"], "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[5m])) by (le))", "legendFormat": "Current P95", "refId": "A", "exemplar": true },
+        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[5m] offset 1h)) by (le))", "legendFormat": "P95 1h Ago", "refId": "B" },
+        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "histogram_quantile(0.95, sum(rate(fastapi_requests_duration_seconds_bucket[5m] offset 24h)) by (le))", "legendFormat": "P95 24h Ago", "refId": "C" }
+      ],
+      "title": "Latency Anomaly Detection — Current P95 vs Historical",
+      "description": "Overlay today's P95 latency against yesterday and 1h ago. A rising current line that diverges from baselines = regression, not normal load.",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "grafana_loki" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "fillOpacity": 60, "lineWidth": 1, "stacking": { "group": "A", "mode": "normal" } }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 257 },
+      "id": 228,
+      "options": {
+        "barRadius": 0.1, "barWidth": 0.8, "fullHighlight": false, "groupWidth": 0.7,
+        "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom" },
+        "orientation": "auto", "showValue": "auto", "stacking": "normal",
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        { "datasource": { "type": "loki", "uid": "grafana_loki" }, "expr": "sum by (error_type) (count_over_time({app=~\"gatewayz.*\", error_type=~\".+\"} [$__interval]))", "legendFormat": "{{error_type}}", "refId": "A" }
+      ],
+      "title": "Errors by Exception Type — Which Exception Class Is Firing Most",
+      "description": "Stacked breakdown of exception types from structured logs. The tallest bar = the most common failure class. Use this to decide which exception to fix first.",
+      "type": "barchart"
     }
   ],
   "refresh": "30s",
