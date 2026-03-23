@@ -28,6 +28,15 @@ datasources:
             value: model
           - key: service.name
             value: service_name
+          # New dimensions added to span_metrics — map OTel attribute → Mimir label name
+          - key: http.route
+            value: http_route
+          - key: error.type
+            value: error_type
+          - key: gen_ai.response.finish_reason
+            value: finish_reason
+          - key: span.kind
+            value: span_kind
       # Traces→Logs: navigate from a trace to correlated logs in Loki.
       # The backend's LokiLogHandler sends trace_id as a Loki label,
       # so filterByTraceID searches for {trace_id="<trace_id>"}.
@@ -42,6 +51,11 @@ datasources:
             value: provider
           - key: service.name
             value: app
+          # Route + model enrichment: jump from a trace to Loki logs pre-filtered by route/model
+          - key: http.route
+            value: route
+          - key: gen_ai.request.model
+            value: model
       # Node graph: visualize service dependencies from trace data
       nodeGraph:
         enabled: true
