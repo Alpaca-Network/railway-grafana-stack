@@ -10,17 +10,30 @@
   "timepicker": {},
   "panels": [
     {
+      "id": 9000,
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "pluginVersion": "11.5.2",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 6 },
+      "options": {
+        "mode": "markdown",
+        "content": "## GatewayZ — Cache Layer Profile\n\nRedis-backed LLM response cache analytics: hit rates, miss penalties, eviction patterns, and cost savings from cache hits.\n\n| Signal | Target | Notes |\n|--------|--------|-------|\n| ✅ **Cache Hit Rate** | > 60% | < 40% = cache key schema or TTL issue |\n| ⏱️ **Cache Miss Latency** | = full LLM call latency | Baseline for cache value measurement |\n| 💰 **Cost Savings** | Hits × avg token cost | Track cumulative savings from caching |\n| 🔄 **Eviction Rate** | Low | High eviction = cache is too small or TTL too short |\n\n_Profiles from Pyroscope · Navigate: [Infrastructure & Caching](#) for Redis ops health · [Model Usage](#) for token cost analytics_"
+      },
+      "fieldConfig": { "defaults": {}, "overrides": [] }
+    },
+    {
       "id": 1,
       "type": "row",
       "title": "🔍 Cache CPU Flamegraph — What is Redis actually doing?",
       "collapsed": false,
-      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 1 }
+      "gridPos": { "x": 0, "y": 6, "w": 24, "h": 1 }
     },
     {
       "id": 2,
       "type": "text",
       "title": "",
-      "gridPos": { "x": 0, "y": 1, "w": 24, "h": 2 },
+      "gridPos": { "x": 0, "y": 7, "w": 24, "h": 2 },
       "options": {
         "mode": "markdown",
         "content": "**How to read this dashboard:** Each flamegraph sample was captured while the process was inside a `pyroscope.tag_wrapper(cache_layer=..., cache_op=...)` block — meaning only stack frames executing a Redis operation are shown. A tall, wide block means that cache layer consumed significant CPU. Filter by layer or operation using the variables above to isolate exactly which call is costly."
@@ -32,7 +45,7 @@
       "title": "Cache Operation CPU Flamegraph",
       "description": "CPU stack samples taken while inside a Redis/cache operation. Filter by cache_layer (auth, rate_limit, model_catalog, response_cache, trial_analytics) and cache_op (read, write, delete) to zoom in on the expensive path.",
       "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
-      "gridPos": { "x": 0, "y": 3, "w": 24, "h": 16 },
+      "gridPos": { "x": 0, "y": 9, "w": 24, "h": 16 },
       "options": {
         "collapseConfig": false,
         "disableCollapsing": false,
@@ -58,7 +71,7 @@
       "type": "row",
       "title": "📊 CPU Cost per Cache Layer — Which layer is the most expensive?",
       "collapsed": false,
-      "gridPos": { "x": 0, "y": 19, "w": 24, "h": 1 }
+      "gridPos": { "x": 0, "y": 25, "w": 24, "h": 1 }
     },
     {
       "id": 11,
@@ -66,7 +79,7 @@
       "title": "CPU Samples by Cache Layer",
       "description": "Total Pyroscope CPU samples attributed to each cache layer over the selected window. Higher = more CPU time spent on that layer's Redis operations. auth and rate_limit run on every request — if they dominate, Redis latency is the bottleneck.",
       "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
-      "gridPos": { "x": 0, "y": 20, "w": 12, "h": 10 },
+      "gridPos": { "x": 0, "y": 26, "w": 12, "h": 10 },
       "options": {
         "orientation": "horizontal",
         "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
@@ -111,7 +124,7 @@
       "title": "CPU Samples by Cache Operation",
       "description": "CPU samples broken down by operation type (read / write / delete). If 'read' is the biggest block and cache hit rates are high, serialisation/deserialisation is the real cost — not the network round-trip.",
       "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
-      "gridPos": { "x": 12, "y": 20, "w": 12, "h": 10 },
+      "gridPos": { "x": 12, "y": 26, "w": 12, "h": 10 },
       "options": {
         "orientation": "horizontal",
         "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
@@ -155,7 +168,7 @@
       "type": "row",
       "title": "⏱️ Cache CPU Rate Over Time — Spot spikes and correlate with traffic",
       "collapsed": false,
-      "gridPos": { "x": 0, "y": 30, "w": 24, "h": 1 }
+      "gridPos": { "x": 0, "y": 36, "w": 24, "h": 1 }
     },
     {
       "id": 21,
@@ -163,7 +176,7 @@
       "title": "Cache CPU Sample Rate — by Layer",
       "description": "Pyroscope sample rate (samples/sec) over time coloured by cache_layer. A spike in 'rate_limit' during high traffic is expected — a spike during low traffic suggests a misconfigured TTL or cache stampede.",
       "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
-      "gridPos": { "x": 0, "y": 31, "w": 24, "h": 9 },
+      "gridPos": { "x": 0, "y": 37, "w": 24, "h": 9 },
       "options": {
         "tooltip": { "mode": "multi", "sort": "desc" },
         "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max", "sum"] }
@@ -198,7 +211,7 @@
       "title": "Cache CPU Sample Rate — by Operation",
       "description": "Same data split by operation. Useful for understanding whether a spike is driven by reads (cache hit path) or writes (post-miss population path — implies high miss rate and DB load).",
       "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
-      "gridPos": { "x": 0, "y": 40, "w": 24, "h": 9 },
+      "gridPos": { "x": 0, "y": 46, "w": 24, "h": 9 },
       "options": {
         "tooltip": { "mode": "multi", "sort": "desc" },
         "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max", "sum"] }
@@ -232,7 +245,7 @@
       "type": "row",
       "title": "🔬 Drill-Down — Isolate a single layer + operation",
       "collapsed": false,
-      "gridPos": { "x": 0, "y": 49, "w": 24, "h": 1 }
+      "gridPos": { "x": 0, "y": 55, "w": 24, "h": 1 }
     },
     {
       "id": 31,
@@ -240,7 +253,7 @@
       "title": "Focused Flamegraph — Selected Layer & Op",
       "description": "Use the $cache_layer and $cache_op variables to zoom into exactly one layer and operation. This reveals whether the cost is in socket I/O (redis-py network calls), JSON serialisation, or Python object allocation.",
       "datasource": { "uid": "grafana_pyroscope", "type": "grafana-pyroscope-datasource" },
-      "gridPos": { "x": 0, "y": 50, "w": 24, "h": 16 },
+      "gridPos": { "x": 0, "y": 56, "w": 24, "h": 16 },
       "options": {
         "collapseConfig": false,
         "disableCollapsing": false,
@@ -304,18 +317,13 @@
   "annotations": { "list": [] },
   "links": [
     {
-      "title": "Inference Call Profile",
-      "url": "/d/gatewayz-inference-call-profile",
-      "type": "link",
-      "icon": "external link",
-      "tooltip": "See full inference call anatomy including this cache CPU in context"
-    },
-    {
-      "title": "Inference Profiling (all tags)",
-      "url": "/d/inference_profiling",
-      "type": "link",
-      "icon": "external link",
-      "tooltip": "Broader flamegraph filtered by provider/model"
+      "asDropdown": true,
+      "icon": "doc",
+      "includeVars": true,
+      "tags": ["gatewayz"],
+      "targetBlank": false,
+      "title": "Related Dashboards",
+      "type": "dashboards"
     }
   ]
 }

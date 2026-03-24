@@ -8,13 +8,14 @@
 
 ## ✅ Done — Pre-Existing Completed Work
 
-### DONE-1: All 15 Grafana Dashboards Complete
+### DONE-1: All 13 Grafana Dashboards Complete (+ 1 In Progress)
 All Grafana dashboards are fully populated with live Prometheus/Mimir/Loki/Tempo queries — no placeholder panels.
-- [ ] 15 dashboard JSON files exist in `grafana/dashboards/` subfolders
+- [ ] 13 complete dashboard JSON files + `System-Reliability-Dashboard.json` (in progress) = 14 total in `grafana/dashboards/` subfolders
 - [ ] Every panel has a valid `expr` (no empty or placeholder queries)
 - [ ] All dashboards load without error in Grafana (no "No Data" on a fresh stack with backend connected)
-- [ ] `dashboards.yml` provisions all 10 folders
+- [ ] `dashboards.yml` provisions all 8 folders
 - [ ] Total panel count exceeds 400
+- [ ] All 14 dashboards have uniform intro text panel + cross-navigation links block (March 2026)
 
 ### DONE-2: All 7 Datasources Provisioned
 All Grafana datasources are configured with correct UIDs and tested connectivity.
@@ -30,12 +31,13 @@ All Prometheus alert rules are validated and firing correctly in the stack.
 - [ ] Each rule has: `alert`, `expr`, `for`, `labels.severity`, `annotations.summary`
 - [ ] Rules cover: service health, API performance, provider health, saturation/security, infrastructure
 
-### DONE-4: 40+ Grafana Alert Rules (10 YAML Files)
+### DONE-4: 46 Grafana Alert Rules (11 YAML Files)
 All Grafana-managed alert rules are provisioned and visible in the Grafana Alerting UI.
-- [ ] `grafana/provisioning/alerting/rules/` contains exactly 10 YAML files
-- [ ] Grafana Alerting UI shows 40+ rules across their respective folders
+- [ ] `grafana/provisioning/alerting/rules/` contains 11 YAML files (including `trace_alerts.yml` added March 2026)
+- [ ] Grafana Alerting UI shows 46 rules across their respective folders
 - [ ] Each rule has: `uid`, `title`, `condition`, `for`, `annotations.runbook_url`, `labels.severity`
-- [ ] Alert rules cover all 8 categories: availability, backend, error rate, general, latency, logs, model, redis, SLO burn rate, traffic
+- [ ] Alert rules cover all categories: availability, backend, error rate, general, latency, logs, model, redis, SLO burn rate, trace-based (6 rules), traffic
+- [ ] Trace alerts (`trace_alerts.yml`): trace_provider_high_error_rate, trace_model_p95_latency_high, trace_provider_dark, trace_finish_reason_length_spike, trace_route_error_rate_spike, trace_content_filter_spike
 
 ### DONE-5: 32 Prometheus Recording Rules
 Pre-computed recording rules are registered and serving baseline metrics for anomaly detection alerts.

@@ -22,9 +22,9 @@
       "asDropdown": true,
       "icon": "doc",
       "includeVars": true,
-      "tags": ["gatewayz", "loki"],
+      "tags": ["gatewayz"],
       "targetBlank": false,
-      "title": "Log Dashboards",
+      "title": "Related Dashboards",
       "type": "dashboards"
     }
   ],
@@ -115,7 +115,7 @@
       "transparent": true,
       "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
       "options": {
-        "content": "## GatewayZ — Log-Derived Metrics & High-Cardinality Analytics\nMetrics extracted from structured logs at query time using LogQL. Recording rules aggregate high-cardinality data (provider×model combinations, per-endpoint volumes) into bounded Mimir metrics.\n\n| Section | What It Shows |\n|---------|---------------|\n| Key Metrics | Real-time KPIs: request rate, error rate, active providers, slow requests |\n| Request Performance | Endpoint and method volume, slow request trends, TTFC tracking |\n| Provider Analytics | Per-provider request volume, error rates, top-N ranking |\n| Model Usage | Model selection frequency, error hotspots, usage distribution |\n| Cardinality Aggregation | Provider×Model matrix from recording rules (Mimir) |\n| Anomaly Detection | Current rates vs 1h baselines — spikes trigger when >2× average |",
+        "content": "## GatewayZ — Log Volume & Metrics\n\nAggregated log analytics: volume by log level, rate trends, anomaly detection, and log pipeline health.\n\n| Signal | Notes |\n|--------|\n| 📊 **Log Volume by Level** | Healthy = mostly INFO; spike in WARN/ERROR = degradation event |\n| 📈 **Log Rate Trend** | Sudden drop = logging pipeline broken (check Loki health) |\n| 🚨 **Error/Critical Ratio** | % of logs at ERROR+ level — rising ratio = increasing instability |\n| 🔧 **Loki Pipeline Health** | Ingestion lag and queue depth |\n\n_Logs from Loki · Navigate: [Error Level Logs](#) for filtered error view · [Live Logs](#) for real-time stream · [System Quality](#) for observability pillar_",
         "mode": "markdown"
       }
     },

@@ -37,7 +37,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 6,
         "w": 24,
         "x": 0,
         "y": 0
@@ -49,7 +49,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "## GatewayZ \u2014 Distributed Tracing\nTempo traces and derived span metrics for every LLM request routed through the gateway.\n\n| Section | What it shows |\n|---------|---------------|\n| RED Metrics | Rate, Errors, Duration \u2014 computed from span metrics stored in Mimir; available even when no live trace is selected |\n| Trace Search | Filterable list of individual traces \u2014 click any trace to see the full span waterfall from client \u2192 gateway \u2192 provider |\n| Span Analysis | Per-span duration breakdown \u2014 isolates whether latency is in routing logic, the provider call, or response serialization |",
+        "content": "## GatewayZ — Distributed Tracing\n\nSpan metrics (RED), AI provider/model performance from traces, and live TraceQL analytics. Powered by Tempo 2.6.1 with local_blocks processor.\n\n| Signal | Datasource | What It Shows |\n|--------|-----------|---------------|\n| 📊 **Span Calls Rate** | Mimir | requests/s from trace spans — complements Prometheus metrics |\n| ❌ **Span Error Rate** | Mimir | error rate by provider/model from OTel status codes |\n| ⏱️ **P95 Span Latency** | Mimir | end-to-end latency histograms (buckets to 120s for large models) |\n| 🔴 **Live Span Rate** | Tempo (TraceQL) | real-time rate() from local_blocks — no Mimir lag |\n| 🗂️ **Token Usage** | Tempo (TraceQL) | prompt + completion tokens from span attributes |\n| 🗺️ **Service Topology** | Tempo (serviceMap) | gatewayz-backend → api.openai.com edges via peer_attributes |\n\n⚠️ **BACKEND-2 required:** All panels show no data until gatewayz-backend sends OTLP traces to `tempo.railway.internal:4317`. See the [Four Golden Signals](#) service graph explanation.\n\n_Navigate: [Four Golden Signals](#) for golden signals SLO · [AI Provider Intelligence](#) for provider health · [AI Model Analytics](#) for token usage_",
         "mode": "markdown"
       },
       "pluginVersion": "11.5.2",
@@ -63,7 +63,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 4
+        "y": 10
       },
       "id": 200,
       "panels": [],
@@ -102,7 +102,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 5
+        "y": 11
       },
       "id": 201,
       "options": {
@@ -161,7 +161,7 @@
         "h": 4,
         "w": 6,
         "x": 6,
-        "y": 5
+        "y": 11
       },
       "id": 202,
       "options": {
@@ -232,7 +232,7 @@
         "h": 4,
         "w": 6,
         "x": 12,
-        "y": 5
+        "y": 11
       },
       "id": 203,
       "options": {
@@ -303,7 +303,7 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 5
+        "y": 11
       },
       "id": 204,
       "options": {
@@ -400,7 +400,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 9
+        "y": 15
       },
       "id": 205,
       "options": {
@@ -497,7 +497,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 9
+        "y": 15
       },
       "id": 206,
       "options": {
@@ -594,7 +594,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 17
+        "y": 23
       },
       "id": 207,
       "options": {
@@ -636,7 +636,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 31
       },
       "id": 300,
       "panels": [],
@@ -705,7 +705,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 26
+        "y": 32
       },
       "id": 301,
       "options": {
@@ -802,7 +802,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 26
+        "y": 32
       },
       "id": 302,
       "options": {
@@ -900,7 +900,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 34
+        "y": 40
       },
       "id": 303,
       "options": {
@@ -997,7 +997,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 34
+        "y": 40
       },
       "id": 304,
       "options": {
@@ -1095,7 +1095,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 42
+        "y": 48
       },
       "id": 305,
       "options": {
@@ -1136,7 +1136,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 50
+        "y": 56
       },
       "id": 6,
       "panels": [],
@@ -1156,7 +1156,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 51
+        "y": 57
       },
       "id": 2,
       "options": {},
@@ -1181,7 +1181,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 61
+        "y": 67
       },
       "id": 10,
       "panels": [],
@@ -1201,7 +1201,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 62
+        "y": 68
       },
       "id": 11,
       "options": {},
@@ -1233,7 +1233,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 62
+        "y": 68
       },
       "id": 12,
       "options": {},
@@ -1258,7 +1258,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 72
+        "y": 78
       },
       "id": 20,
       "panels": [],
@@ -1278,7 +1278,7 @@
         "h": 10,
         "w": 8,
         "x": 0,
-        "y": 73
+        "y": 79
       },
       "id": 21,
       "options": {},
@@ -1310,7 +1310,7 @@
         "h": 10,
         "w": 8,
         "x": 8,
-        "y": 73
+        "y": 79
       },
       "id": 22,
       "options": {},
@@ -1342,7 +1342,7 @@
         "h": 10,
         "w": 8,
         "x": 16,
-        "y": 73
+        "y": 79
       },
       "id": 23,
       "options": {},
@@ -1367,7 +1367,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 83
+        "y": 89
       },
       "id": 30,
       "panels": [],
@@ -1387,7 +1387,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 84
+        "y": 90
       },
       "id": 31,
       "options": {},
@@ -1419,7 +1419,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 84
+        "y": 90
       },
       "id": 32,
       "options": {},
@@ -1451,7 +1451,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 94
+        "y": 100
       },
       "id": 33,
       "options": {},
@@ -1476,7 +1476,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 104
+        "y": 110
       },
       "id": 40,
       "panels": [],
@@ -1496,7 +1496,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 105
+        "y": 111
       },
       "id": 41,
       "options": {},
@@ -1528,7 +1528,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 105
+        "y": 111
       },
       "id": 42,
       "options": {},
@@ -1553,11 +1553,11 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 115
+        "y": 121
       },
       "id": 500,
       "panels": [],
-      "title": "\ud83d\udd78\ufe0f  Visual Topology & Latency Distribution",
+      "title": "🕸️  Visual Topology & Latency Distribution",
       "type": "row"
     },
     {
@@ -1574,7 +1574,7 @@
         "h": 16,
         "w": 24,
         "x": 0,
-        "y": 116
+        "y": 122
       },
       "id": 501,
       "options": {
@@ -1631,7 +1631,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 132
+        "y": 138
       },
       "id": 502,
       "options": {
@@ -1682,7 +1682,7 @@
           "refId": "A"
         }
       ],
-      "title": "Span Duration Heatmap \u2014 Latency Distribution Over Time",
+      "title": "Span Duration Heatmap — Latency Distribution Over Time",
       "type": "heatmap"
     },
     {
@@ -1718,7 +1718,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 141
+        "y": 147
       },
       "id": 503,
       "options": {
@@ -1752,25 +1752,25 @@
           "refId": "A"
         }
       ],
-      "title": "Error Trace Scatter \u2014 Duration vs Time (click to open waterfall)",
+      "title": "Error Trace Scatter — Duration vs Time (click to open waterfall)",
       "type": "xychart"
     },
     {
       "id": 504,
       "type": "row",
-      "title": "\ud83d\udd25  CPU Profiling Correlation \u2014 Flamegraph + Provider Breakdown",
+      "title": "🔥  CPU Profiling Correlation — Flamegraph + Provider Breakdown",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 151
+        "y": 157
       },
       "collapsed": false
     },
     {
       "id": 505,
       "type": "flamegraph",
-      "title": "CPU Flamegraph \u2014 Trace Window",
+      "title": "CPU Flamegraph — Trace Window",
       "datasource": {
         "type": "grafana-pyroscope-datasource",
         "uid": "grafana_pyroscope"
@@ -1779,7 +1779,7 @@
         "h": 14,
         "w": 14,
         "x": 0,
-        "y": 152
+        "y": 158
       },
       "options": {
         "collapseConfig": false,
@@ -1818,7 +1818,7 @@
         "h": 14,
         "w": 10,
         "x": 14,
-        "y": 152
+        "y": 158
       },
       "options": {
         "orientation": "horizontal",
@@ -1883,12 +1883,12 @@
     {
       "id": 507,
       "type": "row",
-      "title": "\ud83d\udcdc  Log Context \u2014 Errors Time-Synced to Trace Window",
+      "title": "📜  Log Context — Errors Time-Synced to Trace Window",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 166
+        "y": 172
       },
       "collapsed": false
     },
@@ -1904,7 +1904,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 167
+        "y": 173
       },
       "targets": [
         {
@@ -1935,7 +1935,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 167
+        "y": 173
       },
       "targets": [
         {
@@ -1984,7 +1984,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 600
+        "y": 606
       },
       "id": 600,
       "title": "Endpoint Popularity & Trends",
@@ -2070,7 +2070,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 601
+        "y": 607
       },
       "id": 601,
       "options": {
@@ -2159,7 +2159,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 601
+        "y": 607
       },
       "id": 602,
       "options": {
@@ -2225,7 +2225,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 609
+        "y": 615
       },
       "id": 603,
       "options": {
@@ -2259,7 +2259,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 617
+        "y": 623
       },
       "id": 610,
       "title": "AI Parameter Analysis -- Most Requested Models & Operations",
@@ -2341,7 +2341,7 @@
         "h": 8,
         "w": 10,
         "x": 0,
-        "y": 618
+        "y": 624
       },
       "id": 611,
       "options": {
@@ -2430,7 +2430,7 @@
         "h": 8,
         "w": 14,
         "x": 10,
-        "y": 618
+        "y": 624
       },
       "id": 612,
       "options": {
@@ -2479,7 +2479,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 626
+        "y": 632
       },
       "id": 613,
       "options": {
@@ -2513,7 +2513,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 634
+        "y": 640
       },
       "id": 620,
       "title": "Single Point of Failure Analysis",
@@ -2551,7 +2551,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 635
+        "y": 641
       },
       "id": 621,
       "options": {
@@ -2647,7 +2647,7 @@
         "h": 8,
         "w": 10,
         "x": 6,
-        "y": 635
+        "y": 641
       },
       "id": 622,
       "options": {
@@ -2725,7 +2725,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 635
+        "y": 641
       },
       "id": 623,
       "options": {
@@ -2761,7 +2761,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 643
+        "y": 649
       },
       "id": 630,
       "title": "Concurrent & Parallel Error Detection",
@@ -2803,7 +2803,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 644
+        "y": 650
       },
       "id": 631,
       "options": {
@@ -2856,7 +2856,7 @@
         "h": 8,
         "w": 18,
         "x": 6,
-        "y": 644
+        "y": 650
       },
       "id": 632,
       "options": {
@@ -2902,7 +2902,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 652
+        "y": 658
       },
       "id": 633,
       "options": {
@@ -2931,12 +2931,12 @@
     {
       "id": 640,
       "type": "row",
-      "title": "\ud83e\ude7a  Tracing Pipeline Health \u2014 Span Ingestion \u00b7 Metrics \u00b7 Error Rate \u00b7 Service Breakdown",
+      "title": "🩺  Tracing Pipeline Health — Span Ingestion · Metrics · Error Rate · Service Breakdown",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 660
+        "y": 666
       },
       "collapsed": false
     },
@@ -2972,7 +2972,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 661
+        "y": 667
       },
       "id": 641,
       "options": {
@@ -3033,7 +3033,7 @@
         "h": 4,
         "w": 6,
         "x": 6,
-        "y": 661
+        "y": 667
       },
       "id": 642,
       "options": {
@@ -3102,7 +3102,7 @@
         "h": 4,
         "w": 6,
         "x": 12,
-        "y": 661
+        "y": 667
       },
       "id": 643,
       "options": {
@@ -3132,7 +3132,7 @@
           "exemplar": true
         }
       ],
-      "title": "Span Duration P95 \u2014 All Operations",
+      "title": "Span Duration P95 — All Operations",
       "description": "P95 latency across all span types. Red = system-wide slowdown, not just one operation.",
       "type": "stat"
     },
@@ -3174,7 +3174,7 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 661
+        "y": 667
       },
       "id": 644,
       "options": {
@@ -3203,7 +3203,7 @@
           "refId": "A"
         }
       ],
-      "title": "Span Error Rate \u2014 Proportion of Error Spans",
+      "title": "Span Error Rate — Proportion of Error Spans",
       "description": "Fraction of all spans with ERROR status code. >5% = systemic issue. Complements the four golden signals error rate.",
       "type": "stat"
     },
@@ -3232,7 +3232,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 665
+        "y": 671
       },
       "id": 645,
       "options": {
@@ -3260,7 +3260,7 @@
           "refId": "A"
         }
       ],
-      "title": "Trace Calls by Service \u2014 Which Service Generates Most Spans",
+      "title": "Trace Calls by Service — Which Service Generates Most Spans",
       "description": "Call rate per service from span metrics. A drop in gatewayz-backend = traces stopped flowing from the main app.",
       "type": "timeseries"
     },
@@ -3289,7 +3289,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 665
+        "y": 671
       },
       "id": 646,
       "options": {
@@ -3318,20 +3318,20 @@
           "exemplar": true
         }
       ],
-      "title": "Span Latency by Service (P95) \u2014 Cross-Service Latency Comparison",
+      "title": "Span Latency by Service (P95) — Cross-Service Latency Comparison",
       "description": "P95 span duration per service. Compare services side-by-side to identify which is the latency bottleneck.",
       "type": "timeseries"
     },
     {
       "id": 700,
       "type": "row",
-      "title": "Advanced Analytics \u2014 TraceQL Metrics & Token Intelligence",
-      "description": "Live analytics computed directly from Tempo trace blocks using TraceQL aggregate syntax. Panels 701\u2013703 require the local_blocks processor. Panels 704\u2013705 require Phase 2 span metric dimensions.",
+      "title": "Advanced Analytics — TraceQL Metrics & Token Intelligence",
+      "description": "Live analytics computed directly from Tempo trace blocks using TraceQL aggregate syntax. Panels 701–703 require the local_blocks processor. Panels 704–705 require Phase 2 span metric dimensions.",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 673
+        "y": 679
       },
       "collapsed": false,
       "panels": []
@@ -3349,7 +3349,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 674
+        "y": 680
       },
       "pluginVersion": "11.5.2",
       "fieldConfig": {
@@ -3410,7 +3410,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 674
+        "y": 680
       },
       "pluginVersion": "11.5.2",
       "fieldConfig": {
@@ -3462,7 +3462,7 @@
       "id": 703,
       "type": "timeseries",
       "title": "Token Usage Rate by Model (from Traces)",
-      "description": "Prompt and completion token consumption rate per model. Uses TraceQL to read gen_ai.usage.prompt_tokens and gen_ai.usage.completion_tokens directly from Tempo trace spans \u2014 NOT from Mimir labels (token counts are numeric, not categorical). Requires local_blocks processor. Values are approximate based on trace sample window.",
+      "description": "Prompt and completion token consumption rate per model. Uses TraceQL to read gen_ai.usage.prompt_tokens and gen_ai.usage.completion_tokens directly from Tempo trace spans — NOT from Mimir labels (token counts are numeric, not categorical). Requires local_blocks processor. Values are approximate based on trace sample window.",
       "datasource": {
         "type": "tempo",
         "uid": "grafana_tempo"
@@ -3471,7 +3471,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 682
+        "y": 688
       },
       "pluginVersion": "11.5.2",
       "fieldConfig": {
@@ -3545,7 +3545,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 690
+        "y": 696
       },
       "pluginVersion": "11.5.2",
       "fieldConfig": {
@@ -3648,7 +3648,7 @@
           },
           "editorMode": "code",
           "expr": "sum(rate(traces_spanmetrics_calls_total{finish_reason!=\"\"}[5m])) by (gen_ai_request_model, finish_reason)",
-          "legendFormat": "{{gen_ai_request_model}} \u2014 {{finish_reason}}",
+          "legendFormat": "{{gen_ai_request_model}} — {{finish_reason}}",
           "refId": "A",
           "instant": false
         }
@@ -3658,7 +3658,7 @@
       "id": 705,
       "type": "timeseries",
       "title": "Error Rate by HTTP Route (Span Metrics)",
-      "description": "Per-endpoint span error rate from Mimir span metrics. Isolates which API route is responsible for errors \u2014 high error rate on /v1/stream but not /v1/chat/completions indicates a streaming-specific bug. Requires http.route dimension (Phase 2).",
+      "description": "Per-endpoint span error rate from Mimir span metrics. Isolates which API route is responsible for errors — high error rate on /v1/stream but not /v1/chat/completions indicates a streaming-specific bug. Requires http.route dimension (Phase 2).",
       "datasource": {
         "type": "prometheus",
         "uid": "grafana_mimir"
@@ -3667,7 +3667,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 690
+        "y": 696
       },
       "pluginVersion": "11.5.2",
       "fieldConfig": {
@@ -3738,7 +3738,7 @@
       "id": 706,
       "type": "nodeGraph",
       "title": "Service Dependency Topology (from Service Graphs)",
-      "description": "Auto-generated service map from Tempo service_graphs processor. Nodes represent services and external dependencies. Edge weight = request rate; red edges = error-heavy paths. External provider nodes (api.openai.com, api.anthropic.com etc.) appear after peer_attributes are active (Phase 1 service_graphs enhancement). Datasource: grafana_tempo \u2192 serviceMap \u2192 reads traces_service_graph_* from Mimir.",
+      "description": "Auto-generated service map from Tempo service_graphs processor. Nodes represent services and external dependencies. Edge weight = request rate; red edges = error-heavy paths. External provider nodes (api.openai.com, api.anthropic.com etc.) appear after peer_attributes are active (Phase 1 service_graphs enhancement). Datasource: grafana_tempo → serviceMap → reads traces_service_graph_* from Mimir.",
       "datasource": {
         "type": "tempo",
         "uid": "grafana_tempo"
@@ -3747,7 +3747,7 @@
         "h": 12,
         "w": 24,
         "x": 0,
-        "y": 698
+        "y": 704
       },
       "pluginVersion": "11.5.2",
       "fieldConfig": {

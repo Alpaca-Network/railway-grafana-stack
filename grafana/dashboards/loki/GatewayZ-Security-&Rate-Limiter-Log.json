@@ -25,12 +25,9 @@
       "asDropdown": true,
       "icon": "doc",
       "includeVars": true,
-      "tags": [
-        "gatewayz",
-        "loki"
-      ],
+      "tags": ["gatewayz"],
       "targetBlank": false,
-      "title": "Log Dashboards",
+      "title": "Related Dashboards",
       "type": "dashboards"
     }
   ],
@@ -53,7 +50,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "## GatewayZ \u2014 Security & Rate Limiting\nAuth events and rate-limit enforcement across 40k+ trial users managed in Redis.\n\n| Section | What it shows |\n|---------|---------------|\n| Rate Limit Violations | Per-user and per-IP rate limit hits \u2014 Redis enforces token-bucket limits; high counts here precede 429 responses |\n| Blocked & Suspicious | Users exceeding abuse thresholds or triggering policy blocks \u2014 correlate with trial domain analysis in the Admin dashboard |\n| Auth Events | Failed authentication attempts, invalid API key usage, and session anomalies surfaced from Loki log labels |",
+        "content": "## GatewayZ — Security & Rate Limiter Analytics\n\nAuthentication failures, rate limit enforcement, 429 patterns, and security event monitoring for the AI Gateway.\n\n| Signal | Target | Notes |\n|--------|--------|-------|\n| 🔒 **Auth Failures** | < 0.1% of requests | Spike = credential abuse or misconfigured client |\n| 🚦 **429 Rate (Rate Limited)** | < 10% | High = clients exceeding quotas; review rate limit config |\n| 🛡️ **Velocity Mode Activations** | 0 normal · brief spikes OK | Sustained = abuse pattern; check source IPs |\n| 📋 **Security Events** | Low baseline | Review all CRITICAL security logs immediately |\n\n_Logs from Loki · Navigate: [System Quality](#) for security pillar · [Four Golden Signals](#) for saturation (429 rate) · [Log Metrics](#) for aggregate log health_",
         "mode": "markdown"
       },
       "pluginVersion": "11.5.2",

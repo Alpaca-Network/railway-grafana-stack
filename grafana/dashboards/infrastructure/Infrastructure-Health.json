@@ -19,15 +19,17 @@
       "type": "text",
       "title": "",
       "gridPos": {
-        "h": 3,
+        "h": 6,
         "w": 24,
         "x": 0,
         "y": 0
       },
       "options": {
-        "content": "## GatewayZ — Infrastructure Health\nRedis · Connection Pools · Velocity Mode · Circuit Breakers · Database & Read Replica",
+        "content": "## GatewayZ — Infrastructure & Caching Health\n\nCore infrastructure health for the AI Inference Gateway: compute resources, Redis cache layer, and external service availability.\n\n| Signal | Target | What to Check |\n|--------|--------|---------------|\n| 🖥️ **CPU** | < 80% sustained | Spike = LLM batch processing or provider retry storm |\n| 💾 **Memory** | RSS < 1 GB | Growth = memory leak; check Pyroscope flamegraph |\n| ⚡ **Redis Hit Rate** | > 60% | Drop = cold start or cache key churn |\n| 🔗 **Redis Connections** | < 100 open | Exhaustion blocks new requests immediately |\n| 🔌 **Process Health** | 0 restarts | Restart = OOM or uncaught exception |\n\n_Metrics from Prometheus (live) · Navigate: [Four Golden Signals](#) for request SLI/SLO · [System Quality](#) for 8-pillar view · [Streaming Performance](#) for token throughput_",
         "mode": "markdown"
-      }
+      },
+      "transparent": true,
+      "pluginVersion": "11.5.2"
     },
     {
       "id": 2,
@@ -37,7 +39,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 3
+        "y": 9
       },
       "collapsed": false
     },
@@ -53,7 +55,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 4
+        "y": 10
       },
       "targets": [
         {
@@ -121,7 +123,7 @@
         "h": 4,
         "w": 6,
         "x": 6,
-        "y": 4
+        "y": 10
       },
       "targets": [
         {
@@ -189,7 +191,7 @@
         "h": 4,
         "w": 6,
         "x": 12,
-        "y": 4
+        "y": 10
       },
       "targets": [
         {
@@ -257,7 +259,7 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 4
+        "y": 10
       },
       "targets": [
         {
@@ -321,7 +323,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 14
       },
       "targets": [
         {
@@ -381,7 +383,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 8
+        "y": 14
       },
       "targets": [
         {
@@ -459,7 +461,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 17
+        "y": 23
       },
       "collapsed": false
     },
@@ -475,7 +477,7 @@
         "h": 9,
         "w": 8,
         "x": 0,
-        "y": 18
+        "y": 24
       },
       "targets": [
         {
@@ -541,7 +543,7 @@
         "h": 9,
         "w": 8,
         "x": 8,
-        "y": 18
+        "y": 24
       },
       "targets": [
         {
@@ -601,7 +603,7 @@
         "h": 9,
         "w": 8,
         "x": 16,
-        "y": 18
+        "y": 24
       },
       "targets": [
         {
@@ -652,7 +654,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 27
+        "y": 33
       },
       "collapsed": false
     },
@@ -668,7 +670,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 28
+        "y": 34
       },
       "targets": [
         {
@@ -746,7 +748,7 @@
         "h": 4,
         "w": 6,
         "x": 6,
-        "y": 28
+        "y": 34
       },
       "targets": [
         {
@@ -814,7 +816,7 @@
         "h": 4,
         "w": 6,
         "x": 12,
-        "y": 28
+        "y": 34
       },
       "targets": [
         {
@@ -882,7 +884,7 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 28
+        "y": 34
       },
       "targets": [
         {
@@ -946,7 +948,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 32
+        "y": 38
       },
       "targets": [
         {
@@ -1015,7 +1017,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 41
+        "y": 47
       },
       "collapsed": false
     },
@@ -1031,7 +1033,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 42
+        "y": 48
       },
       "targets": [
         {
@@ -1095,7 +1097,7 @@
         "h": 9,
         "w": 9,
         "x": 6,
-        "y": 42
+        "y": 48
       },
       "targets": [
         {
@@ -1161,7 +1163,7 @@
         "h": 9,
         "w": 9,
         "x": 15,
-        "y": 42
+        "y": 48
       },
       "targets": [
         {
@@ -1212,7 +1214,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 51
+        "y": 57
       },
       "targets": [
         {
@@ -1263,7 +1265,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 60
+        "y": 66
       },
       "collapsed": false
     },
@@ -1279,7 +1281,7 @@
         "h": 4,
         "w": 8,
         "x": 0,
-        "y": 61
+        "y": 67
       },
       "targets": [
         {
@@ -1343,7 +1345,7 @@
         "h": 9,
         "w": 16,
         "x": 8,
-        "y": 61
+        "y": 67
       },
       "targets": [
         {
@@ -1394,7 +1396,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 65
+        "y": 71
       },
       "targets": [
         {
@@ -1443,7 +1445,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 80
+        "y": 86
       },
       "id": 28,
       "title": "Loki Log Ingestion Health",
@@ -1517,7 +1519,7 @@
         "h": 7,
         "w": 14,
         "x": 0,
-        "y": 81
+        "y": 87
       },
       "id": 29,
       "options": {
@@ -1585,7 +1587,7 @@
         "h": 3,
         "w": 5,
         "x": 14,
-        "y": 81
+        "y": 87
       },
       "id": 30,
       "options": {
@@ -1652,7 +1654,7 @@
         "h": 4,
         "w": 5,
         "x": 14,
-        "y": 84
+        "y": 90
       },
       "id": 31,
       "options": {
@@ -1730,7 +1732,7 @@
         "h": 4,
         "w": 5,
         "x": 19,
-        "y": 81
+        "y": 87
       },
       "id": 32,
       "options": {
@@ -1780,7 +1782,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 88
+        "y": 94
       },
       "id": 33,
       "options": {
@@ -1831,83 +1833,212 @@
       "id": 34,
       "type": "row",
       "title": "⚡  Request Concurrency & Admission Control",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 95 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 101
+      },
       "collapsed": false
     },
     {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
-            "drawStyle": "line", "fillOpacity": 10, "gradientMode": "opacity",
-            "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never", "spanNulls": false
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "showPoints": "never",
+            "spanNulls": false
           },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 16, "x": 0, "y": 96 },
+      "gridPos": {
+        "h": 8,
+        "w": 16,
+        "x": 0,
+        "y": 102
+      },
       "id": 35,
       "options": {
-        "legend": { "calcs": ["mean"], "displayMode": "table", "placement": "right", "showLegend": true },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "legend": {
+          "calcs": [
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "targets": [
-        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "concurrency_active_requests", "legendFormat": "Active (Admission Gate)", "refId": "A" },
-        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "sum(fastapi_requests_in_progress)", "legendFormat": "In Progress (Total)", "refId": "B" },
-        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "concurrency_queued_requests", "legendFormat": "Queued", "refId": "C" }
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "concurrency_active_requests",
+          "legendFormat": "Active (Admission Gate)",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "sum(fastapi_requests_in_progress)",
+          "legendFormat": "In Progress (Total)",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "concurrency_queued_requests",
+          "legendFormat": "Queued",
+          "refId": "C"
+        }
       ],
       "title": "Concurrent Requests & Queue — Active · In-Progress · Queued",
       "description": "Active = passed through admission gate. Queued = waiting. If queued grows, the service is at capacity.",
       "type": "timeseries"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 1 }] },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 96 },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 102
+      },
       "id": 36,
       "options": {
-        "colorMode": "background", "graphMode": "area", "justifyMode": "auto", "orientation": "auto",
-        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
-        "textMode": "auto", "wideLayout": true
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
       },
       "targets": [
-        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "sum(rate(fastapi_requests_total{status_code=\"499\"}[5m]))", "legendFormat": "499s", "refId": "A" }
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "sum(rate(fastapi_requests_total{status_code=\"499\"}[5m]))",
+          "legendFormat": "499s",
+          "refId": "A"
+        }
       ],
       "title": "Client Disconnects (499) — Requests Dropped Mid-Flight",
       "description": "499s mean the client closed the connection before the server finished. High 499 rates can indicate timeouts or oversaturated queues.",
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
-            "drawStyle": "bars", "fillOpacity": 100, "gradientMode": "hue",
-            "lineWidth": 1, "showPoints": "never", "spanNulls": false,
-            "stacking": { "group": "A", "mode": "normal" }
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "gradientMode": "hue",
+            "lineWidth": 1,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            }
           },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 100 },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 106
+      },
       "id": 37,
       "options": {
-        "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "right", "showLegend": true },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "legend": {
+          "calcs": [
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "targets": [
-        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "sum(rate(concurrency_rejected_total[5m])) by (reason)", "legendFormat": "{{reason}}", "refId": "A" }
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "sum(rate(concurrency_rejected_total[5m])) by (reason)",
+          "legendFormat": "{{reason}}",
+          "refId": "A"
+        }
       ],
       "title": "Concurrency Gate Rejections — By Rejection Reason",
       "description": "Requests rejected before processing begins. A non-zero rate means the admission gate is actively shedding load.",
@@ -1917,95 +2048,297 @@
       "id": 38,
       "type": "row",
       "title": "🗄️  Application Cache Performance — Hit Rate · Redis · Layer Breakdown",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 104 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 110
+      },
       "collapsed": false
     },
     {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" }, "max": 100, "min": 0,
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 50 }, { "color": "green", "value": 80 }] },
+          "color": {
+            "mode": "thresholds"
+          },
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 80
+              }
+            ]
+          },
           "unit": "percent"
         },
         "overrides": []
       },
-      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 105 },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 111
+      },
       "id": 39,
       "options": {
-        "minVizHeight": 75, "minVizWidth": 75, "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "showThresholdLabels": false, "showThresholdMarkers": true, "sizing": "auto"
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
       },
       "targets": [
-        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "sum(rate(cache_hits_total[5m])) / (sum(rate(cache_hits_total[5m])) + sum(rate(cache_misses_total[5m]))) * 100", "legendFormat": "Hit Rate", "refId": "A" }
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "sum(rate(cache_hits_total[5m])) / (sum(rate(cache_hits_total[5m])) + sum(rate(cache_misses_total[5m]))) * 100",
+          "legendFormat": "Hit Rate",
+          "refId": "A"
+        }
       ],
       "title": "App Cache Hit Rate — Application-Level Cache",
       "description": "Hit rate of the application-level cache (auth, model catalog, response). Drop below 50% = cold cache or high cardinality.",
       "type": "gauge"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" }, "max": 100, "min": 0,
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 50 }, { "color": "green", "value": 80 }] },
+          "color": {
+            "mode": "thresholds"
+          },
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 80
+              }
+            ]
+          },
           "unit": "percent"
         },
         "overrides": []
       },
-      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 105 },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 111
+      },
       "id": 40,
       "options": {
-        "minVizHeight": 75, "minVizWidth": 75, "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "showThresholdLabels": false, "showThresholdMarkers": true, "sizing": "auto"
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
       },
       "targets": [
-        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "(rate(redis_keyspace_hits_total[5m]) / (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]))) * 100", "legendFormat": "Hit Rate", "refId": "A" }
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "(rate(redis_keyspace_hits_total[5m]) / (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]))) * 100",
+          "legendFormat": "Hit Rate",
+          "refId": "A"
+        }
       ],
       "title": "Redis Hit Rate — Key-Level Cache",
       "description": "Redis keyspace hit rate. Complements the app-level gauge above — Redis misses mean keys expired or were evicted.",
       "type": "gauge"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "drawStyle": "line", "fillOpacity": 30, "gradientMode": "opacity", "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never" },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 30,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
           "unit": "ops"
         },
         "overrides": [
-          { "matcher": { "id": "byRegexp", "options": ".*hit.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] },
-          { "matcher": { "id": "byRegexp", "options": ".*miss.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*hit.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*miss.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
         ]
       },
-      "gridPos": { "h": 5, "w": 12, "x": 12, "y": 105 },
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 12,
+        "y": 111
+      },
       "id": 41,
       "options": {
-        "legend": { "calcs": ["mean"], "displayMode": "table", "placement": "right", "showLegend": true },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "legend": {
+          "calcs": [
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "targets": [
-        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "sum(rate(cache_hits_total[5m]))", "legendFormat": "app hits", "refId": "A" },
-        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "sum(rate(cache_misses_total[5m]))", "legendFormat": "app misses", "refId": "B" },
-        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "rate(redis_keyspace_hits_total[5m])", "legendFormat": "redis hits", "refId": "C" },
-        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "rate(redis_keyspace_misses_total[5m])", "legendFormat": "redis misses", "refId": "D" }
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "sum(rate(cache_hits_total[5m]))",
+          "legendFormat": "app hits",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "sum(rate(cache_misses_total[5m]))",
+          "legendFormat": "app misses",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "rate(redis_keyspace_hits_total[5m])",
+          "legendFormat": "redis hits",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "rate(redis_keyspace_misses_total[5m])",
+          "legendFormat": "redis misses",
+          "refId": "D"
+        }
       ],
       "title": "Cache Hits vs Misses — Application + Redis",
       "description": "Green lines should dominate. Red spikes indicate cold cache or key expiry storms.",
       "type": "timeseries"
     },
     {
-      "datasource": { "type": "tempo", "uid": "grafana_tempo" },
-      "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 110 },
+      "datasource": {
+        "type": "tempo",
+        "uid": "grafana_tempo"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 116
+      },
       "id": 42,
-      "options": { "limit": 25, "showTime": true, "sortOrder": "Descending" },
+      "options": {
+        "limit": 25,
+        "showTime": true,
+        "sortOrder": "Descending"
+      },
       "targets": [
         {
-          "datasource": { "type": "tempo", "uid": "grafana_tempo" },
+          "datasource": {
+            "type": "tempo",
+            "uid": "grafana_tempo"
+          },
           "queryType": "traceql",
           "query": "{ span.db.system =~ \".*\" || name =~ \".*supabase.*|.*SELECT.*|.*INSERT.*|.*UPDATE.*|.*DELETE.*\" } | select(name, duration, status)",
           "refId": "A",
@@ -2020,38 +2353,89 @@
       "id": 43,
       "type": "row",
       "title": "📋  Operational Event Logs — Circuit Breakers · Provider Failures · Rate Limits",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 118 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 124
+      },
       "collapsed": false
     },
     {
-      "datasource": { "type": "loki", "uid": "grafana_loki" },
-      "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 119 },
+      "datasource": {
+        "type": "loki",
+        "uid": "grafana_loki"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 125
+      },
       "id": 44,
       "options": {
-        "dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": true,
-        "showCommonLabels": false, "showLabels": true, "showTime": true,
-        "sortOrder": "Descending", "wrapLogMessage": true
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
       },
       "targets": [
-        { "datasource": { "type": "loki", "uid": "grafana_loki" }, "expr": "{app=~\"gatewayz.*\"} |~ \"(circuit.?breaker|rate.?limit|throttle|429|too.?many.?requests)\" | logfmt", "refId": "A" }
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafana_loki"
+          },
+          "expr": "{app=~\"gatewayz.*\"} |~ \"(circuit.?breaker|rate.?limit|throttle|429|too.?many.?requests)\" | logfmt",
+          "refId": "A"
+        }
       ],
       "title": "Circuit Breaker & Rate Limit Events — Live Log Feed",
       "description": "Log lines matching circuit breaker trips, rate limit hits, and 429 throttle events. Useful during incident triage to pinpoint when a provider began failing.",
       "type": "logs"
     },
     {
-      "datasource": { "type": "loki", "uid": "grafana_loki" },
-      "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 119 },
+      "datasource": {
+        "type": "loki",
+        "uid": "grafana_loki"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 125
+      },
       "id": 45,
       "options": {
-        "dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": true,
-        "showCommonLabels": false, "showLabels": true, "showTime": true,
-        "sortOrder": "Descending", "wrapLogMessage": true
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
       },
       "targets": [
-        { "datasource": { "type": "loki", "uid": "grafana_loki" }, "expr": "{app=~\"gatewayz.*\"} |~ \"(provider|openai|anthropic|google|openrouter|portkey|model|inference|timeout|connection.?error)\" | level=~\"ERROR|error|WARNING|warning\" | logfmt", "refId": "A" }
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafana_loki"
+          },
+          "expr": "{app=~\"gatewayz.*\"} |~ \"(provider|openai|anthropic|google|openrouter|portkey|model|inference|timeout|connection.?error)\" | level=~\"ERROR|error|WARNING|warning\" | logfmt",
+          "refId": "A"
+        }
       ],
       "title": "Provider Error & Timeout Logs — Errors & Warnings Only",
       "description": "Log lines from provider calls that resulted in errors or timeouts. Filter by provider keyword to narrow down which upstream is failing.",
@@ -2064,5 +2448,17 @@
   "annotations": {
     "list": []
   },
-  "links": []
+  "links": [
+    {
+      "asDropdown": true,
+      "icon": "doc",
+      "includeVars": true,
+      "tags": [
+        "gatewayz"
+      ],
+      "targetBlank": false,
+      "title": "Related Dashboards",
+      "type": "dashboards"
+    }
+  ]
 }

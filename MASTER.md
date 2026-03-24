@@ -101,9 +101,9 @@ JSON-API-Proxy (port 5050) ─── Custom dashboard data from api.gatewayz.ai
 
 ### Grafana
 - **Config:** `grafana/provisioning/`
-- **Dashboards:** 15 provisioned (+ 1 in progress)
+- **Dashboards:** 13 complete + 1 in progress (14 total JSON files)
 - **Datasources:** 7 configured
-- **Alerts:** 40+ rules across 10 YAML files
+- **Alerts:** 46 rules across 11 YAML files
 - **Plugins:** Pyroscope, simple-json-datasource
 - **Status:** ✅ Complete
 
@@ -117,10 +117,16 @@ JSON-API-Proxy (port 5050) ─── Custom dashboard data from api.gatewayz.ai
 
 ### Tempo
 - **Config:** `tempo/tempo.yml`
+- **Version:** 2.6.1 (optimized March 2026)
 - **Format:** vParquet4 (TraceQL optimised)
 - **Retention:** 48 hours
 - **Receivers:** OTLP gRPC (4317), OTLP HTTP (4318)
-- **Span Metrics:** → Mimir (service graphs, latency histograms)
+- **Span Metrics:** → Mimir (service graphs, latency histograms, extended to 120s buckets)
+- **local_blocks processor:** TraceQL metrics queries (`{ } | rate()`) without Mimir — panels 701–703
+- **Phase 2 dimensions:** `finish_reason`, `http.route`, `error.type`, `span.kind`, `db.system`
+- **filter_policies:** Health/metrics/probe spans excluded from span_metrics
+- **peer_attributes:** External APIs (OpenAI, Anthropic) visible in service topology
+- **⚠️ BACKEND-2:** No traces flowing until gatewayz-backend sends OTLP to `tempo.railway.internal:4317`
 - **Status:** ✅ Complete
 
 ### Alertmanager
@@ -183,7 +189,7 @@ JSON-API-Proxy (port 5050) ─── Custom dashboard data from api.gatewayz.ai
 | Infrastructure | MimirDown | CRITICAL | Mimir `up == 0` for 2m |
 | Infrastructure | TempoNoTraces / LokiNoLogs | WARNING | No data for 15m |
 
-### Grafana-Managed (provisioning/alerting/rules/) — 40+ Rules
+### Grafana-Managed (provisioning/alerting/rules/) — 46 Rules (11 files)
 
 | File | Rules | Key Coverage |
 |------|-------|-------------|
@@ -196,7 +202,13 @@ JSON-API-Proxy (port 5050) ─── Custom dashboard data from api.gatewayz.ai
 | `model_alerts.yml` | 4 | Model health, error rate, latency, availability |
 | `redis_alerts.yml` | 5 | Redis down, memory > 80/90%, cache hit < 50% |
 | `slo_burn_rate_alerts.yml` | 4 | Fast burn > 14.4×, slow burn > 6×, latency SLO |
+| `trace_alerts.yml` | 6 | Provider error rate >20%, P95 latency >10s, dark provider, truncation >30%, route errors >30%, content filter >5% |
 | `traffic_anomalies.yml` | 3 | Spike 3× (critical), 2× (warning), drop 50% |
+
+**Trace alert notes:**
+- Alerts 1–3 (`trace_provider_high_error_rate`, `trace_model_p95_latency_high`, `trace_provider_dark`) work immediately once traces flow
+- Alerts 4–6 (`trace_finish_reason_length_spike`, `trace_route_error_rate_spike`, `trace_content_filter_spike`) depend on Phase 2 dimensions — `noDataState: NoData` until first traces with these attributes arrive
+- All trace alerts query `traces_spanmetrics_*` from **Mimir** (remote-written by Tempo's metrics_generator)
 
 ### Alertmanager Routing
 
@@ -299,10 +311,10 @@ All Alerts
 ## 12. Kanban — What Is Done vs In Progress vs Todo
 
 ### ✅ Done (Pre-existing — completed before this Kanban was created)
-- All 15 Grafana dashboards (400+ panels, 100% populated)
+- All 13 Grafana dashboards (400+ panels, 100% populated) — 17 → 13 after March 2026 restructure
 - All 7 datasources provisioned
 - 16 Prometheus alert rules
-- 40+ Grafana alert rules (10 YAML files)
+- 46 Grafana alert rules (11 YAML files) — includes 6 new trace alerts (March 2026)
 - 32 Prometheus recording rules
 - Alertmanager two-tier email routing
 - Full Docker Compose stack (8 services with healthchecks, resource limits, security hardening)
@@ -341,7 +353,7 @@ All Alerts
 | BACKEND-3 | Loki log labels — confirm `app="gatewayz"` matches Railway output | **MEDIUM** | Log dashboards may show no data |
 | INFRA-1 | Redis exporter reliability — noted as unreliable in docs | **MEDIUM** | Redis alert rules may have no data |
 | INFRA-2 | Mimir using filesystem storage | **LOW** | S3/GCS recommended for production HA |
-| TASK-2 | System-Reliability-Dashboard.json JSON not yet written | **ACTIVE** | In progress this session |
+| TASK-2 | System-Reliability-Dashboard.json — framework exists, panels being refined | **IN PROGRESS** | File at `grafana/dashboards/reliability/` |
 
 ---
 

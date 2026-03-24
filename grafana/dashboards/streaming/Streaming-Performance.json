@@ -20,15 +20,17 @@
       "type": "text",
       "title": "",
       "gridPos": {
-        "h": 3,
+        "h": 6,
         "w": 24,
         "x": 0,
         "y": 0
       },
       "options": {
-        "content": "## GatewayZ — Streaming Performance\n**TTFC** (Time to First Chunk) · **TTFB** (Backend First Byte) · **Request Stage Breakdown** · CPU Profiling\n\n_TTFC is the primary LLM user-experience metric — low TTFC = responsive, high TTFC = the user stares at a spinner._",
+        "content": "## GatewayZ — LLM Streaming Performance\n\nTime-to-First-Chunk (TTFC), token throughput, and stream error analysis for AI streaming responses. Streaming quality directly impacts perceived user latency.\n\n| Signal | Target | What to Check |\n|--------|--------|---------------|\n| ⏱️ **TTFC P95** | < 3s | High TTFC = slow provider or long prompt queuing |\n| 🚀 **Token Throughput** | > 10 tokens/s | Drop = provider throttling or network congestion |\n| ❌ **Stream Errors** | < 2% | Broken streams = connection timeout or provider 5xx mid-stream |\n| 📡 **Active Streams** | < baseline × 2 | Spike = traffic burst; watch Redis connection count |\n\n_Metrics from Prometheus · Navigate: [Four Golden Signals](#) for overall error SLO · [AI Model Analytics](#) for per-model latency · [Infrastructure](#) for Redis health_",
         "mode": "markdown"
-      }
+      },
+      "transparent": true,
+      "pluginVersion": "11.5.2"
     },
     {
       "id": 2,
@@ -38,7 +40,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 3
+        "y": 9
       },
       "collapsed": false
     },
@@ -54,7 +56,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 4
+        "y": 10
       },
       "targets": [
         {
@@ -122,7 +124,7 @@
         "h": 4,
         "w": 6,
         "x": 6,
-        "y": 4
+        "y": 10
       },
       "targets": [
         {
@@ -190,7 +192,7 @@
         "h": 4,
         "w": 6,
         "x": 12,
-        "y": 4
+        "y": 10
       },
       "targets": [
         {
@@ -258,7 +260,7 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 4
+        "y": 10
       },
       "targets": [
         {
@@ -322,7 +324,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 14
       },
       "targets": [
         {
@@ -396,7 +398,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 8
+        "y": 14
       },
       "targets": [
         {
@@ -452,7 +454,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 17
+        "y": 23
       },
       "collapsed": false
     },
@@ -468,7 +470,7 @@
         "h": 4,
         "w": 8,
         "x": 0,
-        "y": 18
+        "y": 24
       },
       "targets": [
         {
@@ -536,7 +538,7 @@
         "h": 4,
         "w": 8,
         "x": 8,
-        "y": 18
+        "y": 24
       },
       "targets": [
         {
@@ -604,7 +606,7 @@
         "h": 4,
         "w": 8,
         "x": 16,
-        "y": 18
+        "y": 24
       },
       "targets": [
         {
@@ -668,7 +670,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 22
+        "y": 28
       },
       "targets": [
         {
@@ -724,7 +726,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 31
+        "y": 37
       },
       "collapsed": false
     },
@@ -736,7 +738,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 32
+        "y": 38
       },
       "targets": [
         {
@@ -823,7 +825,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 32
+        "y": 38
       },
       "targets": [
         {
@@ -879,7 +881,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 41
+        "y": 47
       },
       "targets": [
         {
@@ -980,7 +982,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 49
+        "y": 55
       },
       "collapsed": false
     },
@@ -996,7 +998,7 @@
         "h": 14,
         "w": 14,
         "x": 0,
-        "y": 50
+        "y": 56
       },
       "options": {
         "collapseConfig": false,
@@ -1035,7 +1037,7 @@
         "h": 14,
         "w": 10,
         "x": 14,
-        "y": 50
+        "y": 56
       },
       "options": {
         "orientation": "horizontal",
@@ -1101,104 +1103,327 @@
       "id": 21,
       "type": "row",
       "title": "⏱️  Backend Timing — TTFB · TTFC · Request Stage Breakdown",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 64 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 70
+      },
       "collapsed": false
     },
     {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.5 }, { "color": "red", "value": 2 }] },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.5
+              },
+              {
+                "color": "red",
+                "value": 2
+              }
+            ]
+          },
           "unit": "s"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 65 },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 71
+      },
       "id": 22,
       "options": {
-        "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "auto", "wideLayout": true
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
       },
       "targets": [
-        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "histogram_quantile(0.95, sum by (le) (rate(backend_ttfb_seconds_bucket[5m])))", "legendFormat": "P95 TTFB", "refId": "A" }
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(backend_ttfb_seconds_bucket[5m])))",
+          "legendFormat": "P95 TTFB",
+          "refId": "A"
+        }
       ],
       "title": "Backend TTFB P95 — Server Processing Before First Byte",
       "description": "Time from request receipt to first byte written to the network. High TTFB = provider is slow or routing logic is blocking.",
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 5 }] },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
           "unit": "s"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 65 },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 71
+      },
       "id": 23,
       "options": {
-        "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "auto", "wideLayout": true
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
       },
       "targets": [
-        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "histogram_quantile(0.95, sum by (le) (rate(time_to_first_chunk_seconds_bucket[5m])))", "legendFormat": "P95 TTFC", "refId": "A" }
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(time_to_first_chunk_seconds_bucket[5m])))",
+          "legendFormat": "P95 TTFC",
+          "refId": "A"
+        }
       ],
       "title": "TTFC P95 — Time to First Streaming Chunk",
       "description": "Time until the first LLM token arrives at the client. The primary perceived-latency signal for streaming responses.",
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "drawStyle": "line", "fillOpacity": 15, "gradientMode": "opacity", "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never" },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
           "unit": "s"
         },
         "overrides": [
-          { "matcher": { "id": "byName", "options": "TTFB P95" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "TTFC P95" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "Stream Duration P95" }, "properties": [{ "id": "color", "value": { "fixedColor": "purple", "mode": "fixed" } }] }
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "TTFB P95"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "TTFC P95"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Stream Duration P95"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
         ]
       },
-      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 65 },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 71
+      },
       "id": 24,
       "options": {
-        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table", "placement": "right", "showLegend": true },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "legend": {
+          "calcs": [
+            "mean",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "targets": [
-        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "histogram_quantile(0.95, sum by (le) (rate(backend_ttfb_seconds_bucket[5m])))", "legendFormat": "TTFB P95", "refId": "A" },
-        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "histogram_quantile(0.95, sum by (le) (rate(time_to_first_chunk_seconds_bucket[5m])))", "legendFormat": "TTFC P95", "refId": "B" },
-        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "histogram_quantile(0.95, sum by (le) (rate(streaming_duration_seconds_bucket[5m])))", "legendFormat": "Stream Duration P95", "refId": "C" }
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(backend_ttfb_seconds_bucket[5m])))",
+          "legendFormat": "TTFB P95",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(time_to_first_chunk_seconds_bucket[5m])))",
+          "legendFormat": "TTFC P95",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(streaming_duration_seconds_bucket[5m])))",
+          "legendFormat": "Stream Duration P95",
+          "refId": "C"
+        }
       ],
       "title": "Streaming Performance Over Time — TTFB · TTFC · Total Duration",
       "description": "TTFB (blue) = server processing time. TTFC (orange) = first token. Duration (purple) = full response time. Growing gap between TTFB and TTFC = provider slowdown.",
       "type": "timeseries"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "grafana_prometheus" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "grafana_prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "drawStyle": "bars", "fillOpacity": 80, "gradientMode": "hue", "lineWidth": 1, "showPoints": "never", "stacking": { "group": "A", "mode": "normal" } },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "hue",
+            "lineWidth": 1,
+            "showPoints": "never",
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            }
+          },
           "unit": "s"
         },
         "overrides": []
       },
-      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 72 },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 78
+      },
       "id": 25,
       "options": {
-        "legend": { "calcs": [], "displayMode": "list", "placement": "right", "showLegend": true },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "targets": [
-        { "datasource": { "type": "prometheus", "uid": "grafana_prometheus" }, "expr": "sum by (stage) (rate(request_stage_duration_seconds_sum[5m]) / rate(request_stage_duration_seconds_count[5m]))", "legendFormat": "{{stage}}", "refId": "A" }
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafana_prometheus"
+          },
+          "expr": "sum by (stage) (rate(request_stage_duration_seconds_sum[5m]) / rate(request_stage_duration_seconds_count[5m]))",
+          "legendFormat": "{{stage}}",
+          "refId": "A"
+        }
       ],
       "title": "Avg Duration by Request Stage — Where Time Is Spent",
       "description": "Stacked breakdown of average time per pipeline stage (auth, routing, provider call, serialization). The tallest segment = the bottleneck stage.",
@@ -1211,5 +1436,17 @@
   "annotations": {
     "list": []
   },
-  "links": []
+  "links": [
+    {
+      "asDropdown": true,
+      "icon": "doc",
+      "includeVars": true,
+      "tags": [
+        "gatewayz"
+      ],
+      "targetBlank": false,
+      "title": "Related Dashboards",
+      "type": "dashboards"
+    }
+  ]
 }

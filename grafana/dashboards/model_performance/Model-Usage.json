@@ -22,9 +22,8 @@
       "asDropdown": true,
       "icon": "doc",
       "includeVars": true,
-      "tags": [
-        "gatewayz"
-      ],
+      "tags": ["gatewayz"],
+      "targetBlank": false,
       "title": "Related Dashboards",
       "type": "dashboards"
     }
@@ -109,7 +108,7 @@
       "transparent": true,
       "options": {
         "mode": "markdown",
-        "content": "## 📦  Model Usage — All Tiers\nConsolidated view of LLM model usage across paid, trial, and free users. Use the **$tier** filter to isolate a cohort. Use **$model** to focus on a specific model. This dashboard replaced the separate Paid-Model-LLM-Usage and Free-Model-Usage dashboards — their unique panels are preserved here with the addition of a tier filter."
+        "content": "## GatewayZ — AI Model Usage Analytics\n\nToken consumption, model distribution, request volume, and cost analytics across all AI models. Use this dashboard to understand which models are driving usage and cost.\n\n| Signal | What to Watch |\n|--------|--------------|\n| 🪙 **Token Usage by Model** | Identifies high-consumption models — optimize prompts or cache responses |\n| 📊 **Model Distribution** | Request share by model — detect unexpected routing shifts |\n| 💰 **Estimated Cost Trend** | Daily cost by provider/model — budget monitoring |\n| ⏳ **Latency by Model** | P95 per model — large models (GPT-4, Claude 3 Opus) will be higher |\n\n_Metrics from Prometheus/Mimir · Navigate: [AI Provider Intelligence](#) for provider health · [Inference Call Profile](#) for per-call analytics · [Distributed Tracing](#) for token usage from spans_"
       },
       "fieldConfig": {
         "defaults": {},

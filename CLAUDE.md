@@ -38,7 +38,7 @@ Production observability stack for the GatewayZ AI Inference Gateway.
   - All 7 datasources provisioned and linked
   - All 13 Grafana dashboards complete (400+ panels, 0 placeholders)
   - 16 Prometheus alert rules
-  - 40+ Grafana alert rules (10 YAML files)
+  - 46 Grafana alert rules (11 YAML files)
   - 32 Prometheus recording rules (baseline pre-computations)
   - Alertmanager two-tier routing (ops-email + critical-email)
   - Railway deployment configs for all services
@@ -50,13 +50,23 @@ Production observability stack for the GatewayZ AI Inference Gateway.
   - Migrated all unique panels to canonical dashboards before deletion
   - Updated Dockerfile: removed stale COPY commands for deleted dashboard directories
   - 11 folders → 8 folders, 17 dashboards → 13 dashboards
+  - Added uniform intro text panels + cross-navigation links to all 14 dashboards
+
+✅ DONE — Tempo 2.6.1 High-Cardinality Optimization (March 2026)
+  - local_blocks processor: enables TraceQL metrics queries without Mimir (panels 701–703)
+  - Extended histogram buckets to 120s for large-model LLM calls (was capped at 10s)
+  - Phase 2 span_metrics dimensions: finish_reason, http.route, error.type, span.kind, db.system
+  - filter_policies: excludes health/metrics/probe spans from span metrics
+  - peer_attributes: external API nodes (OpenAI, Anthropic) visible in service topology
+  - 6 new trace-based alert rules (trace_alerts.yml): error rate, P95 latency, dark provider, truncation, route errors, content filter
+  - cleanup_deprecated_grafana_folders.sh: API script to delete Developer/Prometheus/Sentry DB folders
 
 🔄 IN PROGRESS
-  - System-Reliability-Dashboard.json (Platform Quality Pillars folder)
+  - System-Reliability-Dashboard.json (Platform Quality Pillars folder) — framework exists, panels being refined
 
 ⚠️ OUTSTANDING GAPS (not yet scheduled)
   - BACKEND-1: Verify FASTAPI_TARGET env var in Railway
-  - BACKEND-2: Verify OTLP traces from backend → Tempo
+  - BACKEND-2: Verify OTLP traces from backend → Tempo ← SERVICE MAP SHOWS NO DATA UNTIL THIS IS DONE
   - BACKEND-3: Verify Loki log labels match app="gatewayz"
   - INFRA-1: Validate Redis exporter reliability
   - INFRA-2: Migrate Mimir storage from filesystem → S3
@@ -66,13 +76,13 @@ Production observability stack for the GatewayZ AI Inference Gateway.
 
 ## Active Work — System Quality Dashboard
 
-**File to create:** `grafana/dashboards/reliability/System-Reliability-Dashboard.json`
+**File:** `grafana/dashboards/reliability/System-Reliability-Dashboard.json` (framework exists — panels being refined)
 **UID:** `gatewayz-system-quality-pillars`
 **Schema:** `schemaVersion: 39`, `refresh: "30s"`
 **Datasource (Prometheus):** `{ "type": "prometheus", "uid": "grafana_prometheus" }`
 **Datasource (Loki):** `{ "type": "loki", "uid": "grafana_loki" }`
 **Panel ID blocks:** 100s=Reliability, 200s=Performance, 300s=Scalability, 400s=Availability, 500s=Observability, 600s=FaultTolerance, 700s=Security, 800s=Maintainability
-**Style reference:** Copy stat/timeseries structure from `grafana/dashboards/infrastructure/Infrastructure-Health.json`
+**Style reference:** Same intro + row structure as `grafana/dashboards/golden-signals/Four-Golden-Signals.json`
 
 ---
 
@@ -89,16 +99,21 @@ railway-grafana-stack/
 │   ├── alert.rules.yml                ← 16 Prometheus alert rules
 │   └── recording_rules_baselines.yml  ← 32 recording rules
 ├── grafana/
-│   ├── dashboards/                    ← 15 dashboard JSONs + 1 in progress
-│   │   └── reliability/               ← NEW — System Quality dashboard
+│   ├── dashboards/                    ← 13 dashboard JSONs + 1 in progress (14 total)
+│   │   └── reliability/               ← System Quality dashboard (in progress)
 │   └── provisioning/
-│       ├── dashboards/dashboards.yml  ← Folder registration
+│       ├── dashboards/dashboards.yml  ← Folder registration (8 folders)
 │       ├── datasources/               ← 7 datasource YAMLs
-│       └── alerting/rules/            ← 10 alert rule YAMLs (40+ rules)
+│       └── alerting/rules/            ← 11 alert rule YAMLs (46 rules)
+│           ├── trace_alerts.yml       ← 6 trace-based alert rules (NEW March 2026)
 ├── mimir/mimir.yml                    ← Long-term metrics config
 ├── loki/loki.yml                      ← Log aggregation config
-├── tempo/tempo.yml                    ← Trace storage + span metrics
+├── tempo/tempo.yml                    ← Trace storage + span metrics (Tempo 2.6.1 optimized)
 ├── alertmanager/alertmanager.yml      ← Alert routing
+├── scripts/
+│   ├── validate_dashboards.sh         ← Validate all dashboard JSON
+│   ├── verify_metrics.sh              ← Verify metrics pipeline
+│   └── cleanup_deprecated_grafana_folders.sh ← Delete Developer/Prometheus/Sentry DB folders
 └── docs/
     ├── development/CLAUDE.md          ← Full agent guidelines (read this)
     ├── development/FUTURE_DEVELOPMENT_GUIDELINES.md ← Architecture rules
