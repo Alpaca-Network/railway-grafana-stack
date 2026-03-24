@@ -25,12 +25,9 @@
       "asDropdown": true,
       "icon": "doc",
       "includeVars": true,
-      "tags": [
-        "gatewayz",
-        "loki"
-      ],
+      "tags": ["gatewayz"],
       "targetBlank": false,
-      "title": "Log Dashboards",
+      "title": "Related Dashboards",
       "type": "dashboards"
     }
   ],
@@ -53,7 +50,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "## GatewayZ — Error Log Analysis\nLoki-powered view of every ERROR and CRITICAL log line emitted by the backend.\n\n| Section | What it shows |\n|---------|---------------|\n| Error Rate | Volume of ERROR/CRITICAL events per minute — this metric spikes before 5xx rates rise in Prometheus |\n| Log Stream | Live tail of error logs with full message body — includes provider timeouts, Redis failures, and auth rejections |\n| Top Patterns | Most frequent error messages grouped by content — distinguishes a flood of identical errors from diverse, independent failures |",
+        "content": "## GatewayZ — Error & Critical Log Analysis\n\nFiltered view of ERROR and CRITICAL level logs from the AI Inference Gateway. Use this dashboard when the error rate alert fires.\n\n| Signal | Target | Notes |\n|--------|--------|-------|\n| ❌ **ERROR Rate** | < 5/min | Spike = backend exception or provider failure |\n| 🚨 **CRITICAL Rate** | 0 sustained | Any critical = immediate investigation required |\n| 📋 **Exception Type Breakdown** | — | Identify recurring exception classes |\n| 🔍 **Raw Error Logs** | — | Click trace_id to jump to Tempo trace |\n\n_Logs from Loki · Navigate: [Four Golden Signals](#) for error rate SLO · [Live Logs](#) for real-time stream · [Distributed Tracing](#) for trace correlation_",
         "mode": "markdown"
       },
       "pluginVersion": "11.5.2",

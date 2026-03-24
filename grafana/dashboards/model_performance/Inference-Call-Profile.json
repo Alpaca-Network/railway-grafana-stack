@@ -23,9 +23,8 @@
       "asDropdown": true,
       "icon": "doc",
       "includeVars": true,
-      "tags": [
-        "gatewayz"
-      ],
+      "tags": ["gatewayz"],
+      "targetBlank": false,
       "title": "Related Dashboards",
       "type": "dashboards"
     }
@@ -102,7 +101,7 @@
       "transparent": true,
       "options": {
         "mode": "markdown",
-        "content": "## 🔬  Inference Call Profile — GatewayZ AI Gateway\n\nThis dashboard answers one question at a time: **What is actually happening during an inference call?**\n\n| Section | Signal source | What it answers |\n|---|---|---|\n| **⏱️ Timing Breakdown** | Prometheus / Mimir | Where does wall-clock time go? TTFB vs TTFC vs streaming vs end-to-end |\n| **🔥 CPU Profile (Pyroscope)** | Pyroscope (100 Hz sampling) | Which Python function burns the most CPU per provider/model? |\n| **📊 Provider / Model Matrix** | Prometheus / Mimir | P50/P95/P99 latency, error rate, token throughput side-by-side |\n| **💰 Cost & Token Economics** | Prometheus / Mimir | Cost per request, tokens/sec — efficiency not just speed |\n| **🔍 Trace Drill-Down** | Tempo | Click into an individual slow call to see the exact span tree |\n\nUse `$provider` and `$model` dropdowns to zoom into a specific upstream. Selecting a single provider narrows the Pyroscope flamegraph to only samples tagged during calls to that provider."
+        "content": "## GatewayZ — Inference Call Profile\n\nPer-request latency breakdown, token counts, and call-level analytics. Drill into the anatomy of individual inference calls to identify optimization opportunities.\n\n| Signal | Target | Notes |\n|--------|--------|-------|\n| ⏱️ **P95 Call Latency** | < 3s fast models · < 15s large models | Use Pyroscope link from slow spans to find hot functions |\n| 🪙 **Prompt Tokens (P95)** | Varies by use case | High prompt tokens = long system prompts; consider caching |\n| 🪙 **Completion Tokens (P95)** | Varies by use case | High completion = verbose output; consider max_tokens tuning |\n| 🔁 **Retry Rate** | < 2% | High retries = provider instability or rate limiting |\n\n_Metrics from Prometheus/Mimir · Profiles from Pyroscope · Navigate: [Model Usage](#) for aggregate analytics · [Four Golden Signals](#) for SLO · [Distributed Tracing](#) for trace-level token data_"
       },
       "fieldConfig": {
         "defaults": {},

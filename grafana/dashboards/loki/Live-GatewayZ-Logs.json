@@ -25,30 +25,10 @@
       "asDropdown": true,
       "icon": "doc",
       "includeVars": true,
-      "tags": [
-        "gatewayz"
-      ],
+      "tags": ["gatewayz"],
       "targetBlank": false,
-      "title": "Other Dashboards",
+      "title": "Related Dashboards",
       "type": "dashboards"
-    },
-    {
-      "icon": "external link",
-      "includeVars": true,
-      "tags": [],
-      "targetBlank": true,
-      "title": "Executive Overview",
-      "type": "link",
-      "url": "d/executive-overview-v1"
-    },
-    {
-      "icon": "external link",
-      "includeVars": true,
-      "tags": [],
-      "targetBlank": true,
-      "title": "Backend Services",
-      "type": "link",
-      "url": "d/backend-services-v1"
     }
   ],
   "liveNow": true,
@@ -71,7 +51,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "## GatewayZ — Live Log Stream\nUnfiltered real-time log tail from the backend — the raw Loki stream for live incident investigation.\n\n| Section | What it shows |\n|---------|---------------|\n| All Logs | Every log line across all severity levels — use the level filter above to narrow to ERROR or WARN during an incident |\n| Access Log | Inbound request events with method, path, status code, and latency — confirms whether traffic is reaching the gateway |\n| System Events | Startup, shutdown, config reload, and background task events — useful for diagnosing deploy or restart-related failures |",
+        "content": "## GatewayZ — Live Log Stream\n\nReal-time log output from the AI Inference Gateway. Use for immediate incident investigation and live debugging.\n\n| Signal | Notes |\n|--------|\n| 📡 **Live Log Feed** | Refresh every 5s — level-colored rows (ERROR=red, WARN=yellow, INFO=green) |\n| 🔍 **Filter by Level** | Use the Level variable at the top to filter ERROR/WARN/INFO/DEBUG |\n| 🔗 **Trace Correlation** | Click any trace_id in logs → opens Tempo trace waterfall |\n\n_Logs from Loki (real-time) · Navigate: [Error Level Logs](#) for filtered error analysis · [Log Metrics](#) for aggregate trends · [Distributed Tracing](#) for trace correlation_",
         "mode": "markdown"
       },
       "pluginVersion": "11.5.2",
