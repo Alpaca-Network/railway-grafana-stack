@@ -20,7 +20,7 @@ set -e
 # ============================================================================
 
 # ── SMTP ────────────────────────────────────────────────────────────────────
-SMTP_HOST="${SMTP_HOST:-smtp.gmail.com:465}"
+SMTP_HOST="${SMTP_HOST:-smtp.gmail.com:587}"
 SMTP_FROM="${SMTP_FROM:-${GF_SMTP_FROM_ADDRESS:-alerts@localhost}}"
 SMTP_USER="${SMTP_USER:-${GF_SMTP_USER:-}}"
 SMTP_PASSWORD="${SMTP_PASSWORD:-${GF_SMTP_PASSWORD:-no-password}}"

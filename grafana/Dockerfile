@@ -12,6 +12,7 @@ ENV LOKI_INTERNAL_URL=http://loki.railway.internal:3100
 ENV PROMETHEUS_INTERNAL_URL=http://prometheus.railway.internal:9090
 ENV TEMPO_INTERNAL_URL=http://tempo.railway.internal:3200
 ENV MIMIR_INTERNAL_URL=http://mimir.railway.internal:9009
+ENV ALERTMANAGER_INTERNAL_URL=http://alertmanager.railway.internal:9093
 
 # Allow embedding Grafana panels in iframes (for admin dashboard telemetry page)
 # Without this, Grafana sends X-Frame-Options: deny which blocks all iframe embeds
