@@ -133,6 +133,7 @@ datasources:
     uid: alertmanager
     url: ${ALERTMANAGER_INTERNAL_URL}
     isDefault: false
+    editable: false
     jsonData:
       implementation: prometheus
       handleGrafanaManagedAlerts: false
