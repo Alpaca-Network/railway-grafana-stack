@@ -1334,7 +1334,7 @@
             "type": "loki",
             "uid": "grafana_loki"
           },
-          "expr": "(sum(rate({app=~\"gatewayz.*\"} | level=\"INFO\" [5m])) / clamp_min(sum(rate({app=~\"gatewayz.*\"}[5m])), 0.001)) * 100",
+          "expr": "(sum(rate({app=~\"gatewayz.*\", level=\"INFO\"}[5m])) / (sum(rate({app=~\"gatewayz.*\"}[5m])) + 0.001)) * 100",
           "legendFormat": "Log-level Reliability %",
           "refId": "A"
         }

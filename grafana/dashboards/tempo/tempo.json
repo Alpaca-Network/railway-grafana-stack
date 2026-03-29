@@ -1944,7 +1944,7 @@
             "type": "prometheus",
             "uid": "grafana_mimir"
           },
-          "expr": "histogram_quantile(0.95, sum(rate(traces_spanmetrics_duration_seconds_bucket{span_name=~\".*chat.*|.*complet.*\"}[$__rate_interval])) by (le, gen_ai_system))",
+          "expr": "histogram_quantile(0.95, sum(rate(traces_spanmetrics_latency_bucket{span_name=~\".*chat.*|.*complet.*\"}[$__rate_interval])) by (le, gen_ai_system))",
           "legendFormat": "{{gen_ai_system}}"
         }
       ],
@@ -3769,7 +3769,7 @@
   ],
   "preload": false,
   "refresh": "30s",
-  "schemaVersion": 41,
+  "schemaVersion": 39,
   "tags": [
     "gatewayz",
     "tempo",
