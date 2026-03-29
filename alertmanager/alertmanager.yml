@@ -25,7 +25,7 @@ global:
   smtp_from:          'SMTP_FROM_PLACEHOLDER'
   smtp_auth_username: 'SMTP_USER_PLACEHOLDER'
   smtp_auth_password: 'SMTP_PASSWORD_PLACEHOLDER'
-  smtp_require_tls:   false
+  smtp_require_tls:   true
 
 # ============================================================================
 # Templates

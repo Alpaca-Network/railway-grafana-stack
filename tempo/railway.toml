@@ -1,6 +1,7 @@
 # Railway configuration for Tempo
 [build]
 builder = "dockerfile"
+dockerfilePath = "Dockerfile"
 
 [deploy]
 restartPolicyType = "on_failure"
