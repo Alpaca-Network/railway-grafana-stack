@@ -146,8 +146,7 @@ class TestGrafanaConfiguration:
             "tempo.yml",
             "mimir.yml",
             "pyroscope.yml",
-            "json-api.yml",
-            "alertmanager.yml"
+            "json-api.yml"
         ]
 
         for datasource in required_datasources:
@@ -160,7 +159,7 @@ class TestGrafanaConfiguration:
 
         datasource_files = [
             "prometheus.yml", "loki.yml", "tempo.yml",
-            "mimir.yml", "pyroscope.yml", "json-api.yml", "alertmanager.yml"
+            "mimir.yml", "pyroscope.yml", "json-api.yml"
         ]
 
         for datasource_file in datasource_files:
@@ -170,6 +169,20 @@ class TestGrafanaConfiguration:
 
             assert config is not None, f"{datasource_file} is empty or invalid"
             assert "datasources" in config, f"{datasource_file} missing datasources section"
+
+    def test_alertmanager_datasource_in_consolidated_file(self, repo_root):
+        """Test Alertmanager datasource is defined in the consolidated datasources.yml"""
+        ds_file = repo_root / "grafana" / "datasources" / "datasources.yml"
+        assert ds_file.exists(), "Consolidated datasources.yml not found"
+
+        with open(ds_file) as f:
+            config = yaml.safe_load(f)
+
+        assert config is not None, "datasources.yml is empty"
+        assert "datasources" in config, "datasources.yml missing datasources section"
+
+        uids = [ds.get("uid") for ds in config["datasources"]]
+        assert "alertmanager" in uids, "Alertmanager datasource not found in datasources.yml"
 
     def test_grafana_dashboards_exist(self, repo_root):
         """Test Grafana dashboard files exist"""
