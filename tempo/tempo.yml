@@ -100,7 +100,7 @@ metrics_generator:
       peer_attributes:
         - server.address          # HTTP client spans → named external API nodes (api.openai.com etc.)
         - db.name                 # DB client spans → named database nodes
-      max_items: 10000            # caps graph size to prevent unbounded growth on Railway
+      max_items: 1000             # caps graph size to prevent unbounded growth on Railway
       wait: 10s
     # local_blocks: enables TraceQL metrics queries ({ } | rate(), | sum(), | quantile_over_time())
     # directly against local Parquet blocks WITHOUT going through Mimir.
@@ -108,8 +108,8 @@ metrics_generator:
     # Memory impact: +30–50MB RSS for WAL + block index. Monitor Tempo memory in Railway dashboard.
     # If container memory approaches 450MB, reduce max_live_traces to 5000.
     local_blocks:
-      max_live_traces: 10000         # cap in-memory trace count for local_blocks scanning
-      max_block_bytes: 524288000     # 500MB max per block consumed by this processor
+      max_live_traces: 2000          # cap in-memory trace count for local_blocks scanning
+      max_block_bytes: 104857600     # 100MB max per block — Railway-safe; leaves 400MB headroom (was 500MB → OOMKill)
       max_block_duration: 30m        # how long to keep a block available for TraceQL metric queries
       flush_check_period: 10s
       filter_server_spans: false     # include server spans in TraceQL metrics (needed for AI gateway spans)
@@ -135,7 +135,7 @@ querier:
 query_frontend:
   search:
     duration_slo: 5s
-    concurrent_jobs: 2000
+    concurrent_jobs: 200
   trace_by_id:
     duration_slo: 5s
 
@@ -147,8 +147,8 @@ storage:
     wal:
       path: /var/tempo/wal
     pool:
-      max_workers: 100
-      queue_depth: 10000
+      max_workers: 10
+      queue_depth: 500
     # Block configuration for search
     block:
       # vParquet4 enables efficient TraceQL queries
