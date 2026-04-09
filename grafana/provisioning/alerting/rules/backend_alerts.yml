@@ -165,4 +165,55 @@ groups:
                       - A
                   type: query
               type: threshold
+      # Alert: Event Loop Lag High — Server May Be Frozen
+      # CRITICAL: noDataState=Alerting means a completely silent (frozen) server also fires this alert.
+      # A server with a stuck event loop stops scraping /metrics entirely, so the metric disappears.
+      # This alert fires BOTH when lag is high (early warning) AND when the metric is absent (full freeze).
+      - uid: event_loop_lag_high
+        title: "Event Loop Lag High — Server May Be Frozen"
+        condition: C
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 2m
+        annotations:
+          summary: "Event loop lag > 500ms sustained — server event loop is saturated or frozen"
+          description: >
+            gatewayz_event_loop_lag_seconds exceeded 500ms for 2+ minutes, or the metric has
+            disappeared entirely (server frozen). Root causes: hung streaming provider connection,
+            blocking sync code (time.sleep) in async context, thread pool exhaustion.
+            Action: check active streams in Grafana → Distributed Tracing, verify Redis health,
+            check process memory. If lag > 2s, redeploy the container immediately.
+          runbook_url: 'https://wiki.gatewayz.ai/runbooks/event-loop-lag'
+        labels:
+          severity: critical
+          category: backend
+          component: event_loop
+        data:
+          - refId: A
+            queryType: ''
+            model:
+              datasource:
+                type: prometheus
+                uid: grafana_prometheus
+              expr: 'gatewayz_event_loop_lag_seconds'
+              hide: false
+              intervalFactor: 1
+              legendFormat: 'Event Loop Lag (s)'
+              refId: A
+          - refId: C
+            queryType: ''
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0.5
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+              type: classic_conditions
+
     provenance: Grafana
